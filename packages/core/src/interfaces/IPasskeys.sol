@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.8.17;
+pragma solidity 0.8.19;
 
-import "./Secp256r1.sol";
+import "../library/Secp256r1.sol";
 
 /**
  * a PassKey account should expose its own public key.

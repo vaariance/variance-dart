@@ -1,9 +1,18 @@
 [profile.default]
 src = 'src'
 out = 'out'
-libs = ['lib']
+libs = ['node_modules', 'lib']
 gas_reports = ["*"]
 optimizer = true
 optimizer_runs = 200
-solc_version = "0.8.17"
-via_ir = true
+solc_version = "0.8.19"
+
+remappings = [
+    "@chainlink/contracts/=node_modules/@chainlink/contracts/",
+    "@chainlink/contracts-ccip/=node_modules/@chainlink/contracts-ccip/",
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/"
+]
+
+[rpc_endpoints]
+ethereumSepolia = "${ETHEREUM_SEPOLIA_RPC_URL}"
+optimismGoerli = "${OPTIMISM_GOERLI_RPC_URL}"
