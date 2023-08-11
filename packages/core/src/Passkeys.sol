@@ -4,14 +4,32 @@ pragma solidity 0.8.19;
 import "./utils/Base64.sol";
 import "./interfaces/IPasskeys.sol";
 import "./library/Secp256r1.sol";
-import "./IDRecovery.sol";
+import "./IDRecover.sol";
+import "./library/SafeStorage.sol";
+import "./interfaces/ISafe.sol";
 
-contract PassKeysAccount is IPassKeys, IDRecovery {
+contract PassKeysAccount is SafeStorage, IPassKeys, IDRecover {
+    address public immutable self;
+    address public immutable entryPoint;
+
+    address internal constant SENTINEL_MODULES = address(0x1);
+
+    // other storages
     mapping(bytes32 => PassKeyId) private authorisedKeys;
     bytes32[] private knownKeyHashes;
 
-    constructor(string memory _keyId, uint256 _pubKeyX, uint256 _pubKeyY) {
+    constructor(
+        address _entrypoint,
+        string memory _keyId,
+        uint256 _pubKeyX,
+        uint256 _pubKeyY,
+        IWorldID _worldId,
+        string memory _appId,
+        string memory _actionId
+    ) IDRecover(_worldId, _appId, _actionId) {
         _addPassKey(keccak256(abi.encodePacked(_keyId)), _pubKeyX, _pubKeyY, _keyId);
+        entryPoint = _entrypoint;
+        self = address(this);
     }
 
     /**
@@ -20,7 +38,8 @@ contract PassKeysAccount is IPassKeys, IDRecovery {
      * @param _pubKeyX public key X val from a passkey that will have a full ownership and control of this account.
      * @param _pubKeyY public key X val from a passkey that will have a full ownership and control of this account.
      */
-    function addPassKey(string memory _keyId, uint256 _pubKeyX, uint256 _pubKeyY) external verified {
+    function addPassKey(string memory _keyId, uint256 _pubKeyX, uint256 _pubKeyY) external {
+        // Todo: verify identity
         _addPassKey(keccak256(abi.encodePacked(_keyId)), _pubKeyX, _pubKeyY, _keyId);
     }
 
@@ -39,7 +58,8 @@ contract PassKeysAccount is IPassKeys, IDRecovery {
         return knownKeys;
     }
 
-    function removePassKey(string calldata _keyId) external verified {
+    function removePassKey(string calldata _keyId) external {
+        // Todo: verify identity
         require(knownKeyHashes.length > 1, "Cannot remove the last key");
         bytes32 keyHash = keccak256(abi.encodePacked(_keyId));
         PassKeyId memory passKey = authorisedKeys[keyHash];
@@ -57,32 +77,54 @@ contract PassKeysAccount is IPassKeys, IDRecovery {
         emit PublicKeyRemoved(keyHash, passKey.pubKeyX, passKey.pubKeyY, passKey.keyId);
     }
 
-    function _validateSignature()
-        internal
-        virtual
-        returns (
-            // UserOperation calldata userOp,
-            // bytes32 userOpHash
-            uint256 validationData
-        )
-    {
-        // (
-        //     bytes32 keyHash,
-        //     uint256 sigx,
-        //     uint256 sigy,
-        //     bytes memory authenticatorData,
-        //     string memory clientDataJSONPre,
-        //     string memory clientDataJSONPost
-        // ) = abi.decode(userOp.signature, (bytes32, uint256, uint256, bytes, string, string));
+    function enableMyself() public {
+        require(self != address(this), "You need to DELEGATECALL");
 
-        // string memory opHashBase64 = Base64.encode(bytes.concat(userOpHash));
-        // string memory clientDataJSON = string.concat(clientDataJSONPre, opHashBase64, clientDataJSONPost);
-        // bytes32 clientHash = sha256(bytes(clientDataJSON));
-        // bytes32 sigHash = sha256(bytes.concat(authenticatorData, clientHash));
+        // Module cannot be added twice.
+        require(modules[self] == address(0), "GS102");
+        modules[self] = modules[SENTINEL_MODULES];
+        modules[SENTINEL_MODULES] = self;
+    }
 
-        // PassKeyId memory passKey = authorisedKeys[keyHash];
-        // require(passKey.pubKeyY != 0 && passKey.pubKeyY != 0, "Key not found");
-        // require(Secp256r1.Verify(passKey, sigx, sigy, uint256(sigHash)), "Invalid signature");
+    function validateUserOp(
+        UserOperation calldata userOp,
+        bytes32 userOpHash,
+        uint256 missingAccountFunds
+    ) external returns (uint256 validationData) {
+        _beforeExecTransaction(userOp, userOpHash);
+
+        address payable safeAddress = payable(userOp.sender);
+        ISafe senderSafe = ISafe(safeAddress);
+
+        if (missingAccountFunds != 0) {
+            senderSafe.execTransactionFromModule(entryPoint, missingAccountFunds, "", 0);
+        }
         return 0;
+    }
+
+    function execTransaction(address to, uint256 value, bytes calldata data) external payable {
+        address payable safeAddress = payable(msg.sender);
+        ISafe safe = ISafe(safeAddress);
+        require(safe.execTransactionFromModule(to, value, data, 0), "tx failed");
+    }
+
+    function _beforeExecTransaction(UserOperation calldata userOp, bytes32 userOpHash) internal view {
+        (
+            bytes32 keyHash,
+            uint256 sigx,
+            uint256 sigy,
+            bytes memory authenticatorData,
+            string memory clientDataJSONPre,
+            string memory clientDataJSONPost
+        ) = abi.decode(userOp.signature, (bytes32, uint256, uint256, bytes, string, string));
+
+        string memory opHashBase64 = Base64.encode(bytes.concat(userOpHash));
+        string memory clientDataJSON = string.concat(clientDataJSONPre, opHashBase64, clientDataJSONPost);
+        bytes32 clientHash = sha256(bytes(clientDataJSON));
+        bytes32 sigHash = sha256(bytes.concat(authenticatorData, clientHash));
+
+        PassKeyId memory passKey = authorisedKeys[keyHash];
+        require(passKey.pubKeyY != 0 && passKey.pubKeyY != 0, "Key not found");
+        require(Secp256r1.Verify(passKey, sigx, sigy, uint256(sigHash)), "Invalid signature");
     }
 }
