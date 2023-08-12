@@ -20,16 +20,16 @@ contract PassKeysAccount is SafeStorage, IPassKeys, IDRecover {
 
     constructor(
         address _entrypoint,
-        string memory _keyId,
-        uint256 _pubKeyX,
-        uint256 _pubKeyY,
         IWorldID _worldId,
-        string memory _appId,
-        string memory _actionId
-    ) IDRecover(_worldId, _appId, _actionId) {
-        _addPassKey(keccak256(abi.encodePacked(_keyId)), _pubKeyX, _pubKeyY, _keyId);
+        address entropy,
+        uint256 root,
+        uint256 _nullifierHash,
+        uint256[8] memory proof
+    ) IDRecover(_worldId) {
         entryPoint = _entrypoint;
         self = address(this);
+        // initialize the safe with worldId
+        initialize(entropy, root, _nullifierHash, proof);
     }
 
     /**
@@ -38,8 +38,16 @@ contract PassKeysAccount is SafeStorage, IPassKeys, IDRecover {
      * @param _pubKeyX public key X val from a passkey that will have a full ownership and control of this account.
      * @param _pubKeyY public key X val from a passkey that will have a full ownership and control of this account.
      */
-    function addPassKey(string memory _keyId, uint256 _pubKeyX, uint256 _pubKeyY) external {
-        // Todo: verify identity
+    function addPassKey(
+        string memory _keyId,
+        uint256 _pubKeyX,
+        uint256 _pubKeyY,
+        address entropy,
+        uint256 root,
+        uint256 _nullifierHash,
+        uint256[8] calldata proof
+    ) external {
+        verifyAndContinue(entropy, root, _nullifierHash, proof);
         _addPassKey(keccak256(abi.encodePacked(_keyId)), _pubKeyX, _pubKeyY, _keyId);
     }
 
@@ -58,8 +66,14 @@ contract PassKeysAccount is SafeStorage, IPassKeys, IDRecover {
         return knownKeys;
     }
 
-    function removePassKey(string calldata _keyId) external {
-        // Todo: verify identity
+    function removePassKey(
+        string calldata _keyId,
+        address entropy,
+        uint256 root,
+        uint256 _nullifierHash,
+        uint256[8] calldata proof
+    ) external {
+        verifyAndContinue(entropy, root, _nullifierHash, proof);
         require(knownKeyHashes.length > 1, "Cannot remove the last key");
         bytes32 keyHash = keccak256(abi.encodePacked(_keyId));
         PassKeyId memory passKey = authorisedKeys[keyHash];
