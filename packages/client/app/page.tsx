@@ -4,10 +4,11 @@ import {useSession} from "next-auth/react"
 import Disconnected from "./components/Skeletons/Disconnected"
 import Table from "./components/Skeletons/Table"
 import Overview from "./components/Tabs/Overview"
-import Send from "./components/Tabs/Send"
+import Transfer from "./components/Tabs/Transfer"
 import Transactions from "./components/Tabs/Transactions"
 import {useQuery} from "@tanstack/react-query"
 import {getBalances, getTransactions} from "@client/utils/query"
+import {utils} from "ethers"
 
 export default function Home() {
     const activeTab = useStore(useMageStore, (state) => state.activeTab)
@@ -38,8 +39,21 @@ export default function Home() {
         switch (activeTab) {
             case "transactions":
                 return loading ? <Table /> : <Transactions tx={transactions} />
-            case "send":
-                return loading ? <Table /> : <Send />
+            case "transfer":
+                return loading ? (
+                    <Table />
+                ) : (
+                    <Transfer
+                        balances={balances?.balances?.map((token, i) => {
+                            return {
+                                label: token.symbol,
+                                value: i,
+                                address: token.address,
+                                balance: parseFloat(utils.formatEther(token.balance)),
+                            }
+                        })}
+                    />
+                )
             default:
                 return loading ? <Table /> : <Overview balances={balances?.balances} total={balances?.total} />
         }

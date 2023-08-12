@@ -2,8 +2,8 @@ import {create} from "zustand"
 import {useState, useEffect} from "react"
 
 interface IMageState {
-    activeTab: "overview" | "send" | "transactions"
-    setActiveTab: (activeView: "overview" | "send" | "transactions") => void
+    activeTab: "overview" | "transfer" | "transactions"
+    setActiveTab: (activeView: "overview" | "transfer" | "transactions") => void
 }
 
 export const useMageStore = create<IMageState>()((set) => ({
