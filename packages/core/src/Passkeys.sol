@@ -8,6 +8,11 @@ import "./IDRecover.sol";
 import "./library/SafeStorage.sol";
 import "./interfaces/ISafe.sol";
 
+/// NOTE::::: PLEASE NOTE
+/// the idea is to have the user use their world Id to recover their safe.
+/// i was unable to test the recovery process because,
+/// i was unable to get access to worldcoin dev portal
+/// hence the initialize and verifyAndContinue steps are commented out.
 contract PassKeysAccount is SafeStorage, IPassKeys, IDRecover {
     address public immutable self;
     address public immutable entryPoint;
@@ -29,7 +34,8 @@ contract PassKeysAccount is SafeStorage, IPassKeys, IDRecover {
         entryPoint = _entrypoint;
         self = address(this);
         // initialize the safe with worldId
-        initialize(entropy, root, _nullifierHash, proof);
+        // Todo: get access to worldcoin dev portal
+        // initialize(entropy, root, _nullifierHash, proof);
     }
 
     /**
@@ -47,7 +53,8 @@ contract PassKeysAccount is SafeStorage, IPassKeys, IDRecover {
         uint256 _nullifierHash,
         uint256[8] calldata proof
     ) external {
-        verifyAndContinue(entropy, root, _nullifierHash, proof);
+        // Todo: get access to worldcoin dev portal
+        // verifyAndContinue(entropy, root, _nullifierHash, proof);
         _addPassKey(keccak256(abi.encodePacked(_keyId)), _pubKeyX, _pubKeyY, _keyId);
     }
 
@@ -73,7 +80,8 @@ contract PassKeysAccount is SafeStorage, IPassKeys, IDRecover {
         uint256 _nullifierHash,
         uint256[8] calldata proof
     ) external {
-        verifyAndContinue(entropy, root, _nullifierHash, proof);
+        // Todo: get access to worldcoin dev portal
+        // verifyAndContinue(entropy, root, _nullifierHash, proof);
         require(knownKeyHashes.length > 1, "Cannot remove the last key");
         bytes32 keyHash = keccak256(abi.encodePacked(_keyId));
         PassKeyId memory passKey = authorisedKeys[keyHash];

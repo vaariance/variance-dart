@@ -1,35 +1,20 @@
 "use client"
-import {useEffect, useState} from "react"
 import {useMageStore, useStore} from "@client/store"
-import Connect from "./Connect"
-import Blockies from "react-blockies"
-import {formatAddress} from "@client/utils/address"
+import {useSession, signOut} from "next-auth/react"
 import Image from "next/image"
+import {useState} from "react"
+import Connect from "./Connect"
 
 const Header = () => {
     const [state, setState] = useState(false)
-    const [address, setAddress] = useState("")
     const store = useStore(useMageStore, (state) => state)
+    const {data: session} = useSession()
 
     const submenuNav = [
         {title: "Overview", path: () => store?.setActiveTab("overview")},
         {title: "Send", path: () => store?.setActiveTab("send")},
         {title: "Transactions", path: () => store?.setActiveTab("transactions")},
     ]
-    // const getAddress = async () => {
-    //     if (store?.connected) return await window.arweaveWallet.getActiveAddress()
-    //     return ""
-    // }
-
-    // useEffect(() => {
-    //     getAddress().then((address) => {
-    //         setAddress(address)
-    //     })
-    // }, [store?.connected])
-
-    const logout = async () => {
-        console.log("logout")
-    }
 
     return (
         <header className="text-base lg:text-sm">
@@ -107,43 +92,35 @@ const Header = () => {
                             </div>
                         </form>
 
-                        {store?.connected ? (
+                        {session?.user ? (
                             <ul className="items-center space-y-6 lg:flex lg:space-x-6 lg:space-y-0">
                                 <li>
-                                    <button
-                                        onClick={() => logout()}
+                                    <a
+                                        href={`/api/auth/signout`}
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            signOut()
+                                        }}
                                         className="block w-full text-justify text-gray-600 hover:text-gray-900 border-b py-3 lg:hover:bg-gray-50 lg:p-3"
                                     >
                                         Logout
-                                    </button>
+                                    </a>
                                 </li>
                                 <li className="">
-                                    <button
-                                        className="opacity-80 inline-flex text-gray-600 border-teal-600 hover:text-teal-900 border-b py-3 lg:hover:bg-gray-50 lg:p-3 font-medium"
-                                        onClick={() => navigator.clipboard.writeText(address)}
-                                    >
-                                        {formatAddress(address)}
-                                        <span>
-                                            <svg
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="1.5"
-                                                viewBox="0 0 24 24"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                aria-hidden="true"
-                                                className="w-5 h-5 text-gray-600 hover:text-gray-900 pl-2"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z"
-                                                ></path>
-                                            </svg>
-                                        </span>
+                                    <button className="opacity-80 inline-flex text-gray-600 border-teal-600 hover:text-teal-900 border-b py-3 lg:hover:bg-gray-50 lg:p-3 font-medium">
+                                        {session.user.email ?? session.user.name}
                                     </button>
                                 </li>
                                 <li className="hidden w-10 h-10 outline-none rounded-full ring-offset-2 ring-gray-200 lg:focus:ring-2 lg:block">
-                                    <Blockies seed={address} size={10} scale={3} className="rounded-full" />
+                                    {session.user.image && (
+                                        <Image
+                                            src={session.user.image}
+                                            width={20}
+                                            height={20}
+                                            alt="user image"
+                                            className="rounded-full"
+                                        />
+                                    )}
                                 </li>
                             </ul>
                         ) : (
