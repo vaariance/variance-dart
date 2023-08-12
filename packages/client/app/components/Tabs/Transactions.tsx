@@ -42,7 +42,11 @@ const Transactions = ({tx}: {tx?: ITransaction[]}) => {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     {parseFloat(utils.formatEther(item.fees)).toFixed(5)} ETH
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">${item.quote.toFixed(3)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <span className="bg-blue-100 text-blue-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded">
+                                        ${item.quote.toFixed(3)}
+                                    </span>
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap">{item.tx_date}</td>
                             </tr>
                         ))}

@@ -54,7 +54,7 @@ const Overview = ({balances, total}: IBalanceT) => {
                         </button>
                     </div>
                     <Modal state={openConnectModal} setState={setOpenConnectModal}>
-                        <div className="h-auto m-auto max-w-xs w-full rounded-2xl">
+                        <div className="h-auto pt-5 pb-12 m-auto max-w-xs w-full rounded-2xl">
                             <QRCode
                                 size={256}
                                 style={{height: "auto", maxWidth: "100%", width: "100%"}}
@@ -64,7 +64,7 @@ const Overview = ({balances, total}: IBalanceT) => {
                         </div>
                     </Modal>
                     <button
-                        className="text-white hover:text-gray-600 text-sm border rounded-lg p-1 duration-150 hover:bg-gray-200"
+                        className="hover:text-white text-gray-600 text-sm border rounded-lg p-1 duration-150 bg-gray-200 hover:bg-transparent"
                         onClick={() => setOpenConnectModal(true)}
                     >
                         <svg

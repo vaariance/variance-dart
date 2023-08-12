@@ -70,10 +70,27 @@ export const getTransactions = async (address: string) => {
             .catch((err) => console.log(err))
 
         const formattedData: ITransaction[] = data.slice(0, 20).reduce((acc: ITransaction[], item: any) => {
-            const txDate = new Date(item.block_signed_at)
-            const formattedTxDate = `${txDate.getDate()}/${
-                txDate.getMonth() + 1
-            }/${txDate.getFullYear()} ${txDate.getHours()}:${txDate.getMinutes()}`
+            const txDate = new Date(item.block_signed_at).getTime() // Convert to milliseconds since epoch
+            const now = new Date().getTime()
+            const timeDifference = now - txDate
+
+            let formattedTxDate
+
+            if (timeDifference >= 2592000000) {
+                const monthsAgo = Math.floor(timeDifference / 2592000000)
+                formattedTxDate = `${monthsAgo} ${monthsAgo === 1 ? "month" : "months"} ago`
+            } else if (timeDifference >= 86400000) {
+                const daysAgo = Math.floor(timeDifference / 86400000)
+                formattedTxDate = `${daysAgo} ${daysAgo === 1 ? "day" : "days"} ago`
+            } else if (timeDifference >= 3600000) {
+                const hoursAgo = Math.floor(timeDifference / 3600000)
+                formattedTxDate = `${hoursAgo} ${hoursAgo === 1 ? "hour" : "hours"} ago`
+            } else if (timeDifference >= 60000) {
+                const minutesAgo = Math.floor(timeDifference / 60000)
+                formattedTxDate = `${minutesAgo} ${minutesAgo === 1 ? "minute" : "minutes"} ago`
+            } else {
+                formattedTxDate = "Just now"
+            }
 
             acc.push({
                 tx_date: formattedTxDate,
