@@ -1,8 +1,10 @@
 import React from "react"
 import {formatAddress} from "@client/utils/address"
 import Empty from "../Skeletons/Empty"
+import {ITransaction} from "@client/utils/query"
+import {utils} from "ethers"
 
-const Transactions = ({tx}: {tx?: any[]}) => {
+const Transactions = ({tx}: {tx?: ITransaction[]}) => {
     if (tx?.length === 0) {
         return <Empty />
     }
@@ -15,33 +17,33 @@ const Transactions = ({tx}: {tx?: any[]}) => {
                 <table className="w-full table-auto text-sm text-left">
                     <thead className="bg-gray-50 text-gray-600 font-medium border-b">
                         <tr>
-                            <th className="py-3 px-6">Address</th>
-                            <th className="py-3 px-6">txId</th>
-                            <th className="py-3 px-6">Url</th>
-                            <th className="py-3 px-6">Type</th>
-                            <th className="py-3 px-6">Cost</th>
+                            <th className="py-3 px-6">Hash</th>
+                            <th className="py-3 px-6">From</th>
+                            <th className="py-3 px-6">To</th>
+                            <th className="py-3 px-6">Fees</th>
+                            <th className="py-3 px-6"></th>
+                            <th className="py-3 px-6">Date</th>
                         </tr>
                     </thead>
                     <tbody className="text-gray-600 divide-y">
                         {tx?.map((item, idx) => (
                             <tr key={idx}>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    {formatAddress(item?.node?.owner?.address)}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">{formatAddress(item?.node?.id)}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">
                                     <a
-                                        href={`https://viewblock.io/arweave/tx/${item?.node?.id}`}
+                                        href={`https://goerli-optimism.etherscan.io/tx/${item.tx_hash}`}
                                         target="_blank"
                                         className="text-blue-500 underline"
                                     >
-                                        link
+                                        {formatAddress(item.tx_hash)}
                                     </a>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">{item?.node?.data?.type.split("/")[0]}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{formatAddress(item.from)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{formatAddress(item.to)}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    {parseFloat(item?.node?.fee?.ar).toFixed(7)} AR
+                                    {parseFloat(utils.formatEther(item.fees)).toFixed(5)} ETH
                                 </td>
+                                <td className="px-6 py-4 whitespace-nowrap">${item.quote.toFixed(3)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{item.tx_date}</td>
                             </tr>
                         ))}
                     </tbody>

@@ -9,11 +9,9 @@ import "./library/SafeStorage.sol";
 import "./interfaces/ISafe.sol";
 
 /// NOTE::::: PLEASE NOTE
-/// the idea is to have the user use their world Id to recover their safe.
-/// i was unable to test the recovery process because,
-/// i was unable to get access to worldcoin dev portal
-/// hence the initialize and verifyAndContinue steps are commented out.
-contract PassKeysAccount is SafeStorage, IPassKeys, IDRecover {
+/// this is a proof of concept. adding and removing passkeys is disabled
+
+contract PassKeysAccount is SafeStorage, IPassKeys {
     address public immutable self;
     address public immutable entryPoint;
 
@@ -23,19 +21,10 @@ contract PassKeysAccount is SafeStorage, IPassKeys, IDRecover {
     mapping(bytes32 => PassKeyId) private authorisedKeys;
     bytes32[] private knownKeyHashes;
 
-    constructor(
-        address _entrypoint,
-        IWorldID _worldId,
-        address entropy,
-        uint256 root,
-        uint256 _nullifierHash,
-        uint256[8] memory proof
-    ) IDRecover(_worldId) {
+    constructor(address _entrypoint, string memory _keyId, uint256 _pubKeyX, uint256 _pubKeyY) {
         entryPoint = _entrypoint;
         self = address(this);
-        // initialize the safe with worldId
-        // Todo: get access to worldcoin dev portal
-        // initialize(entropy, root, _nullifierHash, proof);
+        _addPassKey(keccak256(abi.encodePacked(_keyId)), _pubKeyX, _pubKeyY, _keyId);
     }
 
     /**
@@ -44,21 +33,12 @@ contract PassKeysAccount is SafeStorage, IPassKeys, IDRecover {
      * @param _pubKeyX public key X val from a passkey that will have a full ownership and control of this account.
      * @param _pubKeyY public key X val from a passkey that will have a full ownership and control of this account.
      */
-    function addPassKey(
-        string memory _keyId,
-        uint256 _pubKeyX,
-        uint256 _pubKeyY,
-        address entropy,
-        uint256 root,
-        uint256 _nullifierHash,
-        uint256[8] calldata proof
-    ) external {
-        // Todo: get access to worldcoin dev portal
-        // verifyAndContinue(entropy, root, _nullifierHash, proof);
+    function addPassKey(string memory _keyId, uint256 _pubKeyX, uint256 _pubKeyY) external {
         _addPassKey(keccak256(abi.encodePacked(_keyId)), _pubKeyX, _pubKeyY, _keyId);
     }
 
     function _addPassKey(bytes32 _keyHash, uint256 _pubKeyX, uint256 _pubKeyY, string memory _keyId) internal {
+        require(false == true, "disabled");
         emit PublicKeyAdded(_keyHash, _pubKeyX, _pubKeyY, _keyId);
         authorisedKeys[_keyHash] = PassKeyId(_pubKeyX, _pubKeyY, _keyId);
         knownKeyHashes.push(_keyHash);
@@ -73,15 +53,8 @@ contract PassKeysAccount is SafeStorage, IPassKeys, IDRecover {
         return knownKeys;
     }
 
-    function removePassKey(
-        string calldata _keyId,
-        address entropy,
-        uint256 root,
-        uint256 _nullifierHash,
-        uint256[8] calldata proof
-    ) external {
-        // Todo: get access to worldcoin dev portal
-        // verifyAndContinue(entropy, root, _nullifierHash, proof);
+    function removePassKey(string calldata _keyId) external {
+        require(false == true, "disabled");
         require(knownKeyHashes.length > 1, "Cannot remove the last key");
         bytes32 keyHash = keccak256(abi.encodePacked(_keyId));
         PassKeyId memory passKey = authorisedKeys[keyHash];
