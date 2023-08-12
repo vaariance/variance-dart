@@ -12,6 +12,12 @@ export interface IBalance {
     balance: number
     quote_rate: number
     quote: number
+    native: boolean
+}
+
+export interface IBalanceT {
+    balances?: IBalance[]
+    total?: number
 }
 
 export const getBalances = async (address: string) => {
@@ -23,23 +29,27 @@ export const getBalances = async (address: string) => {
             })
             .catch((err) => console.log(err))
 
-        const formattedData: IBalance[] = data.slice(0, 20).reduce((acc: IBalance[], item: any) => {
-            acc.push({
-                decimals: item.contract_decimals,
-                name: item.contract_name,
-                symbol: item.contract_ticker_symbol,
-                address: item.contract_address,
-                logo: item.logo_url,
-                balance: item.balance,
-                quote_rate: item.quote_rate,
-                quote: item.quote,
-            })
-            return acc
-        }, [] as IBalance[])
-        console.log(formattedData)
+        const formattedData: IBalanceT = data.slice(0, 20).reduce(
+            (acc: {balances: IBalance[]; total: number}, item: any) => {
+                acc.balances.push({
+                    decimals: item.contract_decimals,
+                    name: item.contract_name,
+                    symbol: item.contract_ticker_symbol,
+                    address: item.contract_address,
+                    logo: item.logo_url,
+                    balance: item.balance,
+                    quote_rate: item.quote_rate,
+                    quote: item.quote,
+                    native: item.native_token,
+                })
+                acc.total += item.quote
+                return acc
+            },
+            {balances: [], total: 0} as IBalanceT
+        )
         return formattedData
     } catch (error) {
-        return []
+        return {balances: [], total: 0}
     }
 }
 

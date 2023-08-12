@@ -21,7 +21,7 @@ export default function Home() {
         isSuccess: bSuccess,
     } = useQuery({
         queryKey: ["balances"],
-        queryFn: async () => await getBalances("0x104EDD9708fFeeCd0b6bAaA37387E155Bce7d060"),
+        queryFn: () => getBalances("0x104EDD9708fFeeCd0b6bAaA37387E155Bce7d060"),
     })
 
     const {
@@ -31,7 +31,7 @@ export default function Home() {
         isSuccess: tSuccess,
     } = useQuery({
         queryKey: ["transactions"],
-        queryFn: async () => await getTransactions("0x104EDD9708fFeeCd0b6bAaA37387E155Bce7d060"),
+        queryFn: () => getTransactions("0x104EDD9708fFeeCd0b6bAaA37387E155Bce7d060"),
     })
 
     const renderActiveTab = () => {
@@ -41,7 +41,7 @@ export default function Home() {
             case "send":
                 return loading ? <Table /> : <Send />
             default:
-                return loading ? <Table /> : <Overview accounts={balances} />
+                return loading ? <Table /> : <Overview balances={balances?.balances} total={balances?.total} />
         }
     }
 
