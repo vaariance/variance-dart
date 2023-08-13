@@ -9,7 +9,7 @@ import "./interfaces/IGnosisSafe.sol";
 /// NOTE::::: PLEASE NOTE
 /// this is a proof of concept. adding and removing passkeys is disabled
 
-contract PassKeysAccount is IPassKeys {
+contract PassKeysModule is IPassKeys {
     string public constant NAME = "Passkeys Module";
     string public constant VERSION = "0.1.0";
 

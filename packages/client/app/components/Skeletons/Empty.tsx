@@ -9,7 +9,7 @@ const Empty = () => {
                 <div className="max-w-md m-auto text-center">
                     <Image className="m-auto" src="/empty.jpeg" alt="" width={75} height={75} />
                     <h2 className="font-heading mb-3 text-2xl font-semibold">It&rsquo;s a bit empty here</h2>
-                    <p className="mb-7 text-neutral-500">Click on the Button below to create your Safe Wallet.</p>
+                    <p className="mb-7 text-neutral-500">You have not sent any transactions yet.</p>
                     <button
                         className="inline-flex items-center gap-2 px-4 py-2 text-indigo-600 bg-indigo-50 rounded-lg duration-150 hover:bg-indigo-100 active:bg-indigo-200"
                         onClick={() => state?.setActiveTab("overview")}
@@ -26,7 +26,7 @@ const Empty = () => {
                                 clipRule="evenodd"
                             />
                         </svg>
-                        Create Safe
+                        Got To Safe
                     </button>
                 </div>
             </div>

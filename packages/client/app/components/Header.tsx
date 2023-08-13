@@ -96,7 +96,8 @@ const Header = () => {
                                 </li>
                             </ul>
                         ) : (
-                            <Connect />
+                            // <Connect />
+                            <></>
                         )}
                     </ul>
                 </div>

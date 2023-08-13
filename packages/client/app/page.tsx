@@ -11,7 +11,7 @@ import {getBalances, getTransactions} from "@client/utils/query"
 import {utils} from "ethers"
 
 export default function Home() {
-    const activeTab = useStore(useMageStore, (state) => state.activeTab)
+    const store = useStore(useMageStore, (state) => state)
     const {data: session, status} = useSession()
     const loading = status === "loading"
 
@@ -22,7 +22,7 @@ export default function Home() {
         isSuccess: bSuccess,
     } = useQuery({
         queryKey: ["balances"],
-        queryFn: () => getBalances("0x104EDD9708fFeeCd0b6bAaA37387E155Bce7d060"),
+        queryFn: () => getBalances(store?.safe),
     })
 
     const {
@@ -32,15 +32,15 @@ export default function Home() {
         isSuccess: tSuccess,
     } = useQuery({
         queryKey: ["transactions"],
-        queryFn: () => getTransactions("0x104EDD9708fFeeCd0b6bAaA37387E155Bce7d060"),
+        queryFn: () => getTransactions(store?.safe),
     })
 
     const renderActiveTab = () => {
-        switch (activeTab) {
+        switch (store?.activeTab) {
             case "transactions":
-                return loading ? <Table /> : <Transactions tx={transactions} />
+                return loading || tFetching ? <Table /> : <Transactions tx={transactions} />
             default:
-                return loading ? (
+                return loading || bFetching ? (
                     <Table />
                 ) : (
                     <Overview balances={balances?.balances} total={balances?.total}>
@@ -59,6 +59,6 @@ export default function Home() {
         }
     }
 
-    // if (!session && !loading) return <Disconnected />
+    if (!store?.connected) return <Disconnected />
     return <div className="h-[75vh]">{renderActiveTab()}</div>
 }
