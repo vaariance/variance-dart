@@ -59,6 +59,6 @@ export default function Home() {
         }
     }
 
-    if (!store?.connected) return <Disconnected />
+    if (!store?.connected && !loading) return <Disconnected />
     return <div className="h-[75vh]">{renderActiveTab()}</div>
 }

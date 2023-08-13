@@ -2,9 +2,10 @@ import {utils} from "@passwordless-id/webauthn"
 import SafeApiKit from "@safe-global/api-kit"
 import Safe, {EthersAdapter, SafeAccountConfig, SafeFactory} from "@safe-global/protocol-kit"
 import {ethers} from "ethers"
-import {PassKeyKeyPair, WebAuthnWrapper} from "../lib/webauthn"
+import {PassKeyKeyPair, PassKeySignature, WebAuthnWrapper} from "../lib/webauthn"
 import ccipSenderAbi from "./abis/ccip.json"
 import passkeysAbi from "./abis/passkeys.json"
+import tokenAbi from "./abis/transfer.json"
 
 class BaseSafeService {
     baseProvider: ethers.providers.JsonRpcProvider
@@ -49,12 +50,14 @@ class PassKeyService extends OpSafeService {
     private client: WebAuthnWrapper
     passkeysAbi: any
     ccipSenderAbi: any
+    tokenAbi: any
 
     constructor() {
         super()
         this.client = new WebAuthnWrapper()
         this.passkeysAbi = passkeysAbi
         this.ccipSenderAbi = ccipSenderAbi
+        this.tokenAbi = tokenAbi
     }
 
     static getOrCreateService(): PassKeyService {
@@ -73,17 +76,27 @@ class PassKeyService extends OpSafeService {
         return await this.client.registerPassKey(utils.randomChallenge(), username)
     }
 
-    async sign(execHash: string, passKeyPair: PassKeyKeyPair) {
-        return await passKeyPair.signChallenge(execHash)
+    async sign(execHash: string, pkp: PassKeyKeyPair) {
+        const _pkp = new PassKeyKeyPair(
+            pkp.keyId,
+            pkp.pubKeyX,
+            pkp.pubKeyY,
+            this.client,
+            pkp.name,
+            pkp.aaguid,
+            pkp.manufacturer,
+            pkp.regTime
+        )
+        return await _pkp.signChallenge(execHash)
     }
 
     // returns the exec hash from the passkeys module
     async getExecHash(passKeysModuleAddress: string, safe: string, to: string, value = 0) {
         const wallet = new ethers.Wallet(this.wallet, this.baseProvider)
         const contract = new ethers.Contract(passKeysModuleAddress, this.passkeysAbi.abi, wallet)
-
-        const tx = contract.generateExecHash(safe, to, value, wallet.getTransactionCount())
-        return tx
+        const nonce = await wallet.getTransactionCount()
+        const tx = await contract.generateExecHash(safe, to, value, nonce)
+        return {tx, nonce}
     }
 
     // deploys a safe
@@ -168,11 +181,57 @@ class PassKeyService extends OpSafeService {
         return contract.address
     }
 
-    // encodes the call args to be sent to the safe
-    async encodeCallArgs() {}
+    // encodes the call args to be sent to the module
+    encodeCallArgs(tokenAddress: string, recipientAddress: string, amount: string) {
+        const tokenContract = new ethers.Contract(tokenAddress, tokenAbi)
+
+        const transferData = tokenContract.interface.encodeFunctionData("transfer", [
+            recipientAddress,
+            ethers.utils.parseEther(amount),
+        ])
+
+        return transferData
+    }
+
+    encodeSignature(signature: PassKeySignature) {
+        const encodedData = ethers.utils.defaultAbiCoder.encode(
+            ["uint256", "uint256", "uint256", "bytes", "string", "string"],
+            [
+                signature.id,
+                signature.r,
+                signature.s,
+                signature.authData,
+                signature.clientDataPrefix,
+                signature.clientDataSuffix,
+            ]
+        )
+        return encodedData
+    }
 
     // executes a transaction from a safe module
-    async executeFromModule() {}
+    async executeFromModule(
+        passkeysModule: string,
+        safe: string,
+        tokenAddress: string,
+        nonce: number,
+        calldata: string,
+        signature: PassKeySignature,
+        network: "base" | "op"
+    ) {
+        const wallet = new ethers.Wallet(this.wallet, network === "base" ? this.baseProvider : this.opProvider)
+        const contract = new ethers.Contract(passkeysModule, this.passkeysAbi.abi, wallet)
+
+        const tx = await contract.executeWithPasskeys(
+            safe,
+            tokenAddress,
+            0,
+            nonce,
+            calldata,
+            this.encodeSignature(signature)
+        )
+        await tx.wait()
+        return tx.hash
+    }
 
     // sends a ccip transaction from safe
     async ccipSend() {

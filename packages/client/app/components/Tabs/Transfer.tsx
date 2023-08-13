@@ -1,6 +1,9 @@
-import {useForm, Controller, SubmitHandler} from "react-hook-form"
-import {IBalance} from "@client/utils/query"
+import passKeyService from "@client/services/passkeyservice"
+import {useMageStore, useStore} from "@client/store"
+import {Controller, SubmitHandler, useForm} from "react-hook-form"
 import Select from "react-select"
+import {useState} from "react"
+import {renderSpiner} from "../Skeletons/Disconnected"
 
 type FormData = {
     destinationChain: string
@@ -10,13 +13,16 @@ type FormData = {
 }
 
 const allowedDestinations = [
-    {label: "Optimism Goerli", value: "2664363617261496610"},
-    {label: "Ethereum Sepolia", value: "16015286601757825753"},
-    {label: "Arbitrum Goerli", value: "6101244977088475029"},
-    {label: "Avalanche Fuji", value: "14767482510784806043"},
+    {label: "Base Goerli", value: "default"},
+    // {label: "Optimism Goerli", value: "2664363617261496610"},
+    // {label: "Ethereum Sepolia", value: "16015286601757825753"},
+    // {label: "Arbitrum Goerli", value: "6101244977088475029"},
+    // {label: "Avalanche Fuji", value: "14767482510784806043"},
 ]
 
 const Transfer = ({balances}: {balances?: {label: string; value: number; balance: number; address: string}[]}) => {
+    const [loading, setLoading] = useState(false)
+    const store = useStore(useMageStore, (state) => state)
     const {
         register,
         handleSubmit,
@@ -27,12 +33,38 @@ const Transfer = ({balances}: {balances?: {label: string; value: number; balance
 
     const selectedToken = watch("token")
 
-    const onSubmit: SubmitHandler<FormData> = (data) => {
+    const onSubmit: SubmitHandler<FormData> = async (data) => {
         data = {
             ...data,
             token: balances?.[data.token as number].address!,
         }
-        console.log("Transfer data:", data)
+        setLoading(true)
+
+        // first get the execHash
+        const {tx: execHash, nonce} = await passKeyService.getExecHash(
+            store?.passKeysModule!,
+            store?.safe!,
+            data.token.toString()
+        )
+        console.log("ExecHash:", execHash)
+        // sign Hash with passkeys
+        const signatures = await passKeyService.sign(execHash, store?.passKeysPair!)
+        console.log("Signatures:", signatures)
+        // get encoded transaction
+        const calldata = passKeyService.encodeCallArgs(data.token as string, data.recipient, data.amount.toString())
+        console.log("Calldata:", calldata)
+        // send transaction
+        const tx = await passKeyService.executeFromModule(
+            store?.passKeysModule!,
+            store?.safe!,
+            data.token.toString(),
+            nonce,
+            calldata,
+            signatures,
+            "base"
+        )
+        console.log("Transfer successfull:", tx)
+        setLoading(false)
     }
 
     return (
@@ -112,6 +144,7 @@ const Transfer = ({balances}: {balances?: {label: string; value: number; balance
                         <span className="h-6 text-gray-400 absolute left-3 inset-y-0 my-auto">&#x24;</span>
                         <input
                             type="number"
+                            step={0.000000001}
                             placeholder="0.00"
                             className="w-full pl-8 py-2 appearance-none bg-transparent outline-none border focus:border-teal-600 shadow-sm rounded-lg"
                             {...register("amount", {
@@ -126,21 +159,25 @@ const Transfer = ({balances}: {balances?: {label: string; value: number; balance
                         {errors.amount && <p className="text-red-400">{errors.amount.message}</p>}
                     </div>
                 </div>
-                <button
-                    type="submit"
-                    className="flex items-center gap-2 px-5 py-3 text-teal-600 duration-150 bg-teal-50 rounded-lg hover:bg-teal-100 active:bg-teal-200 w-full max-w-xs justify-center"
-                >
-                    <svg
-                        className="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg"
-                        aria-hidden="true"
+                {loading ? (
+                    renderSpiner()
+                ) : (
+                    <button
+                        type="submit"
+                        className="flex items-center gap-2 px-5 py-3 text-teal-600 duration-150 bg-teal-50 rounded-lg hover:bg-teal-100 active:bg-teal-200 w-full max-w-xs justify-center"
                     >
-                        <path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" />
-                    </svg>
-                    Send
-                </button>
+                        <svg
+                            className="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                        >
+                            <path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" />
+                        </svg>
+                        Send
+                    </button>
+                )}
             </form>
         </div>
     )

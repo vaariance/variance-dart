@@ -24,7 +24,7 @@ const Header = () => {
             >
                 <div className="flex items-center justify-between py-3 lg:py-5 lg:block">
                     <a href="/app">
-                        <Image src="/arMage.png" width={35} height={35} alt="arMage logo" />
+                        <Image src="/idw-poc.png" width={45} height={45} alt="arMage logo" />
                     </a>
                     <div className="lg:hidden">
                         <button className="text-gray-500 hover:text-gray-800" onClick={() => setState(!state)}>

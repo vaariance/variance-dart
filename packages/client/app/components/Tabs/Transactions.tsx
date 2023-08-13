@@ -30,7 +30,7 @@ const Transactions = ({tx}: {tx?: ITransaction[]}) => {
                             <tr key={idx}>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <a
-                                        href={`https://goerli-optimism.etherscan.io/tx/${item.tx_hash}`}
+                                        href={`https://goerli.basescan.org/tx/${item.tx_hash}`}
                                         target="_blank"
                                         className="text-teal-700 underline"
                                     >

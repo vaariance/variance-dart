@@ -11,7 +11,7 @@ const Empty = () => {
                     <h2 className="font-heading mb-3 text-2xl font-semibold">It&rsquo;s a bit empty here</h2>
                     <p className="mb-7 text-neutral-500">You have not sent any transactions yet.</p>
                     <button
-                        className="inline-flex items-center gap-2 px-4 py-2 text-indigo-600 bg-indigo-50 rounded-lg duration-150 hover:bg-indigo-100 active:bg-indigo-200"
+                        className="inline-flex items-center gap-2 px-4 py-2 text-indigo-600 bg-indigo-50 rounded-lg duration-150 hover:bg-indigo-100 active:bg-indigo-200 font-semibold"
                         onClick={() => state?.setActiveTab("overview")}
                     >
                         <svg
@@ -26,7 +26,7 @@ const Empty = () => {
                                 clipRule="evenodd"
                             />
                         </svg>
-                        Got To Safe
+                        Go To Safe
                     </button>
                 </div>
             </div>
