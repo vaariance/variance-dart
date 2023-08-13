@@ -1,17 +1,17 @@
 "use client"
-import {IBalanceT} from "@client/utils/query"
-import Empty from "../Skeletons/Empty"
+import {useMageStore, useStore} from "@client/store"
 import {formatAddress} from "@client/utils/address"
-import Image from "next/image"
+import {IBalanceT} from "@client/utils/query"
 import {utils} from "ethers"
-import Modal from "../Modal"
 import {PropsWithChildren, useState} from "react"
 import QRCode from "react-qr-code"
-import Transfer from "./Transfer"
+import Modal from "../Modal"
 
 const Overview = ({balances, total, children}: PropsWithChildren<IBalanceT>) => {
     const [openConnectModal, setOpenConnectModal] = useState(false)
     const [broken, setBroken] = useState<{[key: string]: string}>({})
+
+    const safe = useStore(useMageStore, (state) => state.safe)
 
     return (
         <div className="max-w-screen-xl mx-auto p-10 grid grid-cols-1 md:grid-cols-3 gap-5 ">
@@ -35,9 +35,9 @@ const Overview = ({balances, total, children}: PropsWithChildren<IBalanceT>) => 
                             <h4 className="text-gray-800 font-bold text-3xl">${total?.toFixed(4)}</h4>
                             <button
                                 className="text-gray-600 font-semibold inline-flex items-center"
-                                onClick={() => navigator.clipboard.writeText(balances?.[0].address || "")}
+                                onClick={() => navigator.clipboard.writeText(safe || "")}
                             >
-                                {formatAddress(balances?.[0].address || "")}
+                                {formatAddress(safe || "")}
                                 <span>
                                     <svg
                                         fill="currentColor"
@@ -57,7 +57,7 @@ const Overview = ({balances, total, children}: PropsWithChildren<IBalanceT>) => 
                                 <QRCode
                                     size={256}
                                     style={{height: "auto", maxWidth: "100%", width: "100%"}}
-                                    value={balances?.[0].address || "random extropy"}
+                                    value={safe || "random extropy"}
                                     viewBox={`0 0 256 256`}
                                 />
                             </div>

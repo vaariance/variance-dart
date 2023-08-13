@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const BASE_URL = "https://api.covalenthq.com/v1/eth-mainnet/address/"
+const BASE_URL = "https://api.covalenthq.com/v1/base-testnet/address/"
 const CKEY = process.env.NEXT_PUBLIC_CKEY || ""
 
 export interface IBalance {

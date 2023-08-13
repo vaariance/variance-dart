@@ -118,33 +118,42 @@ class PassKeyService extends OpSafeService {
     }
 
     // deploys the passkeys module
-    async deployModule(passkey: PassKeyKeyPair) {
-        const factory = new ethers.ContractFactory(
-            [], // ABI, not needed for constructor
-            this.passkeysAbi.bytecode,
-            new ethers.Wallet(this.wallet, this.baseProvider)
-        )
-        const contract = await factory.deploy(passkey.keyId, passkey.pubKeyX, passkey.pubKeyY)
-        await contract.deployed()
-        return contract.address
+    async deployModule(passkey?: PassKeyKeyPair) {
+        try {
+            const factory = new ethers.ContractFactory(
+                this.passkeysAbi.abi,
+                this.passkeysAbi.bytecode,
+                new ethers.Wallet(this.wallet, this.baseProvider)
+            )
+            const contract = await factory.deploy(passkey?.keyId, passkey?.pubKeyX, passkey?.pubKeyY)
+            await contract.deployed()
+            return contract.address
+        } catch (error) {
+            console.log(error)
+            return
+        }
     }
 
     // needs to manually enable the module on the safe
     async enableModule(safeAddress: string, moduleAddress: string, network: "base" | "op") {
-        const safeSdk = await Safe.create({
-            ethAdapter: network === "base" ? this.baseAdapter : this.opAdapter,
-            safeAddress,
-        })
-        const safeTransaction = await safeSdk.createEnableModuleTx(moduleAddress)
-        const txResponse = await safeSdk.executeTransaction(safeTransaction)
-        await txResponse.transactionResponse?.wait()
-        return txResponse
+        try {
+            const safeSdk = await Safe.create({
+                ethAdapter: network === "base" ? this.baseAdapter : this.opAdapter,
+                safeAddress,
+            })
+            const safeTransaction = await safeSdk.createEnableModuleTx(moduleAddress)
+            const txResponse = await safeSdk.executeTransaction(safeTransaction)
+            await txResponse.transactionResponse?.wait()
+            return txResponse
+        } catch (error) {
+            return
+        }
     }
 
     // deploys the ccip sender
     async deployCCIPSender(safeAddress: string) {
         const factory = new ethers.ContractFactory(
-            [], // ABI, not needed for constructor
+            this.ccipSenderAbi.abi,
             this.ccipSenderAbi.bytecode,
             new ethers.Wallet(this.wallet, this.opProvider)
         )
