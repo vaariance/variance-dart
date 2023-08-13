@@ -20,7 +20,7 @@ export interface IBalanceT {
     total?: number
 }
 
-export const getBalances = async (address: string) => {
+export const getBalances = async (address?: string) => {
     try {
         const data = await axios
             .get(`${BASE_URL}${address}/balances_v2/?key=${CKEY}&no-nft-fetch=true&no-spam=true`)
@@ -62,7 +62,7 @@ export interface ITransaction {
     quote: number
 }
 
-export const getTransactions = async (address: string) => {
+export const getTransactions = async (address?: string) => {
     try {
         const data = await axios
             .get(`${BASE_URL}${address}/transactions_v3/page/0/?key=${CKEY}&no-logs=true`)
