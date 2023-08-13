@@ -12,7 +12,6 @@ const Header = () => {
 
     const submenuNav = [
         {title: "Overview", path: () => store?.setActiveTab("overview")},
-        {title: "Transfer", path: () => store?.setActiveTab("transfer")},
         {title: "Transactions", path: () => store?.setActiveTab("transactions")},
     ]
 

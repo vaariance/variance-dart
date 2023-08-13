@@ -39,23 +39,23 @@ export default function Home() {
         switch (activeTab) {
             case "transactions":
                 return loading ? <Table /> : <Transactions tx={transactions} />
-            case "transfer":
+            default:
                 return loading ? (
                     <Table />
                 ) : (
-                    <Transfer
-                        balances={balances?.balances?.map((token, i) => {
-                            return {
-                                label: token.symbol,
-                                value: i,
-                                address: token.address,
-                                balance: parseFloat(utils.formatEther(token.balance)),
-                            }
-                        })}
-                    />
+                    <Overview balances={balances?.balances} total={balances?.total}>
+                        <Transfer
+                            balances={balances?.balances?.map((token, i) => {
+                                return {
+                                    label: token.symbol,
+                                    value: i,
+                                    address: token.address,
+                                    balance: parseFloat(utils.formatEther(token.balance)),
+                                }
+                            })}
+                        />
+                    </Overview>
                 )
-            default:
-                return loading ? <Table /> : <Overview balances={balances?.balances} total={balances?.total} />
         }
     }
 
