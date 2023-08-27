@@ -82,7 +82,10 @@ const Overview = ({balances, total, children}: PropsWithChildren<IBalanceT>) => 
                         </button>
                     </div>
                     <div className="py-5 px-4 border-t text-right">
-                        <a href="#" className="text-teal-800 hover:text-teal-700 text-sm font-medium underline">
+                        <a
+                            href={`https://goerli.basescan.org/address/${safe}`}
+                            className="text-teal-800 hover:text-teal-700 text-sm font-medium underline"
+                        >
                             View on block explorer
                         </a>
                     </div>

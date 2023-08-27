@@ -1,5 +1,11 @@
 # foundry-package-template
 
+🍀 ETHGlobal superhack
+
+🥇 first place - best account abstraction on [base](Https://base.org)
+
+🥉 third place - best use of [Safe](Https://safe.global)
+
 ## Safe compliant passkeys implementation
 
 identity wallet is a passkeys safe module that allows users to execute transactions with their passkeys, eliminating the need to worry about private keys or managing private keys.
