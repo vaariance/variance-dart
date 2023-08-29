@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:asn1lib/asn1lib.dart';
-import 'package:crypto/crypto.dart';
+// import 'package:crypto/crypto.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webauthn/webauthn.dart';
 import 'package:webcrypto/webcrypto.dart';
@@ -12,15 +12,17 @@ import 'package:cbor/cbor.dart';
 
 class PasskeyUtils {
   late PassKeysOptions _opts;
+  late Authenticator _auth;
 
   PasskeyUtils(String namespace, String name, String origin) {
     _opts = PassKeysOptions(
       namespace: namespace,
       name: name,
       origin: origin,
-      challenge: '',
+      challenge: Uint8List.fromList(utf8.encode('')),
       type: '',
     );
+    _auth = Authenticator(true, false);
   }
 
   static const _makeCredentialJson = '''{
@@ -42,6 +44,15 @@ class PasskeyUtils {
         "displayName": "",
         "id": ""
     }
+  }''';
+
+  static const getAssertionJson = '''{
+    "allowCredentialDescriptorList": [],
+    "authenticatorExtensions": "",
+    "clientDataHash": "",
+    "requireUserPresence": true,
+    "requireUserVerification": false,
+    "rpId": ""
   }''';
 
   bool shouldRemoveLeadingZero(Uint8List bytes) {
@@ -93,60 +104,47 @@ class PasskeyUtils {
   ///and convert to hex using [hexlify]
   ///and return [r] and [s]
 
-  Future<List<String>?> getMessagingSignature(
-      String authResponseSignature) async {
-    Uint8List signatureBytes = base64Url.decode(authResponseSignature);
-
+  Future<List<String>> getMessagingSignature(Uint8List signatureBytes) async {
     ASN1Parser parser = ASN1Parser(signatureBytes);
     ASN1Sequence parsedSignature = parser.nextObject() as ASN1Sequence;
-
     ASN1Integer rValue = parsedSignature.elements[0] as ASN1Integer;
     ASN1Integer sValue = parsedSignature.elements[1] as ASN1Integer;
-
     Uint8List rBytes = rValue.valueBytes();
     Uint8List sBytes = sValue.valueBytes();
 
     if (shouldRemoveLeadingZero(rBytes)) {
       rBytes = rBytes.sublist(1);
     }
-
     if (shouldRemoveLeadingZero(sBytes)) {
       sBytes = sBytes.sublist(1);
     }
 
     final r = hexlify(rBytes);
     final s = hexlify(sBytes);
-
     return [r, s];
   }
 
   ///Creates random values with [Uuid] to generate the challenge
-  String _randomChallenge(PassKeysOptions options) {
-    final uuid = Uuid()
+  Uint8List _randomChallenge(PassKeysOptions options) {
+    final uuid = const Uuid()
         .v5buffer(Uuid.NAMESPACE_URL, options.name, List<int>.filled(32, 0));
-    final base64EncodedUuid = base64Url.encode(uuid);
-    return base64EncodedUuid;
+    return Uint8List.fromList(uuid);
   }
 
   ///Creates the [clientDataHash]
-  Uint8List clientDataHash(PassKeysOptions options) {
-    options.challenge = _randomChallenge(options);
+  Uint8List clientDataHash(PassKeysOptions options, Uint8List? challenge) {
+    options.challenge = challenge ?? _randomChallenge(options);
     final clientDataJson = jsonEncode({
       "challenge": options.challenge,
       "origin": options.origin,
       "type": options.type
     });
     final dataBuffer = utf8.encode(clientDataJson);
-    final sha256Hash = sha256.convert(dataBuffer);
-    return Uint8List.fromList(sha256Hash.bytes);
+    // final sha256Hash = sha256.convert(dataBuffer);
+    return Uint8List.fromList(dataBuffer);
   }
 
-  AuthData _decode(Attestation attestation) {
-    final attestationAsCbor = attestation.asCBOR();
-    final decodedAttestationAsCbor =
-        cbor.decode(attestationAsCbor).toObject() as Map;
-    final authData = decodedAttestationAsCbor["authData"];
-
+  AuthData _decode(dynamic authData) {
     final l = (authData[53] << 8) + authData[54];
     final publicKeyOffset = 55 + l;
 
@@ -163,14 +161,22 @@ class PasskeyUtils {
         credentialHash, base64Url.encode(credentialId), [x, y], aaGUID);
   }
 
+  AuthData _decodeAttestation(Attestation attestation) {
+    final attestationAsCbor = attestation.asCBOR();
+    final decodedAttestationAsCbor =
+        cbor.decode(attestationAsCbor).toObject() as Map;
+    final authData = decodedAttestationAsCbor["authData"];
+    return _decode(authData);
+  }
+
   ///The register function registers a username and returns an [Attestation]
   ///The [Authenticator] allows for enables biometric authentication.
   ///https://pub.dev/packages/webauthn
-  Future<Attestation> _register(String name) async {
-    final auth = Authenticator(true, false);
+  Future<Attestation> _register(
+      String name, bool requiresUserVerification) async {
     final options = _opts;
     options.type = "webauthn.create";
-    final hash = clientDataHash(options);
+    final hash = clientDataHash(options, null);
     final entity =
         MakeCredentialOptions.fromJson(jsonDecode(_makeCredentialJson));
     entity.userEntity = UserEntity(
@@ -181,14 +187,31 @@ class PasskeyUtils {
     entity.clientDataHash = hash;
     entity.rpEntity.id = options.namespace;
     entity.rpEntity.name = options.name;
-    return await auth.makeCredential(entity);
+    entity.requireUserVerification = requiresUserVerification;
+    return await _auth.makeCredential(entity);
   }
 
-  Future<PassKeyPair> register(String name) async {
-    final attestation = await _register(name);
+  Future<Assertion> _authenticate(List<String> credentialIds,
+      Uint8List challenge, bool requiresUserVerification) async {
+    final entity = GetAssertionOptions.fromJson(jsonDecode(getAssertionJson));
+    entity.allowCredentialDescriptorList = credentialIds
+        .map((credentialId) => PublicKeyCredentialDescriptor(
+            type: PublicKeyCredentialType.publicKey,
+            id: base64Url.decode(credentialId)))
+        .toList();
+    if (entity.allowCredentialDescriptorList!.isEmpty) {
+      throw AuthenticatorException('User not found');
+    }
+    entity.clientDataHash = challenge;
+    entity.rpId = _opts.namespace;
+    entity.requireUserVerification = requiresUserVerification;
+    return await _auth.getAssertion(entity);
+  }
 
-    final authData = _decode(attestation);
-
+  Future<PassKeyPair> register(
+      String name, bool requiresUserVerification) async {
+    final attestation = await _register(name, requiresUserVerification);
+    final authData = _decodeAttestation(attestation);
     if (authData.publicKey.length != 2) {
       throw "Invalid public key";
     }
@@ -202,13 +225,50 @@ class PasskeyUtils {
       DateTime.now(),
     );
   }
+
+  Future<PassKeySignature> signMessage(String hash, String credentialId) async {
+    final challenge = Uint8List.fromList(utf8.encode(hash));
+    final assertion = await _authenticate([credentialId], challenge, true);
+    final sig = await getMessagingSignature(assertion.signature);
+    // todo: verify the clientDataJson;
+    final clientDataJSON = utf8.decode(clientDataHash(_opts, challenge));
+    int challengePos = clientDataJSON.indexOf(base64Url.encode(challenge));
+    String challengePrefix = clientDataJSON.substring(0, challengePos);
+    String challengeSuffix =
+        clientDataJSON.substring(challengePos + challenge.length);
+    return PassKeySignature(
+      base64Url.encode(assertion.selectedCredentialId),
+      sig[0],
+      sig[1],
+      assertion.authenticatorData,
+      challengePrefix,
+      challengeSuffix,
+    );
+  }
+
+  Future<PassKeyPair> getPassKeyPair(List<String> credentialIds) async {
+    final options = _opts;
+    options.type = "webauthn.get";
+    final hash = clientDataHash(options, null);
+    final assertion = await _authenticate(credentialIds, hash, true);
+    final authData = _decode(assertion.authenticatorData);
+    return PassKeyPair(
+      authData.credentialHash,
+      authData.credentialId,
+      authData.publicKey[0],
+      authData.publicKey[1],
+      base64Url.encode(assertion.selectedCredentialUserHandle),
+      authData.aaGUID,
+      DateTime.now(),
+    );
+  }
 }
 
 class PassKeysOptions {
   final String namespace;
   final String name;
   final String origin;
-  String? challenge;
+  Uint8List? challenge;
   String? type;
   PassKeysOptions(
       {required this.namespace,
@@ -216,13 +276,6 @@ class PassKeysOptions {
       required this.origin,
       this.challenge,
       this.type});
-}
-
-class CredentialData {
-  final String username;
-  final Attestation attestation;
-
-  CredentialData(this.username, this.attestation);
 }
 
 class AuthData {
@@ -243,4 +296,15 @@ class PassKeyPair {
   final DateTime registrationTime;
   PassKeyPair(this.credentialHash, this.credentialId, this.pubKeyX,
       this.pubKeyY, this.name, this.aaGUID, this.registrationTime);
+}
+
+class PassKeySignature {
+  final String credentialId;
+  final String r;
+  final String s;
+  final Uint8List authData;
+  final String clientDataPrefix;
+  final String clientDataSuffix;
+  PassKeySignature(this.credentialId, this.r, this.s, this.authData,
+      this.clientDataPrefix, this.clientDataSuffix);
 }

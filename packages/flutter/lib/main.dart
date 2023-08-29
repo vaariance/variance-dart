@@ -91,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
           const SizedBox(height: 20),
           ElevatedButton(
               onPressed: () {
-                utils.register(usernameController.text);
+                utils.register(usernameController.text, true);
               },
               child: const Text("Register"))
         ],
