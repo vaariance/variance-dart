@@ -34,7 +34,7 @@ packages:
     source: hosted
     version: "0.0.2"
   cbor:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: cbor
       sha256: a44a7e6e40d0b196b04af30282661ffc5d6b8b2bcb1d5200f422194c6e0f58fb

@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import 'package:webauthn/webauthn.dart';
 import 'package:webcrypto/webcrypto.dart';
 import 'package:pointycastle/export.dart';
+import 'package:cbor/cbor.dart';
 
 class PasskeyUtils {
   late PassKeysOptions _opts;
@@ -33,8 +34,8 @@ class PasskeyUtils {
     "requireUserPresence": true,
     "requireUserVerification": false,
     "rp": {
-        "name": "webauthn.io",
-        "id": "webauthn.io"
+        "name": "",
+        "id": ""
     },
     "user": {
         "name": "",
@@ -67,34 +68,21 @@ class PasskeyUtils {
 
   ///class takes in the [publicKey]
   ///Encrypts the [publicKey] with [EcdsaPublicKey] and returns a [JWK]
-  Future<List<String>?> getPublicKeyFromBytes(String publicKeyBytes) async {
-    final pKeyBytes = base64Url.decode(publicKeyBytes);
-
+  Future<List<String>?> getPublicKeyFromBytes(Uint8List publicKeyBytes) async {
     final pKey =
-        await EcdsaPublicKey.importSpkiKey(pKeyBytes, EllipticCurve.p256);
+        await EcdsaPublicKey.importSpkiKey(publicKeyBytes, EllipticCurve.p256);
     final jwk = await pKey.exportJsonWebKey();
     if (jwk.containsKey('x') && jwk.containsKey('y')) {
-      final x = base64.normalize(jwk['x']);
-      final y = base64.normalize(jwk['y']);
+      final x = base64Url.normalize(jwk['x']);
+      final y = base64Url.normalize(jwk['y']);
 
       final decodedX = hexlify(base64Url.decode(x));
       final decodedY = hexlify(base64Url.decode(y));
 
-      return [decodedX.toString(), decodedY.toString()];
+      return [decodedX, decodedY];
     } else {
       throw "Invalid public key";
     }
-  }
-
-  String getPublicKey(Uint8List authData) {
-    // The publicKey starts immediately after credentialId
-    // Calculate the length of the credentialId (L)
-    final l = (authData[53] << 8) + authData[54];
-
-    // The publicKey starts at offset 55 + L
-    final publicKeyOffset = 55 + l;
-    final pKey = authData.sublist(publicKeyOffset);
-    return base64Url.encode(pKey);
   }
 
   ///The [getMessagingSignature] function takes in the [authResponseSignature] from passkeys auth
@@ -134,31 +122,45 @@ class PasskeyUtils {
 
   ///Creates random values with [Uuid] to generate the challenge
   String _randomChallenge(PassKeysOptions options) {
-    log("options.challenge: ${options.challenge}");
-    return base64UrlEncode(const Uuid()
-        .v5buffer(options.namespace, options.name, List<int>.filled(32, 0)));
+    final uuid = Uuid()
+        .v5buffer(Uuid.NAMESPACE_URL, options.name, List<int>.filled(32, 0));
+    final base64EncodedUuid = base64Url.encode(uuid);
+    return base64EncodedUuid;
   }
 
   ///Creates the [clientDataHash]
   Uint8List clientDataHash(PassKeysOptions options) {
     options.challenge = _randomChallenge(options);
-    final clientDataJson = jsonEncode(options);
+    final clientDataJson = jsonEncode({
+      "challenge": options.challenge,
+      "origin": options.origin,
+      "type": options.type
+    });
     final dataBuffer = utf8.encode(clientDataJson);
     final sha256Hash = sha256.convert(dataBuffer);
-    log("${sha256Hash.bytes}");
     return Uint8List.fromList(sha256Hash.bytes);
   }
 
   AuthData _decode(Attestation attestation) {
-    final authData = attestation.authData;
-    final credentialId = attestation.getCredentialIdBase64();
-    final credentialHash = hexlify(keccak256(attestation.getCredentialId()));
-    final publicKey = getPublicKey(authData);
-    final aaGUID = base64Url.encode(authData.sublist(0, 16));
-    log("credentialHash :$credentialHash");
-    log("publicKey: $publicKey");
-    log("aaGUID: $aaGUID");
-    return AuthData(credentialHash, credentialId, publicKey, aaGUID);
+    final attestationAsCbor = attestation.asCBOR();
+    final decodedAttestationAsCbor =
+        cbor.decode(attestationAsCbor).toObject() as Map;
+    final authData = decodedAttestationAsCbor["authData"];
+
+    final l = (authData[53] << 8) + authData[54];
+    final publicKeyOffset = 55 + l;
+
+    final pKey = authData.sublist(publicKeyOffset);
+    final credentialId = authData.sublist(55, publicKeyOffset);
+    final aaGUID = base64Url.encode(authData.sublist(37, 53));
+    final decodedPubKey = cbor.decode(pKey).toObject() as Map;
+    final credentialHash = hexlify(keccak256(Uint8List.fromList(credentialId)));
+
+    final x = hexlify(decodedPubKey[-2]);
+    final y = hexlify(decodedPubKey[-3]);
+
+    return AuthData(
+        credentialHash, base64Url.encode(credentialId), [x, y], aaGUID);
   }
 
   ///The register function registers a username and returns an [Attestation]
@@ -169,7 +171,6 @@ class PasskeyUtils {
     final options = _opts;
     options.type = "webauthn.create";
     final hash = clientDataHash(options);
-
     final entity =
         MakeCredentialOptions.fromJson(jsonDecode(_makeCredentialJson));
     entity.userEntity = UserEntity(
@@ -178,7 +179,8 @@ class PasskeyUtils {
       name: name,
     );
     entity.clientDataHash = hash;
-    log("registerHash: $entity");
+    entity.rpEntity.id = options.namespace;
+    entity.rpEntity.name = options.name;
     return await auth.makeCredential(entity);
   }
 
@@ -187,21 +189,14 @@ class PasskeyUtils {
 
     final authData = _decode(attestation);
 
-    final pKey = await getPublicKeyFromBytes(authData.publicKey);
-    if (pKey?.length != 2) {
+    if (authData.publicKey.length != 2) {
       throw "Invalid public key";
     }
-    log("authData.credentialId: ${authData.credentialId}");
-    log("authData.credentialHash: ${authData.credentialHash}");
-    log("pKey![0]: ${pKey![0]}");
-    log("pKey[1]: ${pKey[1]}");
-    log("name: $name");
-    log("authData.aaGUID: ${authData.aaGUID}");
     return PassKeyPair(
       authData.credentialHash,
       authData.credentialId,
-      pKey![0],
-      pKey[1],
+      authData.publicKey[0],
+      authData.publicKey[1],
       name,
       authData.aaGUID,
       DateTime.now(),
@@ -233,19 +228,19 @@ class CredentialData {
 class AuthData {
   final String credentialHash;
   final String credentialId;
-  final String publicKey;
+  final List<String> publicKey;
   final String aaGUID;
   AuthData(this.credentialHash, this.credentialId, this.publicKey, this.aaGUID);
 }
 
 class PassKeyPair {
   final String credentialHash;
-  final String? r; // public key x
-  final String? s; // public key y
+  final String? pubKeyX;
+  final String? pubKeyY;
   final String credentialId;
   final String name;
   final String aaGUID;
   final DateTime registrationTime;
-  PassKeyPair(this.credentialHash, this.credentialId, this.r, this.s, this.name,
-      this.aaGUID, this.registrationTime);
+  PassKeyPair(this.credentialHash, this.credentialId, this.pubKeyX,
+      this.pubKeyY, this.name, this.aaGUID, this.registrationTime);
 }

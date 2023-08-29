@@ -21,7 +21,7 @@ dependencies:
   ninja_asn1: ^2.0.0
   uuid: ^3.0.7
   crypto: ^3.0.3
-  
+  cbor: ^5.1.2
 
 
   cupertino_icons: ^1.0.2
