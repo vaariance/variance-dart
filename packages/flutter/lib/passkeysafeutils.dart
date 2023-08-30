@@ -1,9 +1,8 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:asn1lib/asn1lib.dart';
-// import 'package:crypto/crypto.dart';
+import 'package:crypto/crypto.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webauthn/webauthn.dart';
 import 'package:webcrypto/webcrypto.dart';
@@ -15,11 +14,13 @@ class PasskeyUtils {
   final PassKeysOptions _opts;
   final Authenticator _auth;
 
-  PasskeyUtils(String namespace, String name, String origin)
+  PasskeyUtils(String namespace, String name, String origin,
+      {bool? crossOrigin})
       : _opts = PassKeysOptions(
           namespace: namespace,
           name: name,
           origin: origin,
+          crossOrigin: crossOrigin ?? false,
         ),
         _auth = Authenticator(true, true);
 
@@ -75,6 +76,17 @@ class PasskeyUtils {
     return digest.process(input);
   }
 
+  Uint8List hexToArrayBuffer(String hexString) {
+    hexString = hexString.replaceAll(RegExp(r'\s+'), '');
+    List<int> bytes = [];
+    for (int i = 0; i < hexString.length; i += 2) {
+      String byteHex = hexString.substring(i, i + 2);
+      int byteValue = int.parse(byteHex, radix: 16);
+      bytes.add(byteValue);
+    }
+    return Uint8List.fromList(bytes);
+  }
+
   ///class takes in the [publicKey]
   ///Encrypts the [publicKey] with [EcdsaPublicKey] and returns a [JWK]
   Future<List<String>?> getPublicKeyFromBytes(Uint8List publicKeyBytes) async {
@@ -123,51 +135,54 @@ class PasskeyUtils {
   }
 
   ///Creates random values with [Uuid] to generate the challenge
-  Uint8List _randomChallenge(PassKeysOptions options) {
+  String _randomChallenge(PassKeysOptions options) {
     final uuid = const Uuid()
         .v5buffer(Uuid.NAMESPACE_URL, options.name, List<int>.filled(32, 0));
-    return Uint8List.fromList(uuid);
+    return base64Url.encode(uuid);
   }
 
   ///Creates the [clientDataHash]
-  Uint8List clientDataHash(PassKeysOptions options, Uint8List? challenge) {
+  Uint8List clientDataHash(PassKeysOptions options, {String? challenge}) {
     options.challenge = challenge ?? _randomChallenge(options);
     final clientDataJson = jsonEncode({
+      "type": options.type,
       "challenge": options.challenge,
       "origin": options.origin,
-      "type": options.type
+      "crossOrigin": options.crossOrigin
     });
-    final dataBuffer = utf8.encode(clientDataJson);
-    // final sha256Hash = sha256.convert(dataBuffer);
-    return Uint8List.fromList(dataBuffer);
+    return Uint8List.fromList(utf8.encode(clientDataJson));
   }
 
+  Uint8List clientDataHash32(PassKeysOptions options, {String? challenge}) {
+    final dataBuffer = clientDataHash(options, challenge: challenge);
+    final sha256Hash = sha256.convert(dataBuffer);
+    return Uint8List.fromList(sha256Hash.bytes);
+  }
 
-
-/// Decodes the raw authentication data to extract relevant authentication details.
-///
-/// Parameters:
-/// - `authData`: Raw authentication data received from the authentication process.
-///
-/// Returns:
-/// An AuthData object containing decoded authentication details.
+  /// Decodes the raw authentication data to extract relevant authentication details.
+  ///
+  /// Parameters:
+  /// - `authData`: Raw authentication data received from the authentication process.
+  ///
+  /// Returns:
+  /// An AuthData object containing decoded authentication details.
   AuthData _decode(dynamic authData) {
-  // Extract the length of the public key from the authentication data.
+    // Extract the length of the public key from the authentication data.
     final l = (authData[53] << 8) + authData[54];
 
-  // Calculate the offset for the start of the public key data.
+    // Calculate the offset for the start of the public key data.
     final publicKeyOffset = 55 + l;
 
-  // Extract the public key data from the authentication data.
+    // Extract the public key data from the authentication data.
     final pKey = authData.sublist(publicKeyOffset);
 
-  // Extract the credential ID from the authentication data.
+    // Extract the credential ID from the authentication data.
     final credentialId = authData.sublist(55, publicKeyOffset);
 
- // Extract and encode the aaGUID from the authentication data.
+    // Extract and encode the aaGUID from the authentication data.
     final aaGUID = base64Url.encode(authData.sublist(37, 53));
 
- // Decode the CBOR-encoded public key and convert it to a map.
+    // Decode the CBOR-encoded public key and convert it to a map.
     final decodedPubKey = cbor.decode(pKey).toObject() as Map;
 
 // Calculate the hash of the credential ID.
@@ -197,11 +212,11 @@ class PasskeyUtils {
       String name, bool requiresUserVerification) async {
     final options = _opts;
     options.type = "webauthn.create";
-    final hash = clientDataHash(options, null);
+    final hash = clientDataHash32(options);
     final entity =
         MakeCredentialOptions.fromJson(jsonDecode(_makeCredentialJson));
     entity.userEntity = UserEntity(
-      id: Uint8List.fromList(name.codeUnits),
+      id: Uint8List.fromList(utf8.encode(name)),
       displayName: name,
       name: name,
     );
@@ -209,12 +224,13 @@ class PasskeyUtils {
     entity.rpEntity.id = options.namespace;
     entity.rpEntity.name = options.name;
     entity.requireUserVerification = requiresUserVerification;
+    entity.requireUserPresence = !requiresUserVerification;
     return await _auth.makeCredential(entity);
   }
 
-///The [_authenticate] function authenticates a user and returns an [Assertion].
-///Parameters:
-///- `credentialIds`: List of credential IDs to be used for authentication.
+  ///The [_authenticate] function authenticates a user and returns an [Assertion].
+  ///Parameters:
+  ///- `credentialIds`: List of credential IDs to be used for authentication.
   Future<Assertion> _authenticate(List<String> credentialIds,
       Uint8List challenge, bool requiresUserVerification) async {
     final entity = GetAssertionOptions.fromJson(jsonDecode(getAssertionJson));
@@ -229,10 +245,11 @@ class PasskeyUtils {
     entity.clientDataHash = challenge;
     entity.rpId = _opts.namespace;
     entity.requireUserVerification = requiresUserVerification;
+    entity.requireUserPresence = !requiresUserVerification;
     return await _auth.getAssertion(entity);
   }
 
-  /// Call the [register] function in your flutter app 
+  /// Call the [register] function in your flutter app
   /// to register a user and return a [PassKeyPair] key pair
   Future<PassKeyPair> register(
       String name, bool requiresUserVerification) async {
@@ -252,17 +269,22 @@ class PasskeyUtils {
     );
   }
 
-  
   Future<PassKeySignature> signMessage(String hash, String credentialId) async {
-    final challenge = Uint8List.fromList(utf8.encode(hash));
-    final assertion = await _authenticate([credentialId], challenge, true);
+    final options = _opts;
+    options.type = "webauthn.get";
+    final hash32 = hash.length == 64 ? hash : hash.substring(2);
+    final hashBase64 = base64Url
+        .encode(hexToArrayBuffer(hash32))
+        .replaceAll(RegExp(r'=', multiLine: true, caseSensitive: false), '');
+    final challenge32 = clientDataHash32(options, challenge: hashBase64);
+    final assertion = await _authenticate([credentialId], challenge32, true);
     final sig = await getMessagingSignature(assertion.signature);
-    // todo: verify the clientDataJson;
-    final clientDataJSON = utf8.decode(clientDataHash(_opts, challenge));
-    int challengePos = clientDataJSON.indexOf(base64Url.encode(challenge));
+    final challenge = clientDataHash(options, challenge: hashBase64);
+    final clientDataJSON = utf8.decode(challenge);
+    int challengePos = clientDataJSON.indexOf(hashBase64);
     String challengePrefix = clientDataJSON.substring(0, challengePos);
     String challengeSuffix =
-        clientDataJSON.substring(challengePos + challenge.length);
+        clientDataJSON.substring(challengePos + hashBase64.length);
     return PassKeySignature(
       base64Url.encode(assertion.selectedCredentialId),
       sig[0],
@@ -272,44 +294,20 @@ class PasskeyUtils {
       challengeSuffix,
     );
   }
-
-// Retrieves a PassKeyPair for the given list of credential IDs.
-/// This method follows a WebAuthn process to authenticate and retrieve the keys.
-/// It returns a PassKeyPair containing various authentication details.
-///
-/// Parameters:
-/// - `credentialIds`: A list of credential IDs to attempt authentication with.
-///
-/// Returns:
-/// A Future containing a PassKeyPair object representing the retrieved authentication details.
-  Future<PassKeyPair> getPassKeyPair(List<String> credentialIds) async {
-    final options = _opts;
-    options.type = "webauthn.get";
-    final hash = clientDataHash(options, null);
-    final assertion = await _authenticate(credentialIds, hash, true);
-    final authData = _decode(assertion.authenticatorData);
-    return PassKeyPair(
-      authData.credentialHash,
-      authData.credentialId,
-      authData.publicKey[0],
-      authData.publicKey[1],
-      base64Url.encode(assertion.selectedCredentialUserHandle),
-      authData.aaGUID,
-      DateTime.now(),
-    );
-  }
 }
 
 class PassKeysOptions {
   final String namespace;
   final String name;
   final String origin;
-  Uint8List? challenge;
+  bool? crossOrigin;
+  String? challenge;
   String? type;
   PassKeysOptions(
       {required this.namespace,
       required this.name,
       required this.origin,
+      this.crossOrigin,
       this.challenge,
       this.type});
 }

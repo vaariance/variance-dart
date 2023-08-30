@@ -89,11 +89,26 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           const SizedBox(height: 20),
-          ElevatedButton(
-              onPressed: () {
-                utils.register(usernameController.text, true);
-              },
-              child: const Text("Register"))
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  utils.register(usernameController.text, true);
+                },
+                child: const Text("Register"),
+              ),
+              SizedBox(width: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  utils.signMessage(
+                      "0xd415a8d850f589c9c752395c082bab451e8896d6f519f4d46109a7cc0655ab73",
+                      "9oJaEwpa46xhm4_2vorOztnLHqsHlj8aXTRPeW90f88=");
+                },
+                child: const Text("Get key pair"),
+              ),
+            ],
+          )
         ],
       ),
     );
