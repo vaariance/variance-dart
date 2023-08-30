@@ -190,9 +190,9 @@ class PasskeyUtils {
 
   ///The register function registers a username and returns an [Attestation].
   ///
-  ///The [Authenticator] allows for enables biometric authentication.
+  ///The [Authenticator] allows  biometric authentication.
   ///
-  ///See https://pub.dev/packages/webauthn
+  ///@See https://pub.dev/packages/webauthn
   Future<Attestation> _register(
       String name, bool requiresUserVerification) async {
     final options = _opts;
@@ -212,6 +212,9 @@ class PasskeyUtils {
     return await _auth.makeCredential(entity);
   }
 
+///The [_authenticate] function authenticates a user and returns an [Assertion].
+///Parameters:
+///- `credentialIds`: List of credential IDs to be used for authentication.
   Future<Assertion> _authenticate(List<String> credentialIds,
       Uint8List challenge, bool requiresUserVerification) async {
     final entity = GetAssertionOptions.fromJson(jsonDecode(getAssertionJson));
@@ -229,6 +232,8 @@ class PasskeyUtils {
     return await _auth.getAssertion(entity);
   }
 
+  /// Call the [register] function in your flutter app 
+  /// to register a user and return a [PassKeyPair] key pair
   Future<PassKeyPair> register(
       String name, bool requiresUserVerification) async {
     final attestation = await _register(name, requiresUserVerification);
@@ -247,6 +252,7 @@ class PasskeyUtils {
     );
   }
 
+  
   Future<PassKeySignature> signMessage(String hash, String credentialId) async {
     final challenge = Uint8List.fromList(utf8.encode(hash));
     final assertion = await _authenticate([credentialId], challenge, true);
