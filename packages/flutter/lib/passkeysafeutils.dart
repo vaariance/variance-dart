@@ -14,16 +14,13 @@ class PasskeyUtils {
   late PassKeysOptions _opts;
   late Authenticator _auth;
 
-  PasskeyUtils(String namespace, String name, String origin) {
-    _opts = PassKeysOptions(
-      namespace: namespace,
-      name: name,
-      origin: origin,
-      challenge: Uint8List.fromList(utf8.encode('')),
-      type: '',
-    );
-    _auth = Authenticator(true, false);
-  }
+  PasskeyUtils(String namespace, String name, String origin)
+      : _opts = PassKeysOptions(
+          namespace: namespace,
+          name: name,
+          origin: origin,
+        ),
+        _auth = Authenticator(true, true);
 
   static const _makeCredentialJson = '''{
     "authenticatorExtensions": "",
