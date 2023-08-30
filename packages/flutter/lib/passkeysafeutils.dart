@@ -7,12 +7,13 @@ import 'package:asn1lib/asn1lib.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webauthn/webauthn.dart';
 import 'package:webcrypto/webcrypto.dart';
+// ignore: depend_on_referenced_packages
 import 'package:pointycastle/export.dart';
 import 'package:cbor/cbor.dart';
 
 class PasskeyUtils {
-  late PassKeysOptions _opts;
-  late Authenticator _auth;
+  final PassKeysOptions _opts;
+  final Authenticator _auth;
 
   PasskeyUtils(String namespace, String name, String origin)
       : _opts = PassKeysOptions(
@@ -141,16 +142,37 @@ class PasskeyUtils {
     return Uint8List.fromList(dataBuffer);
   }
 
+
+
+/// Decodes the raw authentication data to extract relevant authentication details.
+///
+/// Parameters:
+/// - `authData`: Raw authentication data received from the authentication process.
+///
+/// Returns:
+/// An AuthData object containing decoded authentication details.
   AuthData _decode(dynamic authData) {
+  // Extract the length of the public key from the authentication data.
     final l = (authData[53] << 8) + authData[54];
+
+  // Calculate the offset for the start of the public key data.
     final publicKeyOffset = 55 + l;
 
+  // Extract the public key data from the authentication data.
     final pKey = authData.sublist(publicKeyOffset);
-    final credentialId = authData.sublist(55, publicKeyOffset);
-    final aaGUID = base64Url.encode(authData.sublist(37, 53));
-    final decodedPubKey = cbor.decode(pKey).toObject() as Map;
-    final credentialHash = hexlify(keccak256(Uint8List.fromList(credentialId)));
 
+  // Extract the credential ID from the authentication data.
+    final credentialId = authData.sublist(55, publicKeyOffset);
+
+ // Extract and encode the aaGUID from the authentication data.
+    final aaGUID = base64Url.encode(authData.sublist(37, 53));
+
+ // Decode the CBOR-encoded public key and convert it to a map.
+    final decodedPubKey = cbor.decode(pKey).toObject() as Map;
+
+// Calculate the hash of the credential ID.
+    final credentialHash = hexlify(keccak256(Uint8List.fromList(credentialId)));
+// Extract x and y coordinates from the decoded public key.
     final x = hexlify(decodedPubKey[-2]);
     final y = hexlify(decodedPubKey[-3]);
 
@@ -166,9 +188,11 @@ class PasskeyUtils {
     return _decode(authData);
   }
 
-  ///The register function registers a username and returns an [Attestation]
+  ///The register function registers a username and returns an [Attestation].
+  ///
   ///The [Authenticator] allows for enables biometric authentication.
-  ///https://pub.dev/packages/webauthn
+  ///
+  ///See https://pub.dev/packages/webauthn
   Future<Attestation> _register(
       String name, bool requiresUserVerification) async {
     final options = _opts;
@@ -243,6 +267,15 @@ class PasskeyUtils {
     );
   }
 
+// Retrieves a PassKeyPair for the given list of credential IDs.
+/// This method follows a WebAuthn process to authenticate and retrieve the keys.
+/// It returns a PassKeyPair containing various authentication details.
+///
+/// Parameters:
+/// - `credentialIds`: A list of credential IDs to attempt authentication with.
+///
+/// Returns:
+/// A Future containing a PassKeyPair object representing the retrieved authentication details.
   Future<PassKeyPair> getPassKeyPair(List<String> credentialIds) async {
     final options = _opts;
     options.type = "webauthn.get";

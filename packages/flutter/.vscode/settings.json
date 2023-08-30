@@ -1,6 +1,9 @@
 {
     "cSpell.words": [
+        "cbor",
         "hexlify",
-        "Spki"
+        "pointycastle",
+        "Spki",
+        "webcrypto"
     ]
 }
