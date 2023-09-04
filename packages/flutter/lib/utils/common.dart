@@ -57,34 +57,5 @@ Future<List<String>?> getPublicKeyFromBytes(Uint8List publicKeyBytes) async {
   }
 }
 
-Future<List<String>> getMessagingSignature(Uint8List signatureBytes) async {
-    ASN1Parser parser = ASN1Parser(signatureBytes);
-    ASN1Sequence parsedSignature = parser.nextObject() as ASN1Sequence;
-    ASN1Integer rValue = parsedSignature.elements[0] as ASN1Integer;
-    ASN1Integer sValue = parsedSignature.elements[1] as ASN1Integer;
-    Uint8List rBytes = rValue.valueBytes();
-    Uint8List sBytes = sValue.valueBytes();
 
-    if (shouldRemoveLeadingZero(rBytes)) {
-      rBytes = rBytes.sublist(1);
-    }
-    if (shouldRemoveLeadingZero(sBytes)) {
-      sBytes = sBytes.sublist(1);
-    }
 
-    final r = hexlify(rBytes);
-    final s = hexlify(sBytes);
-    return [r, s];
-  }
-
-  // Future<Transaction> signWithPrivateKey(
-  //     Uint8List privateKey, Uint8List messageHash) {
-  //   final ECDomainParameters params = ECCurve_secp256k1();
-  //   final digest = SHA256Digest();
-  //   final signer = ECDSASigner(null, HMac(digest, 64));
-  //   final key = ECPrivateKey(bytesToUnsignedInt(privateKey), params);
-  //   signer.init(true, PrivateKeyParameter(key));
-  //   var sig = signer.generateSignature(messageHash) as ECSignature;
-      
-  //   return sig.r;
-  // }

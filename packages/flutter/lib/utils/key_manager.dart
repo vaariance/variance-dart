@@ -2,7 +2,6 @@ import 'dart:typed_data';
 import 'package:hd_wallet_kit/hd_wallet_kit.dart';
 import 'package:hd_wallet_kit/utils.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-// import 'common.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:local_auth/local_auth.dart';
@@ -124,13 +123,12 @@ class KeyManager {
     final didAuth = await _auth.authenticate(
       localizedReason: 'Please authenticate to access keystore',
     );
-    // if(didAuth == true) return true;
     return didAuth;
   }
+
   // _sign
   // requires verification
   // uses the hd wallet in the keystore to sign the message
-
   Future<BigInt> _getPrivateKey(int index, {String? alias}) async {
     final isAuthenticated = await _authWrapper();
     if (isAuthenticated) {
@@ -159,50 +157,65 @@ class KeyManager {
       {int? index, String? alias}) async {
     final privKey = await _getPrivateKey(index ?? 0, alias: alias);
     Credentials credentials = EthPrivateKey.fromInt(privKey);
-
     //hash the message
-    List<int> messageBytes = utf8.encode(message);
-    final hashMessage = sha256.convert(messageBytes);
-    final hashedMessage = Uint8List.fromList(hashMessage.bytes);
+    final hashedMessage = _hashMessage(message);
 
     //sign the message
     final signedMessage = credentials.signToEcSignature(hashedMessage);
     return signedMessage;
   }
 
+  ///Internal hash function that does the actual signing of the message
+  int MULTIPLIER = 31;
+  Uint8List _hashMessage(String str) {
+    int h = 0;
+    for (int i = 0; i < str.length; i++) {
+      h = MULTIPLIER * h + str.codeUnitAt(i);
+    }
+
+    // Convert the hash value to a Uint8List
+    final hashBytes = Uint8List(4);
+    for (int i = 0; i < 4; i++) {
+      hashBytes[i] = (h >> (i * 8)) & 0xFF;
+    }
+
+    return hashBytes;
+  }
+
   Future<List<String>> _getMnemonic(String alias) async {
-    final mnemonic = await _getSecret(alias: ksNamespace);
-    if (mnemonic == null) throw "exportMnemonic: Not a Valid Wallet";
-    List<String> decodedMnemonic =
-        utf8.decode(hexStringToUint8List(mnemonic)).split(":");
-    return decodedMnemonic;
+    final isAuthenticated = await _authWrapper();
+    if (isAuthenticated) {
+      final mnemonic = await _getSecret(alias: ksNamespace);
+      if (mnemonic == null) throw "exportMnemonic: Not a Valid Wallet";
+      List<String> decodedMnemonic =
+          utf8.decode(hexStringToUint8List(mnemonic)).split(":");
+      return decodedMnemonic;
+    } else {
+      throw Exception("Authentication failed");
+    }
   }
 
   // export mnemonic
-  // retreives the mnemonic
+  // retrieves the mnemonic
   // returns it.
   Future<List<String>> exportMnemonic(String alias) async {
-    final mnemonic = await _getMnemonic(alias);
-    return mnemonic;
+    final isAuthenticated = await _authWrapper();
+    if (isAuthenticated) {
+      final mnemonic = await _getMnemonic(alias);
+      return mnemonic;
+    } else {
+      throw Exception("Authentication failed");
+    }
   }
 
   // export private key
   Future<BigInt> exportPrivateKey(int index, {String? alias}) async {
-    final privKey = await _getPrivateKey(index, alias: alias);
-    return privKey;
-  }
-
-  Future<String> addAccount(String alias, int index) async {
     final isAuthenticated = await _authWrapper();
     if (isAuthenticated) {
-      final mnemonic = await _getMnemonic(alias);
-      final seed = _recover(mnemonic);
-      final hd = HDWallet.fromSeed(seed: seed);
-      final hdKey = deriveKey(hd, index);
-
-      return hdKey.serializePublic(HDExtendedKeyVersion.xpub);
+      final privKey = await _getPrivateKey(index, alias: alias);
+      return privKey;
     } else {
-      throw Exception();
+      throw Exception("Authentication failed");
     }
   }
 }
