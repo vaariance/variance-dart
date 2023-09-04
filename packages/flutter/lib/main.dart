@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:passkeysafe/utils/passkeys.dart';
 import 'package:webauthn/webauthn.dart';
+import 'dart:developer';
+import 'utils/key_manager.dart';
 
 void main() {
   runApp(const MyApp());
@@ -23,6 +25,7 @@ class MyApp extends StatelessWidget {
 }
 
 final authenticator = Authenticator(true, true);
+final keyManager = KeyManager(ksNamespace: "test");
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -98,12 +101,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: const Text("Register"),
               ),
-              SizedBox(width: 20),
+              const SizedBox(width: 20),
               ElevatedButton(
                 onPressed: () async {
-                  utils.signMessage(
-                      "0xd415a8d850f589c9c752395c082bab451e8896d6f519f4d46109a7cc0655ab73",
-                      "9oJaEwpa46xhm4_2vorOztnLHqsHlj8aXTRPeW90f88=");
+                  final account = await keyManager.generateAccount();
+                  log("generated account: $account");
                 },
                 child: const Text("Get key pair"),
               ),
