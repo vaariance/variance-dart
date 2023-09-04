@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:asn1lib/asn1lib.dart';
 import 'package:webcrypto/webcrypto.dart';
-// ignore: depend_on_referenced_packages
 import 'package:pointycastle/export.dart';
 
 List<int> toBuffer(List<List<int>> buff) {
