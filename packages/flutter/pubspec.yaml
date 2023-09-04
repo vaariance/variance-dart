@@ -15,16 +15,22 @@ dependencies:
     sdk: flutter
   webauthn: ^0.1.0
   sqflite_common_ffi: ^2.3.0+2
-  web3dart: ^2.7.1
+  web3dart: ^2.6.1
   webcrypto: ^0.5.3
   asn1lib: ^1.5.0
   ninja_asn1: ^2.0.0
   uuid: ^3.0.7
   crypto: ^3.0.3
   cbor: ^5.1.2
+  hd_wallet_kit: ^0.0.2
+  flutter_secure_storage: ^8.0.0
+  local_auth: ^2.1.7
+  http: ^0.13.5
+  pointycastle: ^3.7.3
 
 
   cupertino_icons: ^1.0.2
+  walletconnect_flutter_v2: ^2.0.8
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:passkeysafe/passkeysafeutils.dart';
+import 'package:passkeysafe/utils/passkeys.dart';
 import 'package:webauthn/webauthn.dart';
 
 void main() {
