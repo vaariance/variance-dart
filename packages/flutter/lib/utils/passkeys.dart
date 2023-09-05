@@ -53,8 +53,6 @@ class PasskeyUtils {
     "rpId": ""
   }''';
 
-  
-
   ///The [getMessagingSignature] function takes in the [authResponseSignature] from passkeys auth
   ///It uses the [ASN1Parser] to parse the signature decoded from base64
   ///and checks for objects in the List using the [nextObject] stream from the [ASN1Parser]
@@ -62,8 +60,25 @@ class PasskeyUtils {
   ///Remove leading zeros using [shouldRemoveLeadingZero]
   ///and convert to hex using [hexlify]
   ///and return [r] and [s]
+  Future<List<String>> getMessagingSignature(Uint8List signatureBytes) async {
+    ASN1Parser parser = ASN1Parser(signatureBytes);
+    ASN1Sequence parsedSignature = parser.nextObject() as ASN1Sequence;
+    ASN1Integer rValue = parsedSignature.elements[0] as ASN1Integer;
+    ASN1Integer sValue = parsedSignature.elements[1] as ASN1Integer;
+    Uint8List rBytes = rValue.valueBytes();
+    Uint8List sBytes = sValue.valueBytes();
 
-  
+    if (shouldRemoveLeadingZero(rBytes)) {
+      rBytes = rBytes.sublist(1);
+    }
+    if (shouldRemoveLeadingZero(sBytes)) {
+      sBytes = sBytes.sublist(1);
+    }
+
+    final r = hexlify(rBytes);
+    final s = hexlify(sBytes);
+    return [r, s];
+  }
 
   ///Creates random values with [Uuid] to generate the challenge
   String _randomChallenge(PassKeysOptions options) {
