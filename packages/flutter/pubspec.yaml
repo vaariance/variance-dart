@@ -31,11 +31,8 @@ dependencies:
 
   cupertino_icons: ^1.0.2
   walletconnect_flutter_v2: ^2.0.8
-  ed25519_hd_key: ^2.2.1
-  hex: ^0.2.0
   bip39: ^1.0.6
   bip32_bip44: ^1.0.0
-  eip55: ^1.0.2
 
 dev_dependencies:
   flutter_test:

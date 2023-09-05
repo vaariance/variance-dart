@@ -161,14 +161,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.1"
-  ed25519_hd_key:
-    dependency: "direct main"
-    description:
-      name: ed25519_hd_key
-      sha256: c5c9f11a03f5789bf9dcd9ae88d641571c802640851f1cacdb13123f171b3a26
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.1"
   eip1559:
     dependency: transitive
     description:
@@ -178,7 +170,7 @@ packages:
     source: hosted
     version: "0.6.1"
   eip55:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: eip55
       sha256: "213a9b86add87a5216328e8494b0ab836e401210c4d55eb5e521bd39e39169e1"
@@ -321,7 +313,7 @@ packages:
     source: hosted
     version: "0.0.2"
   hex:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: hex
       sha256: "4e7cd54e4b59ba026432a6be2dd9d96e4c5205725194997193bf871703b82c4a"
@@ -528,14 +520,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
-  pinenacl:
-    dependency: transitive
-    description:
-      name: pinenacl
-      sha256: "3a5503637587d635647c93ea9a8fecf48a420cc7deebe6f1fc85c2a5637ab327"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.5.1"
   platform:
     dependency: transitive
     description:
