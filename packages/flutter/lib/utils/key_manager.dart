@@ -131,10 +131,17 @@ class KeyManager {
     return await _add(seed, 0, alias: alias);
   }
 
-Future<String> addAccount(String mnemonic, {String? alias}) async {
-  final seed = _recover(mnemonic, alias: alias);
-  return await _add(seed, 0, alias: alias);
-}
+  Future<String?> addAccount(int index, {String? alias}) async {
+    final isAuthenticated = await _authWrapper();
+    if (isAuthenticated) {
+      if (alias == null) return null;
+      final seed = await _getMnemonic(alias);
+      return await _add(seed, index, alias: alias);
+    } else {
+      throw Exception("Authentication failed");
+    }
+  }
+
   // recover account
   // creates a hd wallet based on the provided seed phrase
   // stores it on keystore
