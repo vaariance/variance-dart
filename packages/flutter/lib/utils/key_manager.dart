@@ -39,6 +39,7 @@ class KeyManager {
     return value;
   }
 
+  // ignore: unused_element
   Future<void> _deleteSecret({String? alias}) async {
     await _keyStore.delete(key: alias ?? ksNamespace);
   }
@@ -66,14 +67,14 @@ class KeyManager {
 
   // _recover
   // internal function that calls mnemonic.fromSeed
-  String _recover(String mnemonic, {String? alias}) {
+  Future<String> _recover(String mnemonic, {String? alias}) async {
     final seed = bip39.mnemonicToSeedHex(mnemonic);
+    await _addSecret(seed, alias: alias);
     return seed;
   }
 
-  Future<String> _add(String seed, int index, {String? alias}) async {
+  String _add(String seed, int index, {String? alias}) {
     final hdKey = _deriveHdKey(seed, index);
-    await _addSecret(seed, alias: alias);
     final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
     return privKey.address.hexEip55;
   }
@@ -87,38 +88,28 @@ class KeyManager {
     return hd;
   }
 
-  Future<bool> _authWrapper() async {
+  Future _authWrapper() async {
     final didAuth = await _auth.authenticate(
       localizedReason: 'Please authenticate to access keystore',
     );
-    return didAuth;
+    if (!didAuth) throw Exception("Authentication failed");
   }
 
   // _sign
   // requires verification
   // uses the hd wallet in the keystore to sign the message
   Future<EthPrivateKey> _getPrivateKey(int index, {String? alias}) async {
-    final isAuthenticated = await _authWrapper();
-    if (isAuthenticated) {
-      final hdKey = await _getHdKey(index, alias: alias);
-      final privateKey = _deriveEthPrivKey(hdKey.privateKeyHex());
-      return privateKey;
-    } else {
-      // Handle authentication failure here if needed.
-      throw Exception("Authentication failed");
-    }
+    await _authWrapper();
+    final hdKey = await _getHdKey(index, alias: alias);
+    final privateKey = _deriveEthPrivKey(hdKey.privateKeyHex());
+    return privateKey;
   }
 
-  Future<String> _getMnemonic(String alias) async {
-    final isAuthenticated = await _authWrapper();
-    if (isAuthenticated) {
-      final mnemonic = await _getSecret(alias: ksNamespace);
-      if (mnemonic == null) throw "exportMnemonic: Not a Valid Wallet";
-      String decodedMnemonic = mnemonic;
-      return decodedMnemonic;
-    } else {
-      throw Exception("Authentication failed");
-    }
+  Future<String> _getMnemonic() async {
+    await _authWrapper();
+    final mnemonic = await _getSecret(alias: ksNamespace);
+    if (mnemonic == null) throw "exportMnemonic: Not a Valid Wallet";
+    return mnemonic;
   }
 
   // generate account
@@ -127,19 +118,8 @@ class KeyManager {
   // returns an address
   Future<String> generateAccount({String? alias}) async {
     final mnemonic = _generate();
-    final seed = _recover(mnemonic, alias: alias);
-    return await _add(seed, 0, alias: alias);
-  }
-
-  Future<String?> addAccount(int index, {String? alias}) async {
-    final isAuthenticated = await _authWrapper();
-    if (isAuthenticated) {
-      if (alias == null) return null;
-      final seed = await _getMnemonic(alias);
-      return await _add(seed, index, alias: alias);
-    } else {
-      throw Exception("Authentication failed");
-    }
+    final seed = await _recover(mnemonic, alias: alias);
+    return _add(seed, 0, alias: alias);
   }
 
   // recover account
@@ -147,13 +127,28 @@ class KeyManager {
   // stores it on keystore
   // returns the address
   Future<String> recoverAccount(String mnemonic, {String? alias}) async {
-    final seed = _recover(mnemonic, alias: alias);
-    return await _add(seed, 0, alias: alias);
+    final seed = await _recover(mnemonic, alias: alias);
+    return _add(seed, 0, alias: alias);
+  }
+
+  Future<String> addAccount(int index, {String? alias}) async {
+    await _authWrapper();
+    final seed = await _getSecret(alias: alias);
+    if (seed == null) throw Exception("addAccount: Not a Valid Wallet");
+    return _add(seed, index, alias: alias);
+  }
+
+  /// sets a new alias for the hdKey.
+  /// Alias must be one for each hd wallet
+  /// the alias itself is the sha256 hash of the alias + ksNamespace;
+  Future setAlias(String alias) async {
+    final mnemonic = await _getMnemonic();
+    await _recover(mnemonic, alias: alias);
   }
 
   // getPubKey
   // returns the public key of the account by alias
-  Future<String> getPubKey(int index, {String? alias}) async {
+  Future<String> getAddress(int index, {String? alias}) async {
     ExtendedPrivateKey hdKey = await _getHdKey(index, alias: alias);
     final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
     return privKey.address.hexEip55;
@@ -163,7 +158,7 @@ class KeyManager {
   // retrieves the mnemonic
   // returns it.
   Future<String> exportMnemonic(String alias) async {
-    final mnemonic = await _getMnemonic(alias);
+    final mnemonic = await _getMnemonic();
     return mnemonic;
   }
 
@@ -178,14 +173,14 @@ class KeyManager {
     return hexlify(privKey);
   }
 
-  ///utility hash function to generate hash to be signed
-  String hashMessageStr(String str) {
+  /// utility hash function to generate hash to be signed as string
+  String getMessageHashStr(String str) {
     final hash = keccakUtf8(str);
     return hexlify(hash);
   }
 
-  // signMessage
-  // external function that does the actual signing
+  /// signMessage
+  /// external function that does the actual signing
   Future<MsgSignature> signMessage(Uint8List message,
       {int? index, String? alias}) async {
     final privKey = await _getPrivateKey(index ?? 0, alias: alias);
