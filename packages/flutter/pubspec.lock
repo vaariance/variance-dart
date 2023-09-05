@@ -77,10 +77,10 @@ packages:
     dependency: transitive
     description:
       name: byte_extensions
-      sha256: c76efdf03c670e5d28795134c759c1c7fbf764856e9a93ec8f5edb56371365d4
+      sha256: d69db1bb5926638d937f2382fe7ad97772e61a4fb842a3143d1510224666385c
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.2"
+    version: "0.0.3"
   cbor:
     dependency: "direct main"
     description:
@@ -769,10 +769,10 @@ packages:
     dependency: "direct main"
     description:
       name: webauthn
-      sha256: fe09f7981319a086e960c6f6b56a44b72c07f4a87627f62efb975c3f40592bf5
+      sha256: "438c6da1687f8d902221cca6017a60022208b60a0370a997efc15b4563cb9797"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.0"
+    version: "0.2.0"
   webcrypto:
     dependency: "direct main"
     description:
