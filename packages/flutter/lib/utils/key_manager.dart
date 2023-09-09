@@ -20,12 +20,13 @@ class KeyManager {
   KeyManager({required this.ksNamespace})
       : _keyStore = FlutterSecureStorage(aOptions: _getAndroidOptions());
 
+///Hashing util
   String _sha256(String alias) {
     final bytes = utf8.encode(alias);
     final digest = sha256.convert(bytes);
     return digest.toString();
   }
-
+///Adds a seed to the client keystore using local auth
   Future _addSecret(String seed, {String? alias}) async {
     if (alias != null) {
       alias = alias + ksNamespace;
@@ -33,18 +34,21 @@ class KeyManager {
     final key = _sha256(alias ?? ksNamespace);
     await _keyStore.write(key: key, value: seed);
   }
-
+///Fetches seed from local storage (keystore) using Alias
   Future<String?> _getSecret({String? alias}) async {
     final value = await _keyStore.read(key: alias ?? ksNamespace);
     return value;
   }
 
   // ignore: unused_element
+  ///Delete existing seed by alias 
   Future<void> _deleteSecret({String? alias}) async {
     await _keyStore.delete(key: alias ?? ksNamespace);
   }
 
+///Derives a hd wallet from the seed and index
   ExtendedPrivateKey _deriveHdKey(String seed, int idx) {
+    ///Ethereum derivation path
     final path = "m/44'/60'/0'/0/$idx";
     final chain = Chain.seed(seed);
     final hdKey = chain.forPath(path) as ExtendedPrivateKey;
@@ -65,14 +69,17 @@ class KeyManager {
     return mnemonic;
   }
 
-  // _recover
-  // internal function that calls mnemonic.fromSeed
+  /// _recover
+  /// Internal function that derives the seed from mnemonic and saves it to local storage
   Future<String> _recover(String mnemonic, {String? alias}) async {
     final seed = bip39.mnemonicToSeedHex(mnemonic);
     await _addSecret(seed, alias: alias);
     return seed;
   }
 
+///[_add]
+///
+///An internal function to add new wallet account using saved seed and index
   String _add(String seed, int index, {String? alias}) {
     final hdKey = _deriveHdKey(seed, index);
     final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
@@ -88,6 +95,7 @@ class KeyManager {
     return hd;
   }
 
+///Internal function to authenticate users
   Future _authWrapper() async {
     final didAuth = await _auth.authenticate(
       localizedReason: 'Please authenticate to access keystore',
@@ -105,6 +113,9 @@ class KeyManager {
     return privateKey;
   }
 
+///[_getMnemonic]
+///
+///Internal function to get mnemonic from seed
   Future<String> _getMnemonic() async {
     await _authWrapper();
     final mnemonic = await _getSecret(alias: ksNamespace);
@@ -112,25 +123,28 @@ class KeyManager {
     return mnemonic;
   }
 
-  // generate account
-  // generates a new account based on hd
-  // stores the hdWallet on keystore
-  // returns an address
+  /// [generateAccount]
+  ///generates a new account based on hd,
+  /// stores the hdWallet on keystore,
+  ///  and returns an address
   Future<String> generateAccount({String? alias}) async {
     final mnemonic = _generate();
     final seed = await _recover(mnemonic, alias: alias);
     return _add(seed, 0, alias: alias);
   }
 
-  // recover account
-  // creates a hd wallet based on the provided seed phrase
-  // stores it on keystore
-  // returns the address
+  /// [recoverAccount]
+  /// Creates a hd wallet based on the provided seed phrase,
+  /// stores it on keystore,
+  // and returns the address
   Future<String> recoverAccount(String mnemonic, {String? alias}) async {
     final seed = await _recover(mnemonic, alias: alias);
     return _add(seed, 0, alias: alias);
   }
 
+///[addAccount]
+///
+///Accepts an index, gets seed from keystore and returns a new account
   Future<String> addAccount(int index, {String? alias}) async {
     await _authWrapper();
     final seed = await _getSecret(alias: alias);
@@ -154,7 +168,7 @@ class KeyManager {
     return privKey.address.hexEip55;
   }
 
-  // export mnemonic
+  /// [exportMnemonic]
   // retrieves the mnemonic
   // returns it.
   Future<String> exportMnemonic(String alias) async {
@@ -162,7 +176,8 @@ class KeyManager {
     return mnemonic;
   }
 
-  // export private key
+  /// [exportPrivateKey]
+  /// returns the private key
   Future<String> exportPrivateKey(int index, {String? alias}) async {
     final ethPrivateKey = await _getPrivateKey(index, alias: alias);
     Uint8List privKey = ethPrivateKey.privateKey;
@@ -179,8 +194,8 @@ class KeyManager {
     return hexlify(hash);
   }
 
-  /// signMessage
-  /// external function that does the actual signing
+  /// [signMessage]
+  /// External function that does the actual signing
   Future<MsgSignature> signMessage(Uint8List message,
       {int? index, String? alias}) async {
     final privKey = await _getPrivateKey(index ?? 0, alias: alias);

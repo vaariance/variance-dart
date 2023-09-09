@@ -1,16 +1,38 @@
+import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
-
+class WalletConnectOptions {
+  final String projectId;
+  final String name;
+  final String description;
+  final String url;
+  final String logUrl;
+  WalletConnectOptions({
+    required this.projectId,
+    required this.name,
+    required this.description,
+    required this.url,
+    required this.logUrl,
+  });
+}
 
 class WalletExpose {
-//   Web3Wallet web3Wallet = await Web3Wallet.createInstance(
-//   relayUrl: 'wss://relay.walletconnect.com', // The relay websocket URL, leave blank to use the default
-//   projectId: '123',
-//   metadata: PairingMetadata(
-//     name: 'Wallet (Responder)',
-//     description: 'A wallet that can be requested to sign transactions',
-//     url: 'https://walletconnect.com',
-//     icons: ['https://avatars.githubusercontent.com/u/37784886'],
-//   ),
-// );
+  final WalletConnectOptions _opts;
+  late Web3Wallet _web3Wallet;
 
+  WalletExpose({required WalletConnectOptions opts}) : _opts = opts {
+    _createInstance();
+  }
+
+  Future _createInstance() async {
+    _web3Wallet = await Web3Wallet.createInstance(
+      relayUrl:
+          'wss://relay.walletconnect.com', // The relay websocket URL, leave blank to use the default
+      projectId: _opts.projectId,
+      metadata: PairingMetadata(
+          name: _opts.name,
+          description: _opts.description,
+          url: _opts.url,
+          icons: [_opts.logUrl]),
+    );
+  }
 }
