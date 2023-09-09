@@ -99,8 +99,13 @@ class PasskeyUtils {
     return Uint8List.fromList(utf8.encode(clientDataJson));
   }
 
+  ///Hashes client data 
+  ///
+  ///Must return a 32 bit value
   Uint8List clientDataHash32(PassKeysOptions options, {String? challenge}) {
     final dataBuffer = clientDataHash(options, challenge: challenge);
+
+    /// Hashes client data using the sha256 hashing algorithm
     final sha256Hash = sha256.convert(dataBuffer);
     return Uint8List.fromList(sha256Hash.bytes);
   }
@@ -214,7 +219,7 @@ class PasskeyUtils {
       DateTime.now(),
     );
   }
-
+  /// Signs the intended request and returns the signe
   Future<PassKeySignature> signMessage(String hash, String credentialId) async {
     final options = _opts;
     options.type = "webauthn.get";

@@ -1,15 +1,19 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:webcrypto/webcrypto.dart';
+
+import 'package:convert/convert.dart';
 import 'package:pointycastle/export.dart';
+import 'package:web3dart/web3dart.dart';
+import 'package:webcrypto/webcrypto.dart';
+import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
 
 List<int> toBuffer(List<List<int>> buff) {
   return List<int>.from(buff.expand((element) => element).toList());
 }
 
 bool shouldRemoveLeadingZero(Uint8List bytes) {
-    return bytes[0] == 0x0 && (bytes[1] & (1 << 7)) != 0;
-  }
+  return bytes[0] == 0x0 && (bytes[1] & (1 << 7)) != 0;
+}
 
 ///Converts base64 String to hex
 String hexlify(List<int> b) {
@@ -55,5 +59,47 @@ Future<List<String>?> getPublicKeyFromBytes(Uint8List publicKeyBytes) async {
   }
 }
 
+require(bool requirement, String exception) {
+  if (!requirement) {
+    throw Exception(exception);
+  }
+}
 
+// ignore: camel_case_types
+class abi {
+  abi._();
+  static encode<T>(List<String> types, List<dynamic> values) {
+    List<AbiType> abiTypes = [];
+    LengthTrackingByteSink result = LengthTrackingByteSink();
+    for (String type in types) {
+      var abiType = parseAbiType(type);
+      abiTypes.add(abiType);
+    }
+    TupleType(abiTypes).encode(values, result);
+    var resultBytes = result.asBytes();
+    result.close();
+    return resultBytes;
+  }
 
+  static List<T> decode<T>(List<String> types, Uint8List value) {
+    List<AbiType> abiTypes = [];
+    for (String type in types) {
+      var abiType = parseAbiType(type);
+      abiTypes.add(abiType);
+    }
+    final parsedData = TupleType(abiTypes).decode(value.buffer, 0);
+    return parsedData.data as List<T>;
+  }
+}
+
+Uint8List hexToBytes(String hexStr) {
+  final bytes = hex.decode(strip0x(hexStr));
+  if (bytes is Uint8List) return bytes;
+
+  return Uint8List.fromList(bytes);
+}
+
+String strip0x(String hex) {
+  if (hex.startsWith('0x')) return hex.substring(2);
+  return hex;
+}
