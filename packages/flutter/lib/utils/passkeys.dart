@@ -8,6 +8,7 @@ import 'package:webauthn/webauthn.dart';
 // ignore: depend_on_referenced_packages
 import 'package:cbor/cbor.dart';
 import 'common.dart';
+import 'dart:developer';
 
 class PasskeyUtils {
   final PassKeysOptions _opts;
@@ -22,6 +23,9 @@ class PasskeyUtils {
           crossOrigin: crossOrigin ?? false,
         ),
         _auth = Authenticator(true, true);
+
+  ///Used the getter to access the _opts in constructor for test purposes
+  PassKeysOptions get opts => _opts;
 
   static const _makeCredentialJson = '''{
     "authenticatorExtensions": "",
@@ -99,7 +103,7 @@ class PasskeyUtils {
     return Uint8List.fromList(utf8.encode(clientDataJson));
   }
 
-  ///Hashes client data 
+  ///Hashes client data
   ///
   ///Must return a 32 bit value
   Uint8List clientDataHash32(PassKeysOptions options, {String? challenge}) {
@@ -151,7 +155,9 @@ class PasskeyUtils {
     final decodedAttestationAsCbor =
         cbor.decode(attestationAsCbor).toObject() as Map;
     final authData = decodedAttestationAsCbor["authData"];
-    return _decode(authData);
+    final decode = _decode(authData);
+    log("decoded: $decode");
+    return decode;
   }
 
   ///The register function registers a username and returns an [Attestation].
@@ -185,6 +191,7 @@ class PasskeyUtils {
   Future<Assertion> _authenticate(List<String> credentialIds,
       Uint8List challenge, bool requiresUserVerification) async {
     final entity = GetAssertionOptions.fromJson(jsonDecode(getAssertionJson));
+    log("credentialIds: $credentialIds");
     entity.allowCredentialDescriptorList = credentialIds
         .map((credentialId) => PublicKeyCredentialDescriptor(
             type: PublicKeyCredentialType.publicKey,
@@ -219,6 +226,7 @@ class PasskeyUtils {
       DateTime.now(),
     );
   }
+
   /// Signs the intended request and returns the signe
   Future<PassKeySignature> signMessage(String hash, String credentialId) async {
     final options = _opts;
@@ -230,6 +238,7 @@ class PasskeyUtils {
     final challenge32 = clientDataHash32(options, challenge: hashBase64);
     final assertion = await _authenticate([credentialId], challenge32, true);
     final sig = await getMessagingSignature(assertion.signature);
+    log("{signature: $assertion.signature}");
     final challenge = clientDataHash(options, challenge: hashBase64);
     final clientDataJSON = utf8.decode(challenge);
     int challengePos = clientDataJSON.indexOf(hashBase64);

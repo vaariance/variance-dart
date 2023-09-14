@@ -1,8 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:passkeysafe/utils/passkeys.dart';
 import 'package:webauthn/webauthn.dart';
 import 'dart:developer';
-import 'utils/key_manager.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,7 +26,8 @@ class MyApp extends StatelessWidget {
 }
 
 final authenticator = Authenticator(true, true);
-final keyManager = KeyManager(ksNamespace: "test");
+final passkeysUtil =
+    PasskeyUtils("https://webauthn.io", "webauthn", "webauthn.io");
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -96,16 +98,21 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: () {
-                  utils.register(usernameController.text, true);
+                onPressed: () async {
+                  final account =
+                      await passkeysUtil.register("Gef", true); // log(account);
                 },
                 child: const Text("Register"),
               ),
               const SizedBox(width: 20),
               ElevatedButton(
                 onPressed: () async {
-                  final account = await keyManager.generateAccount();
-                  log("generated account: $account");
+                  final signatureBytes = base64Url.decode(
+                      'MEUCIDvKUdPXGRDF3XhIoMEGkA2nSztsDbLoIVFSK03Htf6OAiEAqFl6IKDzAXtWmI1YDKOYD_C2CNXQp7TYfutH-fXZ6j0=');
+                  final result =
+                      await passkeysUtil.getMessagingSignature(signatureBytes);
+                  log(result[0]);
+                  log(result[1]);
                 },
                 child: const Text("Get key pair"),
               ),

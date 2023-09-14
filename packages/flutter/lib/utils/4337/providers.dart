@@ -1,5 +1,8 @@
-import 'package:web3dart/json_rpc.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:http/http.dart' as http;
+import 'package:web3dart/json_rpc.dart';
+import 'package:web3dart/web3dart.dart';
+
 import "../common.dart";
 import 'EIP_4337.dart';
 
@@ -62,33 +65,81 @@ class BundlerProvider {
   }
 
   // TODO: add explicit return type
-  Future getUserOpReceipt(String userOpHash) async {
+  Future<UserOperationReceipt> getUserOpReceipt(String userOpHash) async {
     require(_initialized, "getUserOp: BundlerClient not initialized");
     return await _bundlerClient
         .send('eth_getUserOperationReceipt', [userOpHash]);
   }
 
   // TODO: add explicit return type
-  Future getUserOperationByHash(String userOpHash) async {
+  Future<UserOperationHash> getUserOperationByHash(String userOpHash) async {
     require(_initialized, "getUserOp: BundlerClient not initialized");
     return await _bundlerClient
         .send('eth_getUserOperationByHash', [userOpHash]);
   }
 
-  // TODO: add explicit return type
-  Future supportedEntryPoints() async {
+  // Returns an address
+  Future<String> supportedEntryPoints() async {
     return await _bundlerClient.send('eth_supportedEntryPoints');
   }
 
   // TODO: add explicit return type
-  Future estimateUserOperationGas(UserOperation userOp) async {
+  Future<UserOperation> estimateUserOperationGas(UserOperation userOp) async {
     require(_initialized, "getUserOp: BundlerClient not initialized");
     return await _bundlerClient.send('eth_estimateUserOperationGas', [userOp]);
   }
 
 // TODO: add explicit return type
-  Future sendUserOperation(UserOperation userOp) async {
+  Future<ISendUserOperationResponse> sendUserOperation(
+      UserOperation userOp, String entryPoint) async {
     require(_initialized, "getUserOp: BundlerClient not initialized");
     return await _bundlerClient.send('eth_sendUserOperation', [userOp]);
   }
+}
+
+class UserOperationReceipt {
+  final String entrypoint;
+  final String userOpHash;
+  final String revertReason;
+  final String paymaster;
+  final BigInt actualGasUsed;
+  final BigInt actualGasCost;
+  final BigInt nonce;
+  final bool success;
+  final List log;
+
+  UserOperationReceipt(
+      this.entrypoint,
+      this.userOpHash,
+      this.revertReason,
+      this.paymaster,
+      this.actualGasUsed,
+      this.actualGasCost,
+      this.nonce,
+      this.success,
+      this.log);
+}
+
+class ISendUserOperationResponse {
+  final String userOpHash;
+  final Future<FilterEvent?> Function() wait;
+
+  ISendUserOperationResponse(this.userOpHash, this.wait);
+}
+
+
+class UserOperationHash {
+  UserOperation userOperation;
+  final String entryPoint;
+  final BigInt blockNumber;
+  final BigInt blockHash;
+  final BigInt transactionHash;
+
+  UserOperationHash(
+    this.userOperation,
+    this.entryPoint,
+    this.blockNumber,
+    this.blockHash,
+    this.transactionHash,
+  );
 }
