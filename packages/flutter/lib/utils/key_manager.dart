@@ -202,8 +202,9 @@ class KeyManager {
   Future<String> signMessage(Uint8List message,
       {int? index, String? alias}) async {
     final privKey = await _getPrivateKey(index ?? 0, alias: alias);
-    final encodePrivKey = base64Url.encode(privKey.privateKey);
-    final signature = EthSigUtil.signMessage(privateKey: encodePrivKey, message: message);
+    final privKeyStr = privKey.toString();
+    final signature =
+        EthSigUtil.signMessage(privateKey: privKeyStr, message: message);
     return signature;
   }
 }
