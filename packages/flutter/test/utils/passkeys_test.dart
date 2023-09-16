@@ -1,11 +1,16 @@
 import 'dart:convert';
-import 'dart:ffi';
-
+import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:passkeysafe/utils/common.dart';
 import 'package:passkeysafe/utils/passkeys.dart';
-import 'random_challenge.dart';
+import 'package:webauthn/webauthn.dart';
+import 'const.dart';
+import 'package:mocktail/mocktail.dart';
 
-main() {
+class MockAuthenticator extends Mock implements Authenticator {}
+
+void main() {
   test('A random challenge', () {
     final options = PassKeysOptions(
         namespace: 'namespace', name: 'test', origin: 'https://example.com');
@@ -16,11 +21,103 @@ main() {
     expect(challenge.contains('='), isTrue);
   });
 
-  test('Hash 32', () {
-    final options = PassKeysOptions(
-        namespace: 'namespace', name: 'test', origin: 'https://example.com');
-    final hash = clientDataHash(options);
+  test('clientDataHash32 returns a valid sha256 hash of the client data', () {
+    // Arrange
+    final passkeyUtils = PasskeyUtils(
+      'https://example.com',
+      'Example',
+      'https://example.com',
+    );
 
-    expect(hash.lengthInBytes, equals(32));
+    // Act
+    final result = passkeyUtils.clientDataHash32(passkeyUtils.opts);
+
+    // Assert
+    final expectedHash =
+        sha256.convert(passkeyUtils.clientDataHash(passkeyUtils.opts));
+    expect(result, equals(expectedHash.bytes));
   });
+  test(
+      'getMessagingSignature returns a list of two hex strings representing r and s values',
+      () async {
+    // Arrange
+    final passkeyUtils = PasskeyUtils(
+      'https://example.com',
+      'Example',
+      'https://example.com',
+    );
+
+    // Act
+    final result = await passkeyUtils.getMessagingSignature(uint8List);
+
+    // Assert
+    expect(result, hasLength(2));
+    expect(() => result[0], returnsNormally);
+    expect(() => result[1], returnsNormally);
+    expect(result[0].length, lessThanOrEqualTo(66));
+    expect(result[0].length, lessThanOrEqualTo(66));
+  });
+
+  test('Test hexlify function', () {
+    final bytes1 = [0x12, 0x34, 0xAB, 0xCD];
+    expect(hexlify(bytes1), equals("0x1234abcd"));
+    final bytes2 = <int>[];
+    expect(hexlify(bytes2), equals("0x"));
+    final bytes3 = [0x05];
+    expect(hexlify(bytes3), equals("0x05"));
+  });
+
+  test('Test hexToArrayBuffer function', () {
+    // Test case 1: Convert a hexadecimal string to a Uint8List
+    const hexString1 = "11c647709ce1d4ea50f658287694cd34";
+    final result1 = hexToArrayBuffer(hexString1);
+    final expectedBytes1 = Uint8List.fromList([
+      0x11,
+      0xc6,
+      0x47,
+      0x70,
+      0x9c,
+      0xe1,
+      0xd4,
+      0xea,
+      0x50,
+      0xf6,
+      0x58,
+      0x28,
+      0x76,
+      0x94,
+      0xcd,
+      0x34
+    ]);
+    expect(result1, orderedEquals(expectedBytes1));
+
+    // Test case 2: Convert an empty hexadecimal string to an empty Uint8List
+    const hexString2 = "";
+    final result2 = hexToArrayBuffer(hexString2);
+    final expectedBytes2 = Uint8List.fromList([]);
+    expect(result2, orderedEquals(expectedBytes2));
+
+    // Test case 3: Convert a single-byte hexadecimal string to a Uint8List
+    const hexString3 = "05";
+    final result3 = hexToArrayBuffer(hexString3);
+    final expectedBytes3 = Uint8List.fromList([0x05]);
+    expect(result3, orderedEquals(expectedBytes3));
+  });
+
+  test('Test hexToBytes function', () {
+    const hexStr1 = "0x1234abcd";
+    final result1 = hexToBytes(hexStr1);
+    final expectedBytes1 = Uint8List.fromList([0x12, 0x34, 0xAB, 0xCD]);
+    expect(result1, orderedEquals(expectedBytes1));
+
+    const hexStr2 = "0x";
+    final result2 = hexToBytes(hexStr2);
+    final expectedBytes2 = Uint8List.fromList([]);
+    expect(result2, orderedEquals(expectedBytes2));
+
+    const hexStr3 = "0x05";
+    final result3 = hexToBytes(hexStr3);
+    final expectedBytes3 = Uint8List.fromList([0x05]);
+    expect(result3, orderedEquals(expectedBytes3));
+  });  
 }

@@ -8,6 +8,7 @@ import 'package:web3dart/web3dart.dart';
 import './common.dart';
 import "package:bip39/bip39.dart" as bip39;
 import 'package:bip32_bip44/dart_bip32_bip44.dart';
+import 'package:eth_sig_util/eth_sig_util.dart';
 
 AndroidOptions _getAndroidOptions() => const AndroidOptions(
       encryptedSharedPreferences: true,
@@ -20,13 +21,14 @@ class KeyManager {
   KeyManager({required this.ksNamespace})
       : _keyStore = FlutterSecureStorage(aOptions: _getAndroidOptions());
 
-///Hashing util
+  ///Hashing util
   String _sha256(String alias) {
     final bytes = utf8.encode(alias);
     final digest = sha256.convert(bytes);
     return digest.toString();
   }
-///Adds a seed to the client keystore using local auth
+
+  ///Adds a seed to the client keystore using local auth
   Future _addSecret(String seed, {String? alias}) async {
     if (alias != null) {
       alias = alias + ksNamespace;
@@ -34,19 +36,20 @@ class KeyManager {
     final key = _sha256(alias ?? ksNamespace);
     await _keyStore.write(key: key, value: seed);
   }
-///Fetches seed from local storage (keystore) using Alias
+
+  ///Fetches seed from local storage (keystore) using Alias
   Future<String?> _getSecret({String? alias}) async {
     final value = await _keyStore.read(key: alias ?? ksNamespace);
     return value;
   }
 
   // ignore: unused_element
-  ///Delete existing seed by alias 
+  ///Delete existing seed by alias
   Future<void> _deleteSecret({String? alias}) async {
     await _keyStore.delete(key: alias ?? ksNamespace);
   }
 
-///Derives a hd wallet from the seed and index
+  ///Derives a hd wallet from the seed and index
   ExtendedPrivateKey _deriveHdKey(String seed, int idx) {
     ///Ethereum derivation path
     final path = "m/44'/60'/0'/0/$idx";
@@ -77,9 +80,9 @@ class KeyManager {
     return seed;
   }
 
-///[_add]
-///
-///An internal function to add new wallet account using saved seed and index
+  ///[_add]
+  ///
+  ///An internal function to add new wallet account using saved seed and index
   String _add(String seed, int index, {String? alias}) {
     final hdKey = _deriveHdKey(seed, index);
     final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
@@ -95,7 +98,7 @@ class KeyManager {
     return hd;
   }
 
-///Internal function to authenticate users
+  ///Internal function to authenticate users
   Future _authWrapper() async {
     final didAuth = await _auth.authenticate(
       localizedReason: 'Please authenticate to access keystore',
@@ -113,9 +116,9 @@ class KeyManager {
     return privateKey;
   }
 
-///[_getMnemonic]
-///
-///Internal function to get mnemonic from seed
+  ///[_getMnemonic]
+  ///
+  ///Internal function to get mnemonic from seed
   Future<String> _getMnemonic() async {
     await _authWrapper();
     final mnemonic = await _getSecret(alias: ksNamespace);
@@ -142,9 +145,9 @@ class KeyManager {
     return _add(seed, 0, alias: alias);
   }
 
-///[addAccount]
-///
-///Accepts an index, gets seed from keystore and returns a new account
+  ///[addAccount]
+  ///
+  ///Accepts an index, gets seed from keystore and returns a new account
   Future<String> addAccount(int index, {String? alias}) async {
     await _authWrapper();
     final seed = await _getSecret(alias: alias);
@@ -196,10 +199,12 @@ class KeyManager {
 
   /// [signMessage]
   /// External function that does the actual signing
-  Future<MsgSignature> signMessage(Uint8List message,
+  Future<String> signMessage(Uint8List message,
       {int? index, String? alias}) async {
     final privKey = await _getPrivateKey(index ?? 0, alias: alias);
-    final signature = privKey.signToEcSignature(message);
+    final privKeyStr = privKey.toString();
+    final signature =
+        EthSigUtil.signMessage(privateKey: privKeyStr, message: message);
     return signature;
   }
 }

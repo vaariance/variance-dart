@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
 import 'package:pointycastle/export.dart';
+import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:webcrypto/webcrypto.dart';
-import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
 
 List<int> toBuffer(List<List<int>> buff) {
   return List<int>.from(buff.expand((element) => element).toList());
