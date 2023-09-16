@@ -24,7 +24,6 @@ class PasskeyUtils {
         ),
         _auth = Authenticator(true, true);
 
-  ///Used the getter to access the _opts in constructor for test purposes
   PassKeysOptions get opts => _opts;
 
   static const _makeCredentialJson = '''{
