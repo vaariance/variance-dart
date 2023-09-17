@@ -37,13 +37,14 @@ class IChain {
     entrypoint = value;
   }
 
-  void validate() {
+  IChain validate() {
     require(rpcUrl != null && rpcUrl!.isNotEmpty,
         "Chain: please provide a valid url for rpcUrl");
     require(bundlerUrl != null && bundlerUrl!.isNotEmpty,
         "Chain: please provide a valid url for bundlerUrl");
     require(entrypoint != null && entrypoint!.isNotEmpty,
         "Chain: please provide a valid address for entrypoint");
+    return this;
   }
 }
 
