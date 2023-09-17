@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
@@ -8,7 +9,7 @@ import 'package:web3dart/web3dart.dart';
 import './common.dart';
 import "package:bip39/bip39.dart" as bip39;
 import 'package:bip32_bip44/dart_bip32_bip44.dart';
-import 'package:eth_sig_util/eth_sig_util.dart';
+
 
 AndroidOptions _getAndroidOptions() => const AndroidOptions(
       encryptedSharedPreferences: true,
