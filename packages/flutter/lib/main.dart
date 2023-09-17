@@ -1,9 +1,9 @@
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:passkeysafe/utils/key_manager.dart';
 import 'package:passkeysafe/utils/passkeys.dart';
 import 'package:webauthn/webauthn.dart';
-import 'dart:developer';
+
 
 void main() {
   runApp(const MyApp());
@@ -26,8 +26,8 @@ class MyApp extends StatelessWidget {
 }
 
 final authenticator = Authenticator(true, true);
-final passkeysUtil =
-    PasskeyUtils("https://webauthn.io", "webauthn", "webauthn.io");
+final passkeysUtil = PassKey("https://webauthn.io", "webauthn", "webauthn.io");
+final keyManager = HDKey(ksNamespace: "ksNamespace");
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -40,7 +40,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final utils =
-      PasskeyUtils("https://webauthn.io", "webauthn.io", "api.webauthn.io");
+      PassKey("https://webauthn.io", "webauthn.io", "api.webauthn.io");
   @override
   Widget build(BuildContext context) {
     TextEditingController usernameController = TextEditingController();
@@ -98,22 +98,12 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: () async {
-                  final account =
-                      await passkeysUtil.register("Gef", true); // log(account);
-                },
+                onPressed: () async {},
                 child: const Text("Register"),
               ),
               const SizedBox(width: 20),
               ElevatedButton(
-                onPressed: () async {
-                  final signatureBytes = base64Url.decode(
-                      'MEUCIDvKUdPXGRDF3XhIoMEGkA2nSztsDbLoIVFSK03Htf6OAiEAqFl6IKDzAXtWmI1YDKOYD_C2CNXQp7TYfutH-fXZ6j0=');
-                  final result =
-                      await passkeysUtil.getMessagingSignature(signatureBytes);
-                  log(result[0]);
-                  log(result[1]);
-                },
+                onPressed: () async {},
                 child: const Text("Get key pair"),
               ),
             ],

@@ -1,21 +1,21 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:asn1lib/asn1lib.dart';
+// ignore: depend_on_referenced_packages
+import 'package:cbor/cbor.dart';
 import 'package:crypto/crypto.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webauthn/webauthn.dart';
-// ignore: depend_on_referenced_packages
-import 'package:cbor/cbor.dart';
-import 'common.dart';
-import 'dart:developer';
 
-class PasskeyUtils {
+import 'common.dart';
+
+class PassKey {
   final PassKeysOptions _opts;
   final Authenticator _auth;
 
-  PasskeyUtils(String namespace, String name, String origin,
-      {bool? crossOrigin})
+  PassKey(String namespace, String name, String origin, {bool? crossOrigin})
       : _opts = PassKeysOptions(
           namespace: namespace,
           name: name,
@@ -102,9 +102,9 @@ class PasskeyUtils {
     return Uint8List.fromList(utf8.encode(clientDataJson));
   }
 
-  ///Hashes client data
+  ///[clientDataHash32]
   ///
-  ///Must return a 32 bit value
+  ///Must return a 32 bytes value
   Uint8List clientDataHash32(PassKeysOptions options, {String? challenge}) {
     final dataBuffer = clientDataHash(options, challenge: challenge);
 
@@ -116,7 +116,7 @@ class PasskeyUtils {
   /// Decodes the raw authentication data to extract relevant authentication details.
   ///
   /// Parameters:
-  /// - `authData`: Raw authentication data received from the authentication process.
+  /// - `authData`: The raw authentication data received from the authentication process.
   ///
   /// Returns:
   /// An AuthData object containing decoded authentication details.
@@ -139,9 +139,9 @@ class PasskeyUtils {
     // Decode the CBOR-encoded public key and convert it to a map.
     final decodedPubKey = cbor.decode(pKey).toObject() as Map;
 
-// Calculate the hash of the credential ID.
+    // Calculate the hash of the credential ID.
     final credentialHash = hexlify(keccak256(Uint8List.fromList(credentialId)));
-// Extract x and y coordinates from the decoded public key.
+    // Extract x and y coordinates from the decoded public key.
     final x = hexlify(decodedPubKey[-2]);
     final y = hexlify(decodedPubKey[-3]);
 
@@ -149,6 +149,9 @@ class PasskeyUtils {
         credentialHash, base64Url.encode(credentialId), [x, y], aaGUID);
   }
 
+  ///[_decodeAttestation]
+  ///
+  /// Decodes the attestation certificate data to extract relevant authentication details.
   AuthData _decodeAttestation(Attestation attestation) {
     final attestationAsCbor = attestation.asCBOR();
     final decodedAttestationAsCbor =
@@ -159,11 +162,9 @@ class PasskeyUtils {
     return decode;
   }
 
-  ///The register function registers a username and returns an [Attestation].
+  ///[_register]
   ///
-  ///The [Authenticator] allows  biometric authentication.
-  ///
-  ///@See https://pub.dev/packages/webauthn
+  ///Internal function to register a user
   Future<Attestation> _register(
       String name, bool requiresUserVerification) async {
     final options = _opts;
@@ -184,8 +185,11 @@ class PasskeyUtils {
     return await _auth.makeCredential(entity);
   }
 
-  ///The [_authenticate] function authenticates a user and returns an [Assertion].
+  ///The [_authenticate] function authenticates a user and returns an [Assertion]
+  ///to assert the user is the one using the authenticator
+  ///
   ///Parameters:
+  ///
   ///- `credentialIds`: List of credential IDs to be used for authentication.
   Future<Assertion> _authenticate(List<String> credentialIds,
       Uint8List challenge, bool requiresUserVerification) async {
@@ -226,13 +230,15 @@ class PasskeyUtils {
     );
   }
 
-  /// Signs the intended request and returns the signe
-  Future<PassKeySignature> signMessage(String hash, String credentialId) async {
+  ///[sign]
+  ///
+  /// Signs the intended request and returns the signedMessage
+  Future<PassKeySignature> sign(String hash, String credentialId) async {
     final options = _opts;
     options.type = "webauthn.get";
     final hash32 = hash.length == 64 ? hash : hash.substring(2);
     final hashBase64 = base64Url
-        .encode(hexToArrayBuffer(hash32))
+        .encode(arrayify(hash32))
         .replaceAll(RegExp(r'=', multiLine: true, caseSensitive: false), '');
     final challenge32 = clientDataHash32(options, challenge: hashBase64);
     final assertion = await _authenticate([credentialId], challenge32, true);
