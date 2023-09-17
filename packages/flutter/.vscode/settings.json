@@ -1,8 +1,11 @@
 {
     "cSpell.words": [
         "cbor",
+        "hdkey",
+        "hdkeys",
         "hexlify",
         "keccak",
+        "passkeysafe",
         "pointycastle",
         "Spki",
         "sublist",

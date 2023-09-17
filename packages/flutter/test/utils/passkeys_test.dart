@@ -23,7 +23,7 @@ void main() {
 
   test('clientDataHash32 returns a valid sha256 hash of the client data', () {
     // Arrange
-    final passkeyUtils = PasskeyUtils(
+    final passkeyUtils = PassKey(
       'https://example.com',
       'Example',
       'https://example.com',
@@ -41,7 +41,7 @@ void main() {
       'getMessagingSignature returns a list of two hex strings representing r and s values',
       () async {
     // Arrange
-    final passkeyUtils = PasskeyUtils(
+    final passkeyUtils = PassKey(
       'https://example.com',
       'Example',
       'https://example.com',
@@ -70,7 +70,7 @@ void main() {
   test('Test hexToArrayBuffer function', () {
     // Test case 1: Convert a hexadecimal string to a Uint8List
     const hexString1 = "11c647709ce1d4ea50f658287694cd34";
-    final result1 = hexToArrayBuffer(hexString1);
+    final result1 = arrayify(hexString1);
     final expectedBytes1 = Uint8List.fromList([
       0x11,
       0xc6,
@@ -93,13 +93,13 @@ void main() {
 
     // Test case 2: Convert an empty hexadecimal string to an empty Uint8List
     const hexString2 = "";
-    final result2 = hexToArrayBuffer(hexString2);
+    final result2 = arrayify(hexString2);
     final expectedBytes2 = Uint8List.fromList([]);
     expect(result2, orderedEquals(expectedBytes2));
 
     // Test case 3: Convert a single-byte hexadecimal string to a Uint8List
     const hexString3 = "05";
-    final result3 = hexToArrayBuffer(hexString3);
+    final result3 = arrayify(hexString3);
     final expectedBytes3 = Uint8List.fromList([0x05]);
     expect(result3, orderedEquals(expectedBytes3));
   });
@@ -119,5 +119,5 @@ void main() {
     final result3 = hexToBytes(hexStr3);
     final expectedBytes3 = Uint8List.fromList([0x05]);
     expect(result3, orderedEquals(expectedBytes3));
-  });  
+  });
 }

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import "package:web3dart/web3dart.dart";
-import './chains.dart';
+
+import 'package:passkeysafe/utils/4337/chains.dart';
+import 'package:web3dart/web3dart.dart';
+
 import '../common.dart';
 
 class UserOperation {
@@ -104,4 +106,48 @@ class UserOperationResponse {
   UserOperationResponse(this.userOpHash, this.wait);
 }
 
-class EIP4337 {}
+class UserOperationReceipt {
+  final String entrypoint;
+  final String userOpHash;
+  final String revertReason;
+  final String paymaster;
+  final BigInt actualGasUsed;
+  final BigInt actualGasCost;
+  final BigInt nonce;
+  final bool success;
+  final List log;
+
+  UserOperationReceipt(
+      this.entrypoint,
+      this.userOpHash,
+      this.revertReason,
+      this.paymaster,
+      this.actualGasUsed,
+      this.actualGasCost,
+      this.nonce,
+      this.success,
+      this.log);
+}
+
+class ISendUserOperationResponse {
+  final String userOpHash;
+  final Future<FilterEvent?> Function() wait;
+
+  ISendUserOperationResponse(this.userOpHash, this.wait);
+}
+
+class UserOperationGet {
+  UserOperation userOperation;
+  final String entryPoint;
+  final BigInt blockNumber;
+  final BigInt blockHash;
+  final BigInt transactionHash;
+
+  UserOperationGet(
+    this.userOperation,
+    this.entryPoint,
+    this.blockNumber,
+    this.blockHash,
+    this.transactionHash,
+  );
+}

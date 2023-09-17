@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
+import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:pointycastle/export.dart';
 import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
 import 'package:web3dart/web3dart.dart';
@@ -29,7 +30,7 @@ Uint8List keccak256(Uint8List input) {
   return digest.process(input);
 }
 
-Uint8List hexToArrayBuffer(String hexString) {
+Uint8List arrayify(String hexString) {
   hexString = hexString.replaceAll(RegExp(r'\s+'), '');
   List<int> bytes = [];
   for (int i = 0; i < hexString.length; i += 2) {
@@ -89,6 +90,10 @@ class abi {
     }
     final parsedData = TupleType(abiTypes).decode(value.buffer, 0);
     return parsedData.data as List<T>;
+  }
+
+  static Uint8List encodePacked<T>(List<String> types, List<dynamic> values) {
+    return AbiUtil.solidityPack(types, values);
   }
 }
 
