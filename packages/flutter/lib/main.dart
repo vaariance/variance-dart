@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:passkeysafe/utils/4337/Wallet.dart';
 import 'package:passkeysafe/utils/4337/chains.dart';
@@ -43,6 +45,10 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final utils =
       PassKey("https://webauthn.io", "webauthn.io", "api.webauthn.io");
+  final wallet = Wallet(
+    chain: Chains.getChain(Chain.localhost)!,
+    hdkey: HDKey(ksNamespace: "test"),
+  );
   @override
   Widget build(BuildContext context) {
     TextEditingController usernameController = TextEditingController();
@@ -106,10 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(width: 20),
               ElevatedButton(
                 onPressed: () async {
-                  Wallet(
-                    chain: Chains.getChain(Chain.localhost)!,
-                    hdkey: HDKey(ksNamespace: "test"),
-                  );
+                  wallet.userOptester();
                 },
                 child: const Text("Get key pair"),
               ),

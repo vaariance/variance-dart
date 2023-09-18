@@ -25,9 +25,9 @@ class Signer {
       case SignerType.passkeys:
         require(
             id != null && id.isNotEmpty, "Passkey Credential ID is required");
-        return passkey!.sign(hash, id!) as T;
+        return await passkey!.sign(hash, id!) as T;
       default:
-        return hdkey!.sign(hash, index: index, id: id) as T;
+        return await hdkey!.sign(hash, index: index, id: id) as T;
     }
   }
 }
