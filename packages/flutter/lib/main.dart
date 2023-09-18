@@ -1,9 +1,9 @@
-
 import 'package:flutter/material.dart';
+import 'package:passkeysafe/utils/4337/Wallet.dart';
+import 'package:passkeysafe/utils/4337/chains.dart';
 import 'package:passkeysafe/utils/key_manager.dart';
 import 'package:passkeysafe/utils/passkeys.dart';
 import 'package:webauthn/webauthn.dart';
-
 
 void main() {
   runApp(const MyApp());
@@ -28,6 +28,8 @@ class MyApp extends StatelessWidget {
 final authenticator = Authenticator(true, true);
 final passkeysUtil = PassKey("https://webauthn.io", "webauthn", "webauthn.io");
 final keyManager = HDKey(ksNamespace: "ksNamespace");
+HDkeysInterface? hdkey;
+PasskeysInterface? passkey;
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -103,7 +105,12 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               const SizedBox(width: 20),
               ElevatedButton(
-                onPressed: () async {},
+                onPressed: () async {
+                  Wallet(
+                    chain: Chains.getChain(Chain.localhost)!,
+                    hdkey: HDKey(ksNamespace: "test"),
+                  );
+                },
                 child: const Text("Get key pair"),
               ),
             ],

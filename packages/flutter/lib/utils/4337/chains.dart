@@ -9,7 +9,9 @@ enum Chain {
   // testnet
   sepolia,
   op_goerli,
-  base_goerli
+  base_goerli,
+  // localhost
+  localhost
 }
 
 class IChain {
@@ -48,20 +50,14 @@ class IChain {
   }
 }
 
-abstract class AbstractChains {
-  Map<Chain, IChain> get chains;
-  IChain? getChain(Chain entrypoint);
-}
-
-class Chains implements AbstractChains {
+class Chains {
   Chains._();
   static const entrypoint = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
   static const zeroAddress = "0x0000000000000000000000000000000000000000";
   static const simpleAccountFactory =
       "0x9406Cc6185a346906296840746125a0E44976454";
 
-  @override
-  Map<Chain, IChain> chains = {
+  static Map<Chain, IChain> chains = {
     Chain.mainnet: IChain(
         chainId: 1,
         explorer: "https://etherscan.io/",
@@ -97,9 +93,15 @@ class Chains implements AbstractChains {
         explorer: "https://goerli.basescan.org",
         rpcUrl: "https://goerli.base.org",
         entrypoint: entrypoint),
+    Chain.localhost: IChain(
+        chainId: 1337,
+        explorer: "http://10.0.2.2:8545",
+        rpcUrl: "http://10.0.2.2:8545",
+        entrypoint: "0x4AC842ABD525EEC0094951f892A8013Af1c78764",
+        bundlerUrl: "http://10.0.2.2:3000/rpc")
   };
 
-  IChain? getChain(Chain entrypoint) {
+  static IChain? getChain(Chain entrypoint) {
     return chains[entrypoint];
   }
 }

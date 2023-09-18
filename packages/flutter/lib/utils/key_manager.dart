@@ -11,12 +11,15 @@ import 'package:web3dart/web3dart.dart';
 
 import './common.dart';
 
-
 AndroidOptions _getAndroidOptions() => const AndroidOptions(
       encryptedSharedPreferences: true,
     );
 
-class HDKey {
+abstract class HDkeysInterface {
+  Future<MsgSignature> sign(Uint8List hash, {int? index, String? id});
+}
+
+class HDKey implements HDkeysInterface {
   String ksNamespace;
   final FlutterSecureStorage _keyStore;
   final LocalAuthentication _auth = LocalAuthentication();

@@ -11,7 +11,11 @@ import 'package:webauthn/webauthn.dart';
 
 import 'common.dart';
 
-class PassKey {
+abstract class PasskeysInterface {
+  Future<PassKeySignature> sign(String hash, String credentialId);
+}
+
+class PassKey implements PasskeysInterface {
   final PassKeysOptions _opts;
   final Authenticator _auth;
 

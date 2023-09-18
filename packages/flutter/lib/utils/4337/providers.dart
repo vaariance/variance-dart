@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:developer';
+
 import 'package:http/http.dart' as http;
 import 'package:passkeysafe/utils/4337/userop.dart';
 import 'package:web3dart/json_rpc.dart';
@@ -11,6 +13,7 @@ class BaseProvider extends JsonRPC {
   Future<T> _makeRPCCall<T>(String function, [List<dynamic>? params]) async {
     try {
       final data = await super.call(function, params);
+
       // ignore: only_throw_errors
       if (data is Error || data is Exception) throw data;
 
@@ -60,7 +63,12 @@ class BundlerProvider {
         .then((value) => value.toInt());
     require(chainId == _chainId,
         "bundler $_bundlerUrl is on chainId $chainId, but provider is on chainId $_chainId");
+    log("provider initialized");
     _initialized = true;
+  }
+
+  Future<String> supportedEntryPoints() async {
+    return await _bundlerClient.send('eth_supportedEntryPoints');
   }
 
   Future<UserOperationReceipt> getUserOpReceipt(String userOpHash) async {
@@ -73,10 +81,6 @@ class BundlerProvider {
     require(_initialized, "getUserOp: BundlerClient not initialized");
     return await _bundlerClient
         .send('eth_getUserOperationByHash', [userOpHash]);
-  }
-
-  Future<String> supportedEntryPoints() async {
-    return await _bundlerClient.send('eth_supportedEntryPoints');
   }
 
   Future<UserOperation> estimateUserOperationGas(UserOperation userOp) async {
