@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:passkeysafe/utils/4337/userop.dart';
 import 'package:web3dart/json_rpc.dart';
+import 'package:web3dart/web3dart.dart';
 
 import "../common.dart";
 
@@ -67,30 +68,46 @@ class BundlerProvider {
     _initialized = true;
   }
 
-  Future<String> supportedEntryPoints() async {
-    return await _bundlerClient.send('eth_supportedEntryPoints');
+  Future<List<String>> supportedEntryPoints() async {
+    final entrypoints =
+        await _bundlerClient.send<List<dynamic>>('eth_supportedEntryPoints');
+    return List.castFrom(entrypoints);
+  }
+
+  Future<UserOperationGas> estimateUserOperationGas(
+      Map<String, dynamic> userOp, String entrypoint) async {
+    require(_initialized, "estimateUserOpGas: Wallet Provider not initialized");
+    final opGas = await _bundlerClient.send<Map<String, dynamic>>(
+        'eth_estimateUserOperationGas', [userOp, entrypoint]);
+    return UserOperationGas.fromMap(opGas);
+  }
+
+  Future<UserOperationByHash> getUserOperationByHash(String userOpHash) async {
+    require(_initialized, "getUserOpByHash: Wallet Provider not initialized");
+    final opExtended = await _bundlerClient
+        .send<Map<String, dynamic>>('eth_getUserOperationByHash', [userOpHash]);
+    return UserOperationByHash.fromMap(opExtended);
   }
 
   Future<UserOperationReceipt> getUserOpReceipt(String userOpHash) async {
-    require(_initialized, "getUserOp: BundlerClient not initialized");
-    return await _bundlerClient
-        .send('eth_getUserOperationReceipt', [userOpHash]);
+    require(_initialized, "getUserOpReceipt: Wallet Provider not initialized");
+    final opReceipt = await _bundlerClient.send<Map<String, dynamic>>(
+        'eth_getUserOperationReceipt', [userOpHash]);
+    return UserOperationReceipt.fromMap(opReceipt);
   }
 
-  Future<UserOperationGet> getUserOperationByHash(String userOpHash) async {
-    require(_initialized, "getUserOp: BundlerClient not initialized");
-    return await _bundlerClient
-        .send('eth_getUserOperationByHash', [userOpHash]);
+  Future<UserOperationResponse> sendUserOperation(
+      Map<String, dynamic> userOp, String entrypoint) async {
+    require(_initialized, "sendUserOp: Wallet Provider not initialized");
+    final opHash = await _bundlerClient
+        .send<String>('eth_sendUserOperation', [userOp, entrypoint]);
+    return UserOperationResponse(opHash, wait);
   }
 
-  Future<UserOperation> estimateUserOperationGas(UserOperation userOp) async {
-    require(_initialized, "getUserOp: BundlerClient not initialized");
-    return await _bundlerClient.send('eth_estimateUserOperationGas', [userOp]);
-  }
-
-  Future<ISendUserOperationResponse> sendUserOperation(
-      UserOperation userOp, String entryPoint) async {
-    require(_initialized, "getUserOp: BundlerClient not initialized");
-    return await _bundlerClient.send('eth_sendUserOperation', [userOp]);
+  Future<FilterEvent?> wait( Future<FilterEvent?> Function(int) handler, {int seconds = 0}) async {
+    if (seconds == 0) {
+      return null;
+    }
+    return await handler(seconds * 1000);
   }
 }

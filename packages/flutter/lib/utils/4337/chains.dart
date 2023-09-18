@@ -97,7 +97,7 @@ class Chains {
         chainId: 1337,
         explorer: "http://10.0.2.2:8545",
         rpcUrl: "http://10.0.2.2:8545",
-        entrypoint: "0x4AC842ABD525EEC0094951f892A8013Af1c78764",
+        entrypoint: entrypoint,
         bundlerUrl: "http://10.0.2.2:3000/rpc")
   };
 

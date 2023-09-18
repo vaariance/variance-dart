@@ -16,8 +16,8 @@ class UserOperation {
   final BigInt preVerificationGas;
   final BigInt maxFeePerGas;
   final BigInt maxPriorityFeePerGas;
-  final String paymasterAndData;
   final String signature;
+  final String paymasterAndData;
 
   Uint8List hash;
 
@@ -31,8 +31,8 @@ class UserOperation {
     this.preVerificationGas,
     this.maxFeePerGas,
     this.maxPriorityFeePerGas,
-    this.paymasterAndData,
     this.signature,
+    this.paymasterAndData,
   ) : hash = keccak256(abi.encode([
           'address',
           'uint256',
@@ -60,32 +60,32 @@ class UserOperation {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'sender': sender,
-      'nonce': nonce,
+      'nonce': '0x${nonce.toRadixString(16)}',
       'initCode': initCode,
       'callData': callData,
-      'callGasLimit': callGasLimit,
-      'verificationGasLimit': verificationGasLimit,
-      'preVerificationGas': preVerificationGas,
-      'maxFeePerGas': maxFeePerGas,
-      'maxPriorityFeePerGas': maxPriorityFeePerGas,
-      'paymasterAndData': paymasterAndData,
+      'callGasLimit': '0x${callGasLimit.toRadixString(16)}',
+      'verificationGasLimit': '0x${verificationGasLimit.toRadixString(16)}',
+      'preVerificationGas': '0x${preVerificationGas.toRadixString(16)}',
+      'maxFeePerGas': '0x${maxFeePerGas.toRadixString(16)}',
+      'maxPriorityFeePerGas': '0x${maxPriorityFeePerGas.toRadixString(16)}',
       'signature': signature,
+      'paymasterAndData': paymasterAndData,
     };
   }
 
   factory UserOperation.fromMap(Map<String, dynamic> map) {
     return UserOperation(
-      map['sender'] as String,
-      map['nonce'] as BigInt,
-      map['initCode'] as String,
-      map['callData'] as String,
-      map['callGasLimit'] as BigInt,
-      map['verificationGasLimit'] as BigInt,
-      map['preVerificationGas'] as BigInt,
-      map['maxFeePerGas'] as BigInt,
-      map['maxPriorityFeePerGas'] as BigInt,
-      map['paymasterAndData'] as String,
-      map['signature'] as String,
+      map['sender'],
+      BigInt.parse(map['nonce'].substring(2), radix: 16),
+      map['initCode'],
+      map['callData'],
+      BigInt.parse(map['callGasLimit'].substring(2), radix: 16),
+      BigInt.parse(map['verificationGasLimit'].substring(2), radix: 16),
+      BigInt.parse(map['preVerificationGas'].substring(2), radix: 16),
+      BigInt.parse(map['maxFeePerGas'].substring(2), radix: 16),
+      BigInt.parse(map['maxPriorityFeePerGas'].substring(2), radix: 16),
+      map['signature'],
+      map['paymasterAndData'],
     );
   }
 
@@ -99,55 +99,107 @@ class UserOperation {
       [keccak256(hash), chain.entrypoint, chain.chainId]));
 }
 
-class UserOperationResponse {
-  final String userOpHash;
-  final Future<FilterEvent?> Function() wait;
-
-  UserOperationResponse(this.userOpHash, this.wait);
+class UserOperationGas {
+  final BigInt preVerificationGas;
+  final BigInt verificationGasLimit;
+  BigInt? validAfter;
+  BigInt? validUntil;
+  final BigInt callGasLimit;
+  UserOperationGas({
+    required this.preVerificationGas,
+    required this.verificationGasLimit,
+    this.validAfter,
+    this.validUntil,
+    required this.callGasLimit,
+  });
+  factory UserOperationGas.fromMap(Map<String, dynamic> map) {
+    return UserOperationGas(
+      preVerificationGas:
+          BigInt.parse(map['preVerificationGas'].substring(2), radix: 16),
+      verificationGasLimit:
+          BigInt.parse(map['verificationGasLimit'].substring(2), radix: 16),
+      validAfter: map['validAfter'] != null
+          ? BigInt.parse(map['validAfter'].substring(2), radix: 16)
+          : null,
+      validUntil: map['validUntil'] != null
+          ? BigInt.parse(map['validUntil'].substring(2), radix: 16)
+          : null,
+      callGasLimit: BigInt.parse(map['callGasLimit'].substring(2), radix: 16),
+    );
+  }
 }
 
-class UserOperationReceipt {
-  final String entrypoint;
-  final String userOpHash;
-  final String revertReason;
-  final String paymaster;
-  final BigInt actualGasUsed;
-  final BigInt actualGasCost;
-  final BigInt nonce;
-  final bool success;
-  final List log;
-
-  UserOperationReceipt(
-      this.entrypoint,
-      this.userOpHash,
-      this.revertReason,
-      this.paymaster,
-      this.actualGasUsed,
-      this.actualGasCost,
-      this.nonce,
-      this.success,
-      this.log);
-}
-
-class ISendUserOperationResponse {
-  final String userOpHash;
-  final Future<FilterEvent?> Function() wait;
-
-  ISendUserOperationResponse(this.userOpHash, this.wait);
-}
-
-class UserOperationGet {
+class UserOperationByHash {
   UserOperation userOperation;
   final String entryPoint;
   final BigInt blockNumber;
   final BigInt blockHash;
   final BigInt transactionHash;
 
-  UserOperationGet(
+  UserOperationByHash(
     this.userOperation,
     this.entryPoint,
     this.blockNumber,
     this.blockHash,
     this.transactionHash,
   );
+
+  factory UserOperationByHash.fromMap(Map<String, dynamic> map) {
+    return UserOperationByHash(
+      UserOperation.fromMap(map['userOperation']),
+      map['entryPoint'],
+      BigInt.parse(map['blockNumber'].substring(2), radix: 16),
+      BigInt.parse(map['blockHash'].substring(2), radix: 16),
+      BigInt.parse(map['transactionHash'].substring(2), radix: 16),
+    );
+  }
+}
+
+class UserOperationReceipt {
+  final String userOpHash;
+  String? entrypoint;
+  final String sender;
+  final BigInt nonce;
+  String? paymaster;
+  final BigInt actualGasCost;
+  final BigInt actualGasUsed;
+  final bool success;
+  String? reason;
+  final List logs;
+
+  UserOperationReceipt(
+    this.userOpHash,
+    this.entrypoint,
+    this.sender,
+    this.nonce,
+    this.paymaster,
+    this.actualGasCost,
+    this.actualGasUsed,
+    this.success,
+    this.reason,
+    this.logs,
+  );
+
+  factory UserOperationReceipt.fromMap(Map<String, dynamic> map) {
+    return UserOperationReceipt(
+      map['userOpHash'],
+      map['entrypoint'],
+      map['sender'],
+      BigInt.parse(map['nonce'].substring(2), radix: 16),
+      map['paymaster'],
+      BigInt.parse(map['actualGasCost'].substring(2), radix: 16),
+      BigInt.parse(map['actualGasUsed'].substring(2), radix: 16),
+      map['success'],
+      map['reason'],
+      List.castFrom(map['logs']),
+    );
+  }
+}
+
+class UserOperationResponse {
+  final String userOpHash;
+  final Future<FilterEvent?> Function(Future<FilterEvent?> Function(int), {int seconds})
+      wait;
+
+  UserOperationResponse(this.userOpHash, this.wait);
 }
