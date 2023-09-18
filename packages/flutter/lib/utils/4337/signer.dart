@@ -1,16 +1,6 @@
-import 'dart:typed_data';
-
 import 'package:passkeysafe/utils/common.dart';
+import 'package:passkeysafe/utils/key_manager.dart';
 import 'package:passkeysafe/utils/passkeys.dart';
-import 'package:web3dart/crypto.dart';
-
-abstract class PasskeysInterface {
-  Future<PassKeySignature> sign(String hash, String credentialId);
-}
-
-abstract class HDkeysInterface {
-  Future<MsgSignature> sign(Uint8List hash, {int? index, String? id});
-}
 
 enum SignerType {
   passkeys,
