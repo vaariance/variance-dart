@@ -1,11 +1,10 @@
 name: passkeysafe
 description: A new Flutter project.
-
+version: 1.0.0+1
+homepage: https://github.com/peteruche21/Idw-poc.git
 
 publish_to: 'none' 
 
-
-version: 1.0.0+1
 
 environment:
   sdk: '>=3.0.6 <4.0.0'
@@ -39,12 +38,6 @@ dev_dependencies:
   build_runner: ^2.4.6
 
   flutter_lints: ^2.0.0
-  
-  
-
-
-
-
 
 flutter:
 

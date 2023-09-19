@@ -1,10 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:passkeysafe/utils/4337/Wallet.dart';
-import 'package:passkeysafe/utils/4337/chains.dart';
-import 'package:passkeysafe/utils/key_manager.dart';
-import 'package:passkeysafe/utils/passkeys.dart';
+import 'package:passkeysafe/src/utils/4337/wallet.dart';
+import 'package:passkeysafe/src/utils/4337/chains.dart';
+import 'package:passkeysafe/src/utils/key_manager.dart';
+import 'package:passkeysafe/src/utils/passkeys.dart';
 import 'package:webauthn/webauthn.dart';
 
 void main() {

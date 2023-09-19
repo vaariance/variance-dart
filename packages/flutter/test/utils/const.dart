@@ -4,8 +4,8 @@ import 'package:cbor/simple.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:passkeysafe/main.dart';
-import 'package:passkeysafe/utils/common.dart';
-import 'package:passkeysafe/utils/passkeys.dart';
+import 'package:passkeysafe/src/utils/common.dart';
+import 'package:passkeysafe/src/utils/passkeys.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webauthn/webauthn.dart';
 
