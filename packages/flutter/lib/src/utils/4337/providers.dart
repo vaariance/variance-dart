@@ -5,10 +5,9 @@ import 'dart:developer';
 
 import 'package:http/http.dart' as http;
 import 'package:passkeysafe/src/utils/4337/userop.dart';
+import 'package:passkeysafe/src/utils/common.dart';
 import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
-
-import "../common.dart";
 
 class BaseProvider extends JsonRPC {
   BaseProvider(super.url, super.client);
@@ -36,7 +35,7 @@ class BundlerProvider {
   final int _chainId;
   final String _bundlerUrl;
   final BaseProvider _bundlerClient;
-  late bool _initialized;
+  late final bool _initialized;
 
   BundlerProvider(int chainId, String bundlerUrl)
       : _chainId = chainId,
@@ -106,7 +105,8 @@ class BundlerProvider {
     return UserOperationResponse(opHash, wait);
   }
 
-  Future<FilterEvent?> wait( Future<FilterEvent?> Function(int) handler, {int seconds = 0}) async {
+  Future<FilterEvent?> wait(Future<FilterEvent?> Function(int) handler,
+      {int seconds = 0}) async {
     if (seconds == 0) {
       return null;
     }

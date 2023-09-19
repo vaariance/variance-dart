@@ -8,14 +8,10 @@ import 'package:asn1lib/asn1lib.dart';
 // ignore: depend_on_referenced_packages
 import 'package:cbor/cbor.dart';
 import 'package:crypto/crypto.dart';
+import 'package:passkeysafe/src/utils/common.dart';
+import 'package:passkeysafe/src/utils/interfaces.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webauthn/webauthn.dart';
-
-import 'common.dart';
-
-abstract class PasskeysInterface {
-  Future<PassKeySignature> sign(String hash, String credentialId);
-}
 
 class PassKey implements PasskeysInterface {
   final PassKeysOptions _opts;
@@ -228,8 +224,8 @@ class PassKey implements PasskeysInterface {
     return PassKeyPair(
       authData.credentialHash,
       authData.credentialId,
-      authData.publicKey[0],
-      authData.publicKey[1],
+      Uint256.fromHex(authData.publicKey[0]),
+      Uint256.fromHex(authData.publicKey[1]),
       name,
       authData.aaGUID,
       DateTime.now(),
@@ -258,8 +254,8 @@ class PassKey implements PasskeysInterface {
         clientDataJSON.substring(challengePos + hashBase64.length);
     return PassKeySignature(
       base64Url.encode(assertion.selectedCredentialId),
-      sig[0],
-      sig[1],
+      Uint256.fromHex(sig[0]),
+      Uint256.fromHex(sig[1]),
       assertion.authenticatorData,
       challengePrefix,
       challengeSuffix,
@@ -293,8 +289,8 @@ class AuthData {
 
 class PassKeyPair {
   final String credentialHash;
-  final String? pubKeyX;
-  final String? pubKeyY;
+  final Uint256? pubKeyX;
+  final Uint256? pubKeyY;
   final String credentialId;
   final String name;
   final String aaGUID;
@@ -305,8 +301,8 @@ class PassKeyPair {
 
 class PassKeySignature {
   final String credentialId;
-  final String r;
-  final String s;
+  final Uint256 r;
+  final Uint256 s;
   final Uint8List authData;
   final String clientDataPrefix;
   final String clientDataSuffix;

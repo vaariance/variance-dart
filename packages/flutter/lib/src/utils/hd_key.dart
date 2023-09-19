@@ -8,18 +8,15 @@ import "package:bip39/bip39.dart" as bip39;
 import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:passkeysafe/src/utils/common.dart';
+import 'package:passkeysafe/src/utils/interfaces.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
-import './common.dart';
 
 AndroidOptions _getAndroidOptions() => const AndroidOptions(
       encryptedSharedPreferences: true,
     );
-
-abstract class HDkeysInterface {
-  Future<MsgSignature> sign(Uint8List hash, {int? index, String? id});
-}
 
 class HDKey implements HDkeysInterface {
   String ksNamespace;
@@ -217,6 +214,7 @@ class HDKey implements HDkeysInterface {
     return privKey.signPersonalMessageToUint8List(message);
   }
 
+  @override
   Future<MsgSignature> sign(Uint8List hash, {int? index, String? id}) async {
     final privKey = await _getPrivateKey(index ?? 0, id: id);
     return privKey.signToEcSignature(hash);

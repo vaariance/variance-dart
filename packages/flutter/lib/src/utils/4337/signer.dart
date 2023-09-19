@@ -1,8 +1,7 @@
 library passkeysafe;
 
 import 'package:passkeysafe/src/utils/common.dart';
-import 'package:passkeysafe/src/utils/key_manager.dart';
-import 'package:passkeysafe/src/utils/passkeys.dart';
+import 'package:passkeysafe/src/utils/interfaces.dart';
 
 enum SignerType {
   passkeys,
@@ -10,20 +9,22 @@ enum SignerType {
 }
 
 class Signer {
-  PasskeysInterface? passkey;
-  HDkeysInterface? hdkey;
-  SignerType defaultSigner;
+  final PasskeysInterface? passkey;
+  final HDkeysInterface? hdkey;
+  SignerType _defaultSigner;
+
+  SignerType get defaultSigner => _defaultSigner;
 
   Signer({this.passkey, this.hdkey, SignerType signer = SignerType.hdkeys})
       : assert(passkey != null || hdkey != null),
-        defaultSigner = signer;
+        _defaultSigner = signer;
 
   void setDefaultSigner(SignerType type) {
-    defaultSigner = type;
+    _defaultSigner = type;
   }
 
   Future<T> sign<T>(dynamic hash, {int? index, String? id}) async {
-    switch (defaultSigner) {
+    switch (_defaultSigner) {
       case SignerType.passkeys:
         require(
             id != null && id.isNotEmpty, "Passkey Credential ID is required");

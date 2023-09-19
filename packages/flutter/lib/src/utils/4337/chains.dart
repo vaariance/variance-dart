@@ -1,5 +1,7 @@
 library passkeysafe;
 
+import 'package:web3dart/credentials.dart';
+
 import '../common.dart';
 
 enum Chain {
@@ -21,12 +23,12 @@ class IChain {
   final String explorer;
   String? rpcUrl;
   String? bundlerUrl;
-  String? entrypoint;
+  EthereumAddress entrypoint;
   IChain(
       {required this.chainId,
       required this.explorer,
       this.rpcUrl,
-      this.entrypoint,
+      required this.entrypoint,
       this.bundlerUrl});
 
   void setRpcUrl(String? value) {
@@ -37,7 +39,7 @@ class IChain {
     bundlerUrl = value;
   }
 
-  void setEntrypoint(String? value) {
+  void setEntrypoint(EthereumAddress value) {
     entrypoint = value;
   }
 
@@ -46,18 +48,20 @@ class IChain {
         "Chain: please provide a valid url for rpcUrl");
     require(bundlerUrl != null && bundlerUrl!.isNotEmpty,
         "Chain: please provide a valid url for bundlerUrl");
-    require(entrypoint != null && entrypoint!.isNotEmpty,
-        "Chain: please provide a valid address for entrypoint");
     return this;
   }
 }
 
 class Chains {
   Chains._();
-  static const entrypoint = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
-  static const zeroAddress = "0x0000000000000000000000000000000000000000";
-  static const simpleAccountFactory =
-      "0x9406Cc6185a346906296840746125a0E44976454";
+  static EthereumAddress entrypoint = EthereumAddress.fromHex(
+      "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
+      enforceEip55: true);
+  static EthereumAddress zeroAddress =
+      EthereumAddress.fromHex("0x0000000000000000000000000000000000000000");
+  static EthereumAddress simpleAccountFactory = EthereumAddress.fromHex(
+      "0x9406Cc6185a346906296840746125a0E44976454",
+      enforceEip55: true);
 
   static Map<Chain, IChain> chains = {
     Chain.mainnet: IChain(

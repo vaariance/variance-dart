@@ -9,6 +9,7 @@
         "pointycastle",
         "Spki",
         "sublist",
+        "walletconnect",
         "webcrypto"
     ],
     "conventionalCommits.scopes": [

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:passkeysafe/src/utils/4337/wallet.dart';
 import 'package:passkeysafe/src/utils/4337/chains.dart';
-import 'package:passkeysafe/src/utils/key_manager.dart';
+import 'package:passkeysafe/src/utils/hd_key.dart';
+import 'package:passkeysafe/src/utils/interfaces.dart';
 import 'package:passkeysafe/src/utils/passkeys.dart';
 import 'package:webauthn/webauthn.dart';
 
@@ -110,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(width: 20),
               ElevatedButton(
                 onPressed: () async {
-                  wallet.userOptester();
+                  //wallet.userOptester();
                 },
                 child: const Text("Get key pair"),
               ),

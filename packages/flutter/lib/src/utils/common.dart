@@ -112,3 +112,26 @@ String strip0x(String hex) {
   if (hex.startsWith('0x')) return hex.substring(2);
   return hex;
 }
+
+class Uint256 {
+  final BigInt _value;
+
+  Uint256(BigInt value) : _value = value;
+
+  BigInt get value => _value;
+
+  factory Uint256.fromHex(String hex) {
+    final bigIntValue = BigInt.parse(strip0x(hex), radix: 16);
+    return Uint256(bigIntValue);
+  }
+
+  String toHex() {
+    final hexString = _value.toRadixString(16);
+    return '0x${hexString.padLeft(64, '0')}'; // Ensure it's 256 bits
+  }
+
+  @override
+  String toString() {
+    return toHex();
+  }
+}

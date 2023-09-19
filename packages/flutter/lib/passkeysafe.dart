@@ -1,6 +1,6 @@
 library passkeysafe;
 
-export '/src/utils/key_manager.dart';
+export 'src/utils/hd_key.dart';
 export '/src/utils/passkeys.dart';
 export '/src/utils/4337/wallet.dart';
 export '/src/utils/4337/signer.dart';
