@@ -1,4 +1,3 @@
-library passkeysafe;
 
 import 'dart:convert';
 import 'dart:typed_data';
@@ -120,6 +119,7 @@ class Uint256 {
 
   BigInt get value => _value;
 
+  ///create and return a Uint256 value from hex values
   factory Uint256.fromHex(String hex) {
     final bigIntValue = BigInt.parse(strip0x(hex), radix: 16);
     return Uint256(bigIntValue);
@@ -133,5 +133,9 @@ class Uint256 {
   @override
   String toString() {
     return toHex();
+  }
+
+  int toInt() {
+    return _value.toInt();
   }
 }

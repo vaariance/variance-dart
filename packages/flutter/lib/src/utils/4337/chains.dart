@@ -1,4 +1,3 @@
-library passkeysafe;
 
 import 'package:web3dart/credentials.dart';
 
@@ -18,6 +17,11 @@ enum Chain {
   localhost
 }
 
+///[IChain]
+///
+/// Holds information about a chain 
+/// 
+/// and allows for wallet to interact with different chains
 class IChain {
   final int chainId;
   final String explorer;
@@ -43,6 +47,7 @@ class IChain {
     entrypoint = value;
   }
 
+  /// asserts that [rpcUrl] and [bundlerUrl] are valid
   IChain validate() {
     require(rpcUrl != null && rpcUrl!.isNotEmpty,
         "Chain: please provide a valid url for rpcUrl");

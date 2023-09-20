@@ -1,12 +1,10 @@
-library passkeysafe;
 
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:typed_data';
-
-import 'package:passkeysafe/src/utils/4337/chains.dart';
-import 'package:passkeysafe/src/utils/common.dart';
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/utils/4337/chains.dart';
 import 'package:web3dart/web3dart.dart';
-
 
 class UserOperation {
   final String sender;
@@ -198,10 +196,16 @@ class UserOperationReceipt {
   }
 }
 
+class WaitIsolateMessage {
+  final int millisecond;
+  final SendPort sendPort;
+  WaitIsolateMessage({required this.millisecond, required this.sendPort});
+}
+
 class UserOperationResponse {
   final String userOpHash;
-  final Future<FilterEvent?> Function(Future<FilterEvent?> Function(int), {int seconds})
-      wait;
+  final Future<FilterEvent?> Function(void Function(WaitIsolateMessage),
+      {int seconds}) wait;
 
   UserOperationResponse(this.userOpHash, this.wait);
 }

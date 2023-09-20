@@ -1,7 +1,8 @@
-library passkeysafe;
+library  pks_4337_sdk;
 
-import 'package:passkeysafe/src/utils/common.dart';
-import 'package:passkeysafe/src/utils/interfaces.dart';
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+
+
 
 enum SignerType {
   passkeys,
