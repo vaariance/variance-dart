@@ -5,3 +5,9 @@
 [submodule "packages/core/lib/openzeppelin-contracts"]
 	path = packages/core/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "packages/core/lib/account-abstraction"]
+	path = packages/core/lib/account-abstraction
+	url = https://github.com/eth-infinitism/account-abstraction
+[submodule "packages/core/lib/safe-core-protocol"]
+	path = packages/core/lib/safe-core-protocol
+	url = https://github.com/safe-global/safe-core-protocol
