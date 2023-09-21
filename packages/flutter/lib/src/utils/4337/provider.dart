@@ -64,10 +64,6 @@ class BundlerProvider {
   }
 
   /// checks that the bundler chainId matches expected chainId
-  /// 
-  /// `returns`
-  /// 
-  /// `true` if the chainId matches
   Future validateBundlerChainId() async {
     final chainId = await _bundlerClient
         .send<String>('eth_chainId')

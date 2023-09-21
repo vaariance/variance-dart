@@ -106,17 +106,17 @@ void main() {
   test('Test hexToBytes function', () {
     const hexStr1 = "0x1234abcd";
     final result1 = hexToBytes(hexStr1);
-    final expectedBytes1 = Uint8List.fromList([0x12, 0x34, 0xAB, 0xCD]);
+    final expectedBytes1 = [0x12, 0x34, 0xAB, 0xCD];
     expect(result1, orderedEquals(expectedBytes1));
 
     const hexStr2 = "0x";
     final result2 = hexToBytes(hexStr2);
-    final expectedBytes2 = Uint8List.fromList([]);
+    final expectedBytes2 = [];
     expect(result2, orderedEquals(expectedBytes2));
 
     const hexStr3 = "0x05";
     final result3 = hexToBytes(hexStr3);
-    final expectedBytes3 = Uint8List.fromList([0x05]);
+    final expectedBytes3 = [0x05];
     expect(result3, orderedEquals(expectedBytes3));
   });
 }

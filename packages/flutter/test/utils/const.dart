@@ -152,7 +152,7 @@ AuthData decode(dynamic authData) {
   final y = hexlify(decodedPubKey[-3]);
 
   return AuthData(
-      credentialHash, base64Url.encode(credentialId), [x, y], aaGUID);
+      credentialHash, "0x", base64Url.encode(credentialId), [x, y], aaGUID);
 }
 
 AuthData decodeAttestation(Attestation attestation) {
@@ -189,6 +189,5 @@ AuthData _decode(dynamic authData) {
   final y = hexlify(decodedPubKey[-3]);
 
   return AuthData(
-      credentialHash, base64Url.encode(credentialId), [x, y], aaGUID);
+      credentialHash, "0x", base64Url.encode(credentialId), [x, y], aaGUID);
 }
-

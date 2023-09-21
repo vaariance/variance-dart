@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -47,14 +46,14 @@ class UserOperation {
         ], [
           EthereumAddress.fromHex(sender),
           nonce,
-          keccak256(hexToBytes(initCode)),
-          keccak256(hexToBytes(callData)),
+          keccak256(Uint8List.fromList(hexToBytes(initCode))),
+          keccak256(Uint8List.fromList(hexToBytes(callData))),
           callGasLimit,
           verificationGasLimit,
           preVerificationGas,
           maxFeePerGas,
           maxPriorityFeePerGas,
-          keccak256(hexToBytes(paymasterAndData)),
+          keccak256(Uint8List.fromList(hexToBytes(paymasterAndData))),
         ]));
 
   Map<String, dynamic> toMap() {

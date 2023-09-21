@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:typed_data';
 
-
 import 'package:asn1lib/asn1lib.dart';
 // ignore: depend_on_referenced_packages
 import 'package:cbor/cbor.dart';
@@ -117,6 +116,26 @@ class PassKey implements PasskeysInterface {
     return Uint8List.fromList(sha256Hash.bytes);
   }
 
+  /// converts the credentialId to an 20 bytes hex compatible with eth addresses
+  String credentialIdToBytes20Hex(List<int> credentialId) {
+    credentialId.addAll(List<int>.filled(20 - credentialId.length, 0));
+    return hexlify(credentialId);
+  }
+
+  /// converts a 20 byte credential hex to a base64 string
+  String credentialAddressToBase64(String credentialAddress) {
+    credentialAddress.startsWith("0x")
+        ? credentialAddress = credentialAddress.substring(2)
+        : null;
+
+    List<int> credentialId = hexToBytes(credentialAddress);
+
+    while (credentialId.length > 16 && credentialId[0] == 0) {
+      credentialId.removeAt(0);
+    }
+    return base64Url.encode(credentialId);
+  }
+
   /// Decodes the raw authentication data to extract relevant authentication details.
   ///
   /// Parameters:
@@ -135,7 +154,7 @@ class PassKey implements PasskeysInterface {
     final pKey = authData.sublist(publicKeyOffset);
 
     // Extract the credential ID from the authentication data.
-    final credentialId = authData.sublist(55, publicKeyOffset);
+    final List<int> credentialId = authData.sublist(55, publicKeyOffset);
 
     // Extract and encode the aaGUID from the authentication data.
     final aaGUID = base64Url.encode(authData.sublist(37, 53));
@@ -145,12 +164,16 @@ class PassKey implements PasskeysInterface {
 
     // Calculate the hash of the credential ID.
     final credentialHash = hexlify(keccak256(Uint8List.fromList(credentialId)));
+
+    // Calculate the credentialId in eth address format
+    final credentialAddress = credentialIdToBytes20Hex(credentialId);
+
     // Extract x and y coordinates from the decoded public key.
     final x = hexlify(decodedPubKey[-2]);
     final y = hexlify(decodedPubKey[-3]);
 
-    return AuthData(
-        credentialHash, base64Url.encode(credentialId), [x, y], aaGUID);
+    return AuthData(credentialHash, credentialAddress,
+        base64Url.encode(credentialId), [x, y], aaGUID);
   }
 
   ///[_decodeAttestation]
@@ -225,9 +248,12 @@ class PassKey implements PasskeysInterface {
     }
     return PassKeyPair(
       authData.credentialHash,
+      authData.credentialAddress,
       authData.credentialId,
-      Uint256.fromHex(authData.publicKey[0]),
-      Uint256.fromHex(authData.publicKey[1]),
+      [
+        Uint256.fromHex(authData.publicKey[0]),
+        Uint256.fromHex(authData.publicKey[1]),
+      ],
       name,
       authData.aaGUID,
       DateTime.now(),
@@ -257,8 +283,10 @@ class PassKey implements PasskeysInterface {
         clientDataJSON.substring(challengePos + hashBase64.length);
     return PassKeySignature(
       base64Url.encode(assertion.selectedCredentialId),
-      Uint256.fromHex(sig[0]),
-      Uint256.fromHex(sig[1]),
+      [
+        Uint256.fromHex(sig[0]),
+        Uint256.fromHex(sig[1]),
+      ],
       assertion.authenticatorData,
       challengePrefix,
       challengeSuffix,
@@ -283,32 +311,33 @@ class PassKeysOptions {
 }
 
 class AuthData {
-  final String credentialHash;
-  final String credentialId;
+  final String credentialHash; // 32 bytes hex
+  final String credentialAddress; // 20 bytes hex
+  final String credentialId; // base64Url
   final List<String> publicKey;
   final String aaGUID;
-  AuthData(this.credentialHash, this.credentialId, this.publicKey, this.aaGUID);
+  AuthData(this.credentialHash, this.credentialAddress, this.credentialId,
+      this.publicKey, this.aaGUID);
 }
 
 class PassKeyPair {
   final String credentialHash;
-  final Uint256? pubKeyX;
-  final Uint256? pubKeyY;
+  final String credentialAddress;
   final String credentialId;
+  final List<Uint256?> publicKey;
   final String name;
   final String aaGUID;
   final DateTime registrationTime;
-  PassKeyPair(this.credentialHash, this.credentialId, this.pubKeyX,
-      this.pubKeyY, this.name, this.aaGUID, this.registrationTime);
+  PassKeyPair(this.credentialHash, this.credentialAddress, this.credentialId,
+      this.publicKey, this.name, this.aaGUID, this.registrationTime);
 }
 
 class PassKeySignature {
   final String credentialId;
-  final Uint256 r;
-  final Uint256 s;
+  final List<Uint256> rs;
   final Uint8List authData;
   final String clientDataPrefix;
   final String clientDataSuffix;
-  PassKeySignature(this.credentialId, this.r, this.s, this.authData,
+  PassKeySignature(this.credentialId, this.rs, this.authData,
       this.clientDataPrefix, this.clientDataSuffix);
 }
