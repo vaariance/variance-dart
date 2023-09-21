@@ -15,31 +15,6 @@ importers:
         specifier: ^1.0.0-beta.19
         version: 1.0.0-beta.19(prettier@2.7.1)
 
-  packages/api:
-    dependencies:
-      '@safe-global/api-kit':
-        specifier: ^1.3.0
-        version: 1.3.0
-      '@safe-global/protocol-kit':
-        specifier: ^1.2.0
-        version: 1.2.0
-      '@safe-global/safe-core-sdk-types':
-        specifier: ^2.2.0
-        version: 2.2.0
-      dotenv:
-        specifier: ^16.3.1
-        version: 16.3.1
-      ethers:
-        specifier: 5.7.2
-        version: 5.7.2
-      express:
-        specifier: ^4.18.2
-        version: 4.18.2
-    devDependencies:
-      cors:
-        specifier: ^2.8.5
-        version: 2.8.5
-
   packages/client:
     dependencies:
       '@passwordless-id/webauthn':
@@ -151,63 +126,6 @@ importers:
       '@chainlink/contracts-ccip':
         specifier: ^0.7.6
         version: 0.7.6(ethers@6.3.0)
-
-  packages/ui:
-    dependencies:
-      '@types/node':
-        specifier: 20.4.8
-        version: 20.4.8
-      '@types/react':
-        specifier: 18.2.18
-        version: 18.2.18
-      '@types/react-blockies':
-        specifier: ^1.4.1
-        version: 1.4.1
-      '@types/react-dom':
-        specifier: 18.2.7
-        version: 18.2.7
-      autoprefixer:
-        specifier: 10.4.14
-        version: 10.4.14(postcss@8.4.27)
-      axios:
-        specifier: ^1.4.0
-        version: 1.4.0
-      eslint:
-        specifier: 8.46.0
-        version: 8.46.0
-      eslint-config-next:
-        specifier: 13.4.12
-        version: 13.4.12(eslint@8.46.0)(typescript@5.1.6)
-      next:
-        specifier: 13.4.12
-        version: 13.4.12(react-dom@18.2.0)(react@18.2.0)
-      postcss:
-        specifier: 8.4.27
-        version: 8.4.27
-      react:
-        specifier: 18.2.0
-        version: 18.2.0
-      react-blockies:
-        specifier: ^1.4.1
-        version: 1.4.1(react@18.2.0)
-      react-dom:
-        specifier: 18.2.0
-        version: 18.2.0(react@18.2.0)
-      react-hook-form:
-        specifier: ^7.45.4
-        version: 7.45.4(react@18.2.0)
-      react-social-icons:
-        specifier: ^5.15.0
-        version: 5.15.0(react@18.2.0)
-      tailwindcss:
-        specifier: 3.3.3
-        version: 3.3.3
-      typescript:
-        specifier: 5.1.6
-        version: 5.1.6
-      zustand:
-        specifier: ^4.4.0
-        version: 4.4.0(@types/react@18.2.18)(react@18.2.0)
 
 packages:
 
@@ -1916,6 +1834,7 @@ packages:
     dependencies:
       object-assign: 4.1.1
       vary: 1.1.2
+    dev: false
 
   /cosmiconfig@7.1.0:
     resolution: {integrity: sha512-AdmX6xUzdNASswsFtmwSt7Vj8po9IuqXm0UXz7QKPuEUmPB4XyjGfaAr2PSuELMwkRMVH1EpIkX5bTZGRB3eCA==}
@@ -2135,11 +2054,6 @@ packages:
 
   /dom-walk@0.1.2:
     resolution: {integrity: sha512-6QvTW9mrGeIegrFXdtQi9pk7O/nSK6lSdXW2eqUspN5LWD7UTji2Fqw5V2YLjBpHEoU9Xl/eUWNpDeZvoyOv2w==}
-    dev: false
-
-  /dotenv@16.3.1:
-    resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
-    engines: {node: '>=12'}
     dev: false
 
   /ecc-jsbn@0.1.2:
@@ -4026,6 +3940,7 @@ packages:
   /object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
     engines: {node: '>=0.10.0'}
+    dev: false
 
   /object-hash@2.2.0:
     resolution: {integrity: sha512-gScRMn0bS5fH+IuwyIFgnh9zBdo4DV+6GhygmWM9HyNJSgS0hScp1f5vjtm7oIIOiT9trXrShAkLFSc2IqKNgw==}
@@ -5433,6 +5348,7 @@ packages:
   /vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
+    dev: false
 
   /verror@1.10.0:
     resolution: {integrity: sha512-ZZKSmDAEFOijERBLkmYfJ+vmk3w+7hOLYDNkRCuRuMJGEmqYNCNLyBBFwWKVMhfwaEF3WOd0Zlw86U/WC/+nYw==}
