@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
 /* solhint-disable avoid-low-level-calls */
 /* solhint-disable no-inline-assembly */
@@ -20,16 +20,14 @@ import "@~/library/Base64Url.sol";
  *  has a single signer that can send requests through the entryPoint.
  */
 contract SimplePasskeyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, Initializable {
-  /// credentialId bytes16 -> bytes20 -> hex encoded
-  /// To maintain the same interface as simple account, we zero-pad the
-  /// credential id to reach 20 byte length compatible with an eth address.
-  address public credentialAddress;
+  /// credentialId bytes32 hex encoded
+  bytes32 public credentialHex;
 
   uint256[2] public publicKey;
 
   IEntryPoint private immutable _entryPoint;
 
-  event SimpleAccountInitialized(IEntryPoint indexed entryPoint, address indexed credentialAddress);
+  event SimpleAccountInitialized(IEntryPoint indexed entryPoint, bytes32 indexed credentialHex);
 
   /// only this account should authorize actions.
   /// use either a 2771 relayer like Gelato (not implemented) or an entrypoint
@@ -94,15 +92,15 @@ contract SimplePasskeyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradea
    * a new implementation of SimpleAccount must be deployed with the new EntryPoint address, then upgrading
    * the implementation by calling `upgradeTo()`
    */
-  function initialize(address aCredentialAddress, uint256 x, uint256 y) public virtual initializer {
-    _initialize(aCredentialAddress, x, y);
+  function initialize(bytes32 aCredentialHex, uint256 x, uint256 y) public virtual initializer {
+    _initialize(aCredentialHex, x, y);
   }
 
-  function _initialize(address aCredentialAddress, uint256 x, uint256 y) internal virtual {
-    credentialAddress = aCredentialAddress;
+  function _initialize(bytes32 aCredentialHex, uint256 x, uint256 y) internal virtual {
+    credentialHex = aCredentialHex;
     publicKey[0] = x;
     publicKey[1] = y;
-    emit SimpleAccountInitialized(_entryPoint, credentialAddress);
+    emit SimpleAccountInitialized(_entryPoint, aCredentialHex);
   }
 
   /// implement template method of BaseAccount
@@ -141,15 +139,8 @@ contract SimplePasskeyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradea
     }
   }
 
-  function getCredentialIdBase64() public view returns (string memory) {
-    bytes16 credentialId;
-    bytes20 credentialAddressBytes = bytes20(credentialAddress);
-
-    for (uint i = 0; i < 16; i++) {
-      credentialId |= bytes16(credentialAddressBytes[i + 4]) >> (i * 8);
-    }
-
-    string memory credentialIdBase64 = Base64Url.encode(bytes.concat(credentialId));
+  function getCredentialAddressBase64() public view returns (string memory) {
+    string memory credentialIdBase64 = Base64Url.encode(bytes.concat(credentialHex));
     return credentialIdBase64;
   }
 
