@@ -69,7 +69,7 @@ contract TestSimplePasskeyAccount is Test {
   }
 
   function testGetCredentialId() public {
-    string memory value = account.getCredentialAddressBase64();
+    string memory value = account.getCredentialIdBase64();
     string memory expected = config.credentialId;
     assertEq(keccak256(bytes(value)), keccak256(bytes(expected)));
   }

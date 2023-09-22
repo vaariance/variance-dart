@@ -139,8 +139,23 @@ contract SimplePasskeyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradea
     }
   }
 
-  function getCredentialAddressBase64() public view returns (string memory) {
-    string memory credentialIdBase64 = Base64Url.encode(bytes.concat(credentialHex));
+  function getCredentialIdBase64() public view returns (string memory) {
+    bytes32 credentialBytes32 = credentialHex;
+
+    uint256 count = 0;
+    while (count < 32 && credentialBytes32[count] == 0x00) {
+      count++;
+    }
+
+    uint256 length = 32 - count;
+
+    bytes memory credentialBytes = new bytes(length);
+
+    for (uint256 i = 0; i < length; i++) {
+      credentialBytes[i] = credentialBytes32[i + count];
+    }
+
+    string memory credentialIdBase64 = Base64Url.encode(credentialBytes);
     return credentialIdBase64;
   }
 
