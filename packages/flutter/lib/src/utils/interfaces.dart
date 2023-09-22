@@ -6,13 +6,13 @@ import 'package:web3dart/web3dart.dart';
 
 abstract class FactoryInterface {
   Future<String> createAccount(
-    EthereumAddress owner,
+    Uint8List credentialHex,
     BigInt salt, {
     required Credentials credentials,
     Transaction? transaction,
   });
   Future<String> createPasskeyAccount(
-    EthereumAddress credentialAddress,
+    Uint8List credentialHex,
     BigInt x,
     BigInt y,
     BigInt salt, {
@@ -25,7 +25,7 @@ abstract class FactoryInterface {
     BlockNum? atBlock,
   });
   Future<EthereumAddress> getPasskeyAccountAddress(
-    EthereumAddress credentialAddress,
+    Uint8List credentialHex,
     BigInt x,
     BigInt y,
     BigInt salt, {

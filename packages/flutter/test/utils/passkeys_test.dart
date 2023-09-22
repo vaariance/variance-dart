@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -123,8 +122,8 @@ void main() {
 
   test('_decode decodes valid auth data', () {
     // Create a valid authentication data object.
-    final authData = AuthData('credentialHash', 'credentialAddress',
-        'credentialId', ['xCoordinate', 'yCoordinate'], 'aaGUID');
+    final authData = AuthData('credentialHash', 'credentialId',
+        ['xCoordinate', 'yCoordinate'], 'aaGUID');
 
     // Encode the authentication data to bytes.
     final encodedAuthData = authData;
@@ -144,20 +143,23 @@ void main() {
     expect(() => decode(invalidAuthData), throwsException);
   });
 
-  test('_get credential address returns an address', () {
-    final authData = base64Url
-        .decode("SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2MFAAAAAw==");
-
-    final l = (authData[53] << 8) + authData[54];
-
-    // Calculate the offset for the start of the public key data.
-    final publicKeyOffset = 55 + l;
-
+  test('_get credential hex from base64 credential id', () {
     // Extract the credential ID from the authentication data.
-    final List<int> credentialId = authData.sublist(55, publicKeyOffset);
+    final List<int> credentialId =
+        base64Url.decode("EUQ8dgl3CB-p6SewjKsmj25ng2IfKkAQLYzFhube47w=");
 
-    final credentialAddress = PassKey.credentialIdToBytes20Hex(credentialId);
+    final credentialHash32 = PassKey.credentialIdToBytes32Hex(credentialId);
 
-    print("credential address = $credentialAddress");
+    expect(credentialHash32,
+        "0x11443c760977081fa9e927b08cab268f6e6783621f2a40102d8cc586e6dee3bc");
+  });
+
+  test('_get credential id base 64 from hex', () {
+    const credentialHex =
+        "0x11443c760977081fa9e927b08cab268f6e6783621f2a40102d8cc586e6dee3bc";
+
+    final credentialId = PassKey.credentialHexToBase64(credentialHex);
+
+    expect("EUQ8dgl3CB-p6SewjKsmj25ng2IfKkAQLYzFhube47w=", credentialId);
   });
 }

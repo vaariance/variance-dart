@@ -54,76 +54,7 @@ const makeCredentialJson = '''{
   }''';
 
 final uint8List = Uint8List.fromList([
-  48,
-  68,
-  2,
-  32,
-  129,
-  159,
-  197,
-  83,
-  27,
-  5,
-  77,
-  131,
-  152,
-  207,
-  93,
-  129,
-  195,
-  112,
-  97,
-  95,
-  106,
-  54,
-  73,
-  60,
-  135,
-  204,
-  135,
-  228,
-  59,
-  127,
-  85,
-  68,
-  192,
-  83,
-  145,
-  233,
-  2,
-  32,
-  143,
-  163,
-  105,
-  165,
-  69,
-  18,
-  0,
-  143,
-  208,
-  175,
-  186,
-  83,
-  58,
-  193,
-  141,
-  137,
-  160,
-  166,
-  171,
-  14,
-  24,
-  35,
-  125,
-  198,
-  208,
-  101,
-  208,
-  241,
-  158,
-  106,
-  52,
-  119
+ 32, 95, 95, 99, 196, 166, 206, 189, 198, 120, 68, 183, 81, 134, 54, 126, 109, 46, 79, 25, 185, 118, 171, 10, 255, 239, 180, 233, 129, 194, 36, 53, 5, 0, 0, 0, 1
 ]);
 
 AuthData decode(dynamic authData) {
@@ -152,7 +83,7 @@ AuthData decode(dynamic authData) {
   final y = hexlify(decodedPubKey[-3]);
 
   return AuthData(
-      credentialHash, "0x", base64Url.encode(credentialId), [x, y], aaGUID);
+      credentialHash, base64Url.encode(credentialId), [x, y], aaGUID);
 }
 
 AuthData decodeAttestation(Attestation attestation) {
@@ -189,5 +120,5 @@ AuthData _decode(dynamic authData) {
   final y = hexlify(decodedPubKey[-3]);
 
   return AuthData(
-      credentialHash, "0x", base64Url.encode(credentialId), [x, y], aaGUID);
+      credentialHash, base64Url.encode(credentialId), [x, y], aaGUID);
 }

@@ -1,6 +1,7 @@
 library pks_4337_sdk;
 
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/utils/4337/chains.dart';
@@ -97,7 +98,7 @@ class Wallet extends Signer {
   /// [deployed] will be called before sending any transaction
   /// if contract is yet to be deployed, an initCode will be attached on the first transaction.
   Future create(Uint256 salt, {int? account, String? accountId}) async {
-    FactoryInterface factory = SimpleAccountFactory(
+    FactoryInterface factory = AccountFactory(
         address: Chains.simpleAccountFactory,
         client: walletClient,
         chainId: walletChain.chainId) as FactoryInterface;
@@ -111,22 +112,22 @@ class Wallet extends Signer {
 
   Future<EthereumAddress> _createPasskeyAccount(
     FactoryInterface factory,
-    EthereumAddress credentialAddress,
+    Uint8List credentialHex,
     Uint256 x,
     Uint256 y,
     Uint256 salt,
   ) async {
     return await factory.getPasskeyAccountAddress(
-        credentialAddress, x.value, y.value, salt.value);
+        credentialHex, x.value, y.value, salt.value);
   }
 
   /// alternate account contract
   /// generates a smart Account address for secp256r1 signature accounts
   /// requires a p256 account factory contract.
   /// supports creating only p256 wallet by default.
-  Future createPasskeyAccount(EthereumAddress credentialAddress, Uint256 x,
+  Future createPasskeyAccount(Uint8List credentialHex, Uint256 x,
       Uint256 y, Uint256 salt) async {
-    FactoryInterface factory = SimpleAccountFactory(
+    FactoryInterface factory = AccountFactory(
         address: Chains.simpleAccountFactory,
         client: walletClient,
         chainId: walletChain.chainId) as FactoryInterface;
@@ -134,7 +135,7 @@ class Wallet extends Signer {
         "Create P256: you need to set PassKeys as your default Signer");
     require(passkey != null, "Create P256: PassKey instance is required!");
     _walletAddress =
-        await _createPasskeyAccount(factory, credentialAddress, x, y, salt);
+        await _createPasskeyAccount(factory, credentialHex, x, y, salt);
   }
 
   /// safe multisig accounts

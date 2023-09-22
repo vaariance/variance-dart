@@ -116,16 +116,16 @@ class PassKey implements PasskeysInterface {
     return Uint8List.fromList(sha256Hash.bytes);
   }
 
-  /// converts the credentialId to an 20 bytes hex compatible with eth addresses
-  static String credentialIdToBytes20Hex(List<int> credentialId) {
-    while (credentialId.length < 20) {
+  /// converts the credentialId to an 32 bytes hex
+  static String credentialIdToBytes32Hex(List<int> credentialId) {
+    while (credentialId.length < 32) {
       credentialId.insert(0, 0);
     }
     return hexlify(credentialId);
   }
 
-  /// converts a 20 byte credential hex to a base64 string
-  static String credentialAddressToBase64(String credentialAddress) {
+  /// converts a 32 byte credential hex to a base64 string
+  static String credentialHexToBase64(String credentialAddress) {
     // Remove the "0x" prefix if present.
     if (credentialAddress.startsWith("0x")) {
       credentialAddress = credentialAddress.substring(2);
@@ -133,7 +133,7 @@ class PassKey implements PasskeysInterface {
 
     List<int> credentialId = hexToBytes(credentialAddress);
 
-    while (credentialId.length > 16 && credentialId[0] == 0) {
+    while (credentialId.isNotEmpty && credentialId[0] == 0) {
       credentialId.removeAt(0);
     }
     return base64Url.encode(credentialId);
@@ -166,17 +166,14 @@ class PassKey implements PasskeysInterface {
     final decodedPubKey = cbor.decode(pKey).toObject() as Map;
 
     // Calculate the hash of the credential ID.
-    final credentialHash = hexlify(keccak256(Uint8List.fromList(credentialId)));
-
-    // Calculate the credentialId in eth address format
-    final credentialAddress = credentialIdToBytes20Hex(credentialId);
+    final credentialHex = credentialIdToBytes32Hex(credentialId);
 
     // Extract x and y coordinates from the decoded public key.
     final x = hexlify(decodedPubKey[-2]);
     final y = hexlify(decodedPubKey[-3]);
 
-    return AuthData(credentialHash, credentialAddress,
-        base64Url.encode(credentialId), [x, y], aaGUID);
+    return AuthData(
+        credentialHex, base64Url.encode(credentialId), [x, y], aaGUID);
   }
 
   ///[_decodeAttestation]
@@ -250,8 +247,7 @@ class PassKey implements PasskeysInterface {
       throw "Invalid public key";
     }
     return PassKeyPair(
-      authData.credentialHash,
-      authData.credentialAddress,
+      authData.credentialHex,
       authData.credentialId,
       [
         Uint256.fromHex(authData.publicKey[0]),
@@ -314,25 +310,22 @@ class PassKeysOptions {
 }
 
 class AuthData {
-  final String credentialHash; // 32 bytes hex
-  final String credentialAddress; // 20 bytes hex
+  final String credentialHex; // 32 bytes hex
   final String credentialId; // base64Url
   final List<String> publicKey;
   final String aaGUID;
-  AuthData(this.credentialHash, this.credentialAddress, this.credentialId,
-      this.publicKey, this.aaGUID);
+  AuthData(this.credentialHex, this.credentialId, this.publicKey, this.aaGUID);
 }
 
 class PassKeyPair {
-  final String credentialHash;
-  final String credentialAddress;
+  final String credentialHex;
   final String credentialId;
   final List<Uint256?> publicKey;
   final String name;
   final String aaGUID;
   final DateTime registrationTime;
-  PassKeyPair(this.credentialHash, this.credentialAddress, this.credentialId,
-      this.publicKey, this.name, this.aaGUID, this.registrationTime);
+  PassKeyPair(this.credentialHex, this.credentialId, this.publicKey, this.name,
+      this.aaGUID, this.registrationTime);
 }
 
 class PassKeySignature {
