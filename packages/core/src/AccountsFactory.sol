@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -44,12 +44,12 @@ contract AccountsFactory {
   }
 
   function createPasskeyAccount(
-    address credentialAddress,
+    bytes32 credentialHex,
     uint256 x,
     uint256 y,
     uint256 salt
   ) public returns (SimplePasskeyAccount ret) {
-    address addr = getPasskeyAccountAddress(credentialAddress, x, y, salt);
+    address addr = getPasskeyAccountAddress(credentialHex, x, y, salt);
     uint codeSize = addr.code.length;
     if (codeSize > 0) {
       return SimplePasskeyAccount(payable(addr));
@@ -58,7 +58,7 @@ contract AccountsFactory {
       payable(
         new ERC1967Proxy{salt: bytes32(salt)}(
           address(simplePasskeyAccount),
-          abi.encodeCall(SimplePasskeyAccount.initialize, (credentialAddress, x, y))
+          abi.encodeCall(SimplePasskeyAccount.initialize, (credentialHex, x, y))
         )
       )
     );
@@ -81,7 +81,7 @@ contract AccountsFactory {
   }
 
   function getPasskeyAccountAddress(
-    address credentialAddress,
+    bytes32 credentialHex,
     uint256 x,
     uint256 y,
     uint256 salt
@@ -94,7 +94,7 @@ contract AccountsFactory {
             type(ERC1967Proxy).creationCode,
             abi.encode(
               address(simplePasskeyAccount),
-              abi.encodeCall(SimplePasskeyAccount.initialize, (credentialAddress, x, y))
+              abi.encodeCall(SimplePasskeyAccount.initialize, (credentialHex, x, y))
             )
           )
         )

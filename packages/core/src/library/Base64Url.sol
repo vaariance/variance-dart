@@ -2,7 +2,7 @@
 // OpenZeppelin Contracts (last updated v4.7.0) (utils/Base64.sol)
 // modified for base64url encoding, does not pad with '='
 
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
 /**
  * @dev Provides a set of functions to operate with Base64 strings.
