@@ -1,4 +1,4 @@
-library passkeysafe;
+library pks_4337_sdk;
 
 import 'dart:convert';
 import 'dart:typed_data';
@@ -8,8 +8,9 @@ import "package:bip39/bip39.dart" as bip39;
 import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:passkeysafe/src/utils/common.dart';
-import 'package:passkeysafe/src/utils/interfaces.dart';
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/utils/common.dart';
+
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 

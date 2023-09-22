@@ -1,18 +1,18 @@
-library passkeysafe;
+library pks_4337_sdk;
 
-import 'dart:developer';
 
-import 'package:passkeysafe/src/utils/4337/abi/entrypoint.g.dart';
-import 'package:passkeysafe/src/utils/4337/abi/simpleAccountFactory.g.dart';
-import 'package:passkeysafe/src/utils/4337/chains.dart';
-import 'package:passkeysafe/src/utils/4337/providers.dart';
-import 'package:passkeysafe/src/utils/4337/signer.dart';
-import 'package:passkeysafe/src/utils/4337/userop.dart';
-import 'package:passkeysafe/src/utils/common.dart';
-import 'package:passkeysafe/src/utils/interfaces.dart';
+import 'dart:isolate';
+
+
+
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/utils/4337/chains.dart';
+import 'package:pks_4337_sdk/src/utils/4337/signer.dart';
+
+import 'abi/entrypoint.g.dart';
+import 'abi/simpleAccountFactory.g.dart';
 import "package:web3dart/web3dart.dart";
 import 'package:http/http.dart' as http;
-import 'package:web3dart/json_rpc.dart';
 
 class Wallet extends Signer {
   final Web3Client walletClient;
@@ -20,12 +20,17 @@ class Wallet extends Signer {
   final IChain walletChain;
 
   late final Entrypoint entrypoint;
-  late final bool _deployed;
+  bool _deployed = false;
 
   EthereumAddress _walletAddress;
   EthereumAddress get address => _walletAddress;
   String toHex() => _walletAddress.hexEip55;
 
+  /// [Entrypoint] is not initialized
+  /// you have to call Wallet.init() instead
+  /// instantiate [Wallet] directly when you have the [address] of the account,
+  /// and do not need to interact with the entrypoint.
+  /// effective during recovery.
   Wallet(
       {required IChain chain,
       super.hdkey,
@@ -34,15 +39,23 @@ class Wallet extends Signer {
       EthereumAddress? address})
       : walletChain = chain.validate(),
         walletProvider = BundlerProvider(chain.chainId, chain.bundlerUrl!),
-        walletClient = Web3Client.custom(JsonRPC(chain.rpcUrl!, http.Client())),
+        walletClient = Web3Client(chain.rpcUrl!, http.Client()),
         _walletAddress = address ?? Chains.zeroAddress;
 
+  /// creates a [Wallet] instance, additionally initializes the [Entrypoint] contract
+  /// call [init] when you have to [wait] for userOp's or need to use entrypoint specific methods
+  /// effective during initial wallet creation
   static Wallet init(IChain chain,
       {HDkeysInterface? hdkey,
       PasskeysInterface? passkey,
-      SignerType signer = SignerType.hdkeys}) {
-    final instance =
-        Wallet(chain: chain, hdkey: hdkey, passkey: passkey, signer: signer);
+      SignerType signer = SignerType.hdkeys,
+      EthereumAddress? address}) {
+    final instance = Wallet(
+        chain: chain,
+        hdkey: hdkey,
+        passkey: passkey,
+        signer: signer,
+        address: address);
     instance.entrypoint = Entrypoint(
       address: chain.entrypoint,
       client: instance.walletClient,
@@ -50,66 +63,90 @@ class Wallet extends Signer {
     return instance;
   }
 
-  Future<EtherAmount> getBalance() async =>
-      await walletClient.getBalance(_walletAddress);
-
-  Future<Uint256> getNonce({BigInt? key}) async =>
-      Uint256(await entrypoint.getNonce(_walletAddress, key ?? BigInt.zero));
-
-  Future<EtherAmount> getGasPrice() async => await walletClient.getGasPrice();
-
-  Future<bool> deployed() async =>
-      (await walletClient.getCode(_walletAddress)).isNotEmpty;
-
-  _checkDeploymet() async {
-    bool isDeployed = await deployed();
-    isDeployed ? _deployed = true : null;
+  Future<EtherAmount> getBalance() async {
+    return await walletClient.getBalance(_walletAddress);
   }
 
-  Future<EthereumAddress> _create(AccountFactoryInterface factory,
-          EthereumAddress owner, Uint256 salt) async =>
-      await factory.getAddress(owner, salt.value);
+  Future<Uint256> getNonce({BigInt? key}) async {
+    final nonce = await entrypoint.getNonce(_walletAddress, key ?? BigInt.zero);
+    return Uint256(nonce);
+  }
+
+  Future<EtherAmount> getGasPrice() async {
+    return await walletClient.getGasPrice();
+  }
+
+  ///Checks if the account has been deployed.
+  ///
+  ///[deployed] will be called before sending any transaction
+  Future<bool> deployed() async {
+    return (await walletClient.getCode(_walletAddress)).isNotEmpty;
+  }
+
+  Future<bool> _checkDeployment() async {
+    bool isDeployed = await deployed();
+    isDeployed ? _deployed = true : _deployed = false;
+    return isDeployed;
+  }
+
+  Future<EthereumAddress> _create(
+      FactoryInterface factory, EthereumAddress owner, Uint256 salt) async {
+    return await factory.getAddress(owner, salt.value);
+  }
+
+  /// does not deploy an account
+  /// only generates an address based on the provided inputs
+  /// give the same exact inputs, the same exact address will be generated.
+  /// [deployed] will be called before sending any transaction
+  /// if contract is yet to be deployed, an initCode will be attached on the first transaction.
+  Future create(Uint256 salt, {int? account, String? accountId}) async {
+    FactoryInterface factory = SimpleAccountFactory(
+        address: Chains.simpleAccountFactory,
+        client: walletClient,
+        chainId: walletChain.chainId) as FactoryInterface;
+    require(defaultSigner == SignerType.hdkeys,
+        "Create: you need to set HD Keys as your default Signer");
+    require(hdkey != null, "Create: HD Key instance is required!");
+    EthereumAddress owner = EthereumAddress.fromHex(
+        await hdkey!.getAddress(account ?? 0, id: accountId));
+    _walletAddress = await _create(factory, owner, salt);
+  }
 
   Future<EthereumAddress> _createP256(
-    AccountFactoryInterface factory,
+    FactoryInterface factory,
     String credentialId,
     Uint256 pubKeyX,
     Uint256 pubKeyY,
     Uint256 salt,
-  ) async =>
-      await factory.getCredential(
-          credentialId, pubKeyX.value, pubKeyY.value, salt.value);
-
-  /// does not deploy an account
-  /// only generates an address based on the provided inputs
-  /// given the same exact inputs, the same exact address will be generated.
-  /// [deployed] will be called before sending any transaction
-  /// if contract is yet to be deployed, an initCode will be attached on the first transaction.
-  Future create(Uint256 salt, {String? accountId}) async {
-    AccountFactoryInterface factory = SimpleAccountFactory(
-        address: Chains.simpleAccountFactory,
-        client: walletClient,
-        chainId: walletChain.chainId) as AccountFactoryInterface;
-    require(defaultSigner == SignerType.hdkeys,
-        "Create: you need to set HD Keys as your default Signer");
-    require(hdkey != null, "Create: HD Key instance is required!");
-    EthereumAddress owner =
-        EthereumAddress.fromHex(await hdkey!.getAddress(0, id: accountId));
-    _walletAddress = await _create(factory, owner, salt);
+  ) async {
+    return await factory.getCredential(
+        credentialId, pubKeyX.value, pubKeyY.value, salt.value);
   }
 
+  /// alternate account contract
+  /// generates a smart Account address for secp256r1 signature accounts
+  /// requires a p256 account factory contract.
+  /// supports creating only p256 wallet by default.
   Future createP256(String credentialId, Uint256 pubKeyX, Uint256 pubKeyY,
       Uint256 salt) async {
-    AccountFactoryInterface factory = SimpleAccountFactory(
+    FactoryInterface factory = SimpleAccountFactory(
         address: Chains.simpleAccountFactory,
         client: walletClient,
-        chainId: walletChain.chainId) as AccountFactoryInterface;
+        chainId: walletChain.chainId) as FactoryInterface;
     require(defaultSigner == SignerType.passkeys,
         "Create P256: you need to set PassKeys as your default Signer");
     require(passkey != null, "Create P256: PassKey instance is required!");
     _walletAddress =
         await _createP256(factory, credentialId, pubKeyX, pubKeyY, salt);
   }
+
+  /// safe modular accounts
+  /// default uses hd key, however, can switch between p256 and EOA signers later with modules
+  /// p256 based signers are from modules only
+  /// [SAFE] helpers are required
+  Future _createSAFE() async {}
+
+  Future createSAFE() async {}
 
   Future buildCustomUserOp() async {
     /// builds a custom user operation
@@ -138,9 +175,13 @@ class Wallet extends Signer {
     /// sends ether via a smart wallet
   }
 
-  Future<FilterEvent?> wait(int millisecond) async {
+
+  /// waits for a userOp to complete. 
+  /// Isolates this in a separate thread
+  void wait(WaitIsolateMessage message) async {
     final block = await walletClient.getBlockNumber();
-    final end = DateTime.now().millisecondsSinceEpoch + millisecond;
+    final end = DateTime.now().millisecondsSinceEpoch + message.millisecond;
+
     while (DateTime.now().millisecondsSinceEpoch < end) {
       final filterEvent = await walletClient
           .events(
@@ -153,31 +194,35 @@ class Wallet extends Signer {
           .take(1)
           .first;
       if (filterEvent.transactionHash != null) {
-        return filterEvent;
+        Isolate.current.kill(priority: Isolate.immediate);
+        message.sendPort.send(filterEvent);
+        return;
       }
-      await Future.delayed(Duration(milliseconds: millisecond));
+      await Future.delayed(Duration(milliseconds: message.millisecond));
     }
-    return null;
+
+    Isolate.current.kill(priority: Isolate.immediate);
+    message.sendPort.send(null);
   }
 }
 
-  // Future userOptester() async {
-  //   final uop = UserOperation(
-  //     "0x3AcF7270a4e8D1d1b0656aA76E50C28a40446e77",
-  //     BigInt.from(2),
-  //     '0x',
-  //     '0xb61d27f60000000000000000000000003acf7270a4e8d1d1b0656aa76e50c28a40446e77000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000004b0d691fe00000000000000000000000000000000000000000000000000000000',
-  //     BigInt.from(55000),
-  //     BigInt.from(80000),
-  //     BigInt.from(51000),
-  //     BigInt.zero,
-  //     BigInt.zero,
-  //     '0x065f98b3a6250d7a2ba16af1d9cd70e7399dfdd43a59b066fad919c0b0091d8a0ae13b9ee0dc11576f89fb86becac6febf1ea859cb5dad5f3aac3d024eb77f681c',
-  //     '0x',
-  //   ).toMap();
+// Future userOptester() async {
+//   final uop = UserOperation(
+//     "0x3AcF7270a4e8D1d1b0656aA76E50C28a40446e77",
+//     BigInt.from(2),
+//     '0x',
+//     '0xb61d27f60000000000000000000000003acf7270a4e8d1d1b0656aa76e50c28a40446e77000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000004b0d691fe00000000000000000000000000000000000000000000000000000000',
+//     BigInt.from(55000),
+//     BigInt.from(80000),
+//     BigInt.from(51000),
+//     BigInt.zero,
+//     BigInt.zero,
+//     '0x065f98b3a6250d7a2ba16af1d9cd70e7399dfdd43a59b066fad919c0b0091d8a0ae13b9ee0dc11576f89fb86becac6febf1ea859cb5dad5f3aac3d024eb77f681c',
+//     '0x',
+//   ).toMap();
 
-  //   final etp = await walletProvider.getUserOpReceipt(
-  //       "0x968330a7d22692ee1214512ee474de65ff00d246440978de87e5740d09d2d354");
-  //   log("etp: ${etp.toString()}");
-  //   // walletProvider.sendUserOperation(et, entryPoint)
-  // }
+//   final etp = await walletProvider.getUserOpReceipt(
+//       "0x968330a7d22692ee1214512ee474de65ff00d246440978de87e5740d09d2d354");
+//   log("etp: ${etp.toString()}");
+//   // walletProvider.sendUserOperation(et, entryPoint)
+// }

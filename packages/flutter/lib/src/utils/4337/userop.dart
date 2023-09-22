@@ -1,12 +1,9 @@
-library passkeysafe;
-
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:typed_data';
-
-import 'package:passkeysafe/src/utils/4337/chains.dart';
-import 'package:passkeysafe/src/utils/common.dart';
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/utils/4337/chains.dart';
 import 'package:web3dart/web3dart.dart';
-
 
 class UserOperation {
   final String sender;
@@ -49,14 +46,14 @@ class UserOperation {
         ], [
           EthereumAddress.fromHex(sender),
           nonce,
-          keccak256(hexToBytes(initCode)),
-          keccak256(hexToBytes(callData)),
+          keccak256(Uint8List.fromList(hexToBytes(initCode))),
+          keccak256(Uint8List.fromList(hexToBytes(callData))),
           callGasLimit,
           verificationGasLimit,
           preVerificationGas,
           maxFeePerGas,
           maxPriorityFeePerGas,
-          keccak256(hexToBytes(paymasterAndData)),
+          keccak256(Uint8List.fromList(hexToBytes(paymasterAndData))),
         ]));
 
   Map<String, dynamic> toMap() {
@@ -198,10 +195,16 @@ class UserOperationReceipt {
   }
 }
 
+class WaitIsolateMessage {
+  final int millisecond;
+  final SendPort sendPort;
+  WaitIsolateMessage({required this.millisecond, required this.sendPort});
+}
+
 class UserOperationResponse {
   final String userOpHash;
-  final Future<FilterEvent?> Function(Future<FilterEvent?> Function(int), {int seconds})
-      wait;
+  final Future<FilterEvent?> Function(void Function(WaitIsolateMessage),
+      {int seconds}) wait;
 
   UserOperationResponse(this.userOpHash, this.wait);
 }

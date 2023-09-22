@@ -1,5 +1,3 @@
-library passkeysafe;
-
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -101,11 +99,8 @@ class abi {
   }
 }
 
-Uint8List hexToBytes(String hexStr) {
-  final bytes = hex.decode(strip0x(hexStr));
-  if (bytes is Uint8List) return bytes;
-
-  return Uint8List.fromList(bytes);
+List<int> hexToBytes(String hexStr) {
+  return hex.decode(strip0x(hexStr));
 }
 
 String strip0x(String hex) {
@@ -120,6 +115,7 @@ class Uint256 {
 
   BigInt get value => _value;
 
+  ///create and return a Uint256 value from hex values
   factory Uint256.fromHex(String hex) {
     final bigIntValue = BigInt.parse(strip0x(hex), radix: 16);
     return Uint256(bigIntValue);
@@ -133,5 +129,9 @@ class Uint256 {
   @override
   String toString() {
     return toHex();
+  }
+
+  int toInt() {
+    return _value.toInt();
   }
 }

@@ -3,9 +3,7 @@ import 'dart:convert';
 import 'package:cbor/simple.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:passkeysafe/main.dart';
-import 'package:passkeysafe/src/utils/common.dart';
-import 'package:passkeysafe/src/utils/passkeys.dart';
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webauthn/webauthn.dart';
 
@@ -154,7 +152,7 @@ AuthData decode(dynamic authData) {
   final y = hexlify(decodedPubKey[-3]);
 
   return AuthData(
-      credentialHash, base64Url.encode(credentialId), [x, y], aaGUID);
+      credentialHash, "0x", base64Url.encode(credentialId), [x, y], aaGUID);
 }
 
 AuthData decodeAttestation(Attestation attestation) {
@@ -191,42 +189,5 @@ AuthData _decode(dynamic authData) {
   final y = hexlify(decodedPubKey[-3]);
 
   return AuthData(
-      credentialHash, base64Url.encode(credentialId), [x, y], aaGUID);
-}
-
-Future<PassKeyPair> register(String name, bool requiresUserVerification) async {
-  final attestation = await _register(name, requiresUserVerification);
-  final authData = decodeAttestation(attestation);
-  if (authData.publicKey.length != 2) {
-    throw "Invalid public key";
-  }
-  return PassKeyPair(
-    authData.credentialHash,
-    authData.credentialId,
-    Uint256.fromHex(authData.publicKey[0]),
-    Uint256.fromHex(authData.publicKey[1]),
-    name,
-    authData.aaGUID,
-    DateTime.now(),
-  );
-}
-
-Future<Attestation> _register(
-    String name, bool requiresUserVerification) async {
-  final options = PassKeysOptions(
-      namespace: 'namespace', name: 'test', origin: 'https://example.com');
-  options.type = "webauthn.create";
-  final hash = clientDataHash32(options);
-  final entity = MakeCredentialOptions.fromJson(jsonDecode(makeCredentialJson));
-  entity.userEntity = UserEntity(
-    id: Uint8List.fromList(utf8.encode(name)),
-    displayName: name,
-    name: name,
-  );
-  entity.clientDataHash = hash;
-  entity.rpEntity.id = options.namespace;
-  entity.rpEntity.name = options.name;
-  entity.requireUserVerification = requiresUserVerification;
-  entity.requireUserPresence = !requiresUserVerification;
-  return await authenticator.makeCredential(entity);
+      credentialHash, "0x", base64Url.encode(credentialId), [x, y], aaGUID);
 }

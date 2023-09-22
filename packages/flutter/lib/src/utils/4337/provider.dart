@@ -1,14 +1,17 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-library passkeysafe;
+library pks_4337_sdk;
 
+import 'dart:async';
 import 'dart:developer';
+import 'dart:isolate';
 
 import 'package:http/http.dart' as http;
-import 'package:passkeysafe/src/utils/4337/userop.dart';
-import 'package:passkeysafe/src/utils/common.dart';
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
 
+///A JsonRPC wrapper for Bundler rpc.
+///Re-routes rpc calls to Bundler
 class BaseProvider extends JsonRPC {
   BaseProvider(super.url, super.client);
 
@@ -31,6 +34,7 @@ class BaseProvider extends JsonRPC {
   }
 }
 
+///choose what bundler provider to use
 class BundlerProvider {
   final int _chainId;
   final String _bundlerUrl;
@@ -53,11 +57,13 @@ class BundlerProvider {
     'eth_supportedEntryPoints',
   };
 
+  /// Checks that [method] is a valid bundler method
   static validateBundlerMethod(String method) {
     require(methods.contains(method),
         "validateMethod: method ::'$method':: is not a valid method");
   }
 
+  /// checks that the bundler chainId matches expected chainId
   Future validateBundlerChainId() async {
     final chainId = await _bundlerClient
         .send<String>('eth_chainId')
@@ -69,12 +75,22 @@ class BundlerProvider {
     _initialized = true;
   }
 
+  ///returns the a list of supported entrypoints for the bundler
+  ///
+  ///`returns`
+  ///
+  ///a list of supported entrypoints
   Future<List<String>> supportedEntryPoints() async {
     final entrypoints =
         await _bundlerClient.send<List<dynamic>>('eth_supportedEntryPoints');
     return List.castFrom(entrypoints);
   }
 
+  ///estimates gas cost for user operation
+  ///
+  ///`returns`
+  ///
+  ///[UserOperationGas] object
   Future<UserOperationGas> estimateUserOperationGas(
       Map<String, dynamic> userOp, String entrypoint) async {
     require(_initialized, "estimateUserOpGas: Wallet Provider not initialized");
@@ -83,20 +99,26 @@ class BundlerProvider {
     return UserOperationGas.fromMap(opGas);
   }
 
+  ///retrieves a user operation object by hash from a bundler
+  ///
+  ///
+  ///`returns`
+  ///
+  ///[UserOperationByHash] object
   Future<UserOperationByHash> getUserOperationByHash(String userOpHash) async {
     require(_initialized, "getUserOpByHash: Wallet Provider not initialized");
     final opExtended = await _bundlerClient
         .send<Map<String, dynamic>>('eth_getUserOperationByHash', [userOpHash]);
     return UserOperationByHash.fromMap(opExtended);
   }
-
+  ///gets user operation receipt
   Future<UserOperationReceipt> getUserOpReceipt(String userOpHash) async {
     require(_initialized, "getUserOpReceipt: Wallet Provider not initialized");
     final opReceipt = await _bundlerClient.send<Map<String, dynamic>>(
         'eth_getUserOperationReceipt', [userOpHash]);
     return UserOperationReceipt.fromMap(opReceipt);
   }
-
+  ///sends user operation to bundler
   Future<UserOperationResponse> sendUserOperation(
       Map<String, dynamic> userOp, String entrypoint) async {
     require(_initialized, "sendUserOp: Wallet Provider not initialized");
@@ -105,11 +127,33 @@ class BundlerProvider {
     return UserOperationResponse(opHash, wait);
   }
 
-  Future<FilterEvent?> wait(Future<FilterEvent?> Function(int) handler,
+  
+  ///This function when called, runs in a separate [Isolate] and returns a [FilterEvent] 
+  ///based on an event emitted by the smart contract
+  ///
+  ///`returns`
+  ///
+  ///[FilterEvent] 
+  Future<FilterEvent?> wait(void Function(WaitIsolateMessage) handler,
       {int seconds = 0}) async {
     if (seconds == 0) {
       return null;
     }
-    return await handler(seconds * 1000);
+    final receivePort = ReceivePort();
+    final completer = Completer<FilterEvent?>();
+
+    await Isolate.spawn(
+        handler,
+        WaitIsolateMessage(
+            millisecond: seconds * 1000, sendPort: receivePort.sendPort));
+
+    receivePort.listen((data) {
+      if (data is FilterEvent) {
+        completer.complete(data);
+      } else {
+        completer.complete(null);
+      }
+    });
+    return completer.future;
   }
 }
