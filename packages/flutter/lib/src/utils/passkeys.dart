@@ -118,15 +118,18 @@ class PassKey implements PasskeysInterface {
 
   /// converts the credentialId to an 20 bytes hex compatible with eth addresses
   String credentialIdToBytes20Hex(List<int> credentialId) {
-    credentialId.addAll(List<int>.filled(20 - credentialId.length, 0));
+    while (credentialId.length < 20) {
+      credentialId.insert(0, 0);
+    }
     return hexlify(credentialId);
   }
 
   /// converts a 20 byte credential hex to a base64 string
   String credentialAddressToBase64(String credentialAddress) {
-    credentialAddress.startsWith("0x")
-        ? credentialAddress = credentialAddress.substring(2)
-        : null;
+    // Remove the "0x" prefix if present.
+    if (credentialAddress.startsWith("0x")) {
+      credentialAddress = credentialAddress.substring(2);
+    }
 
     List<int> credentialId = hexToBytes(credentialAddress);
 

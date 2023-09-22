@@ -1,16 +1,13 @@
 library pks_4337_sdk;
 
-
 import 'dart:isolate';
-
-
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/utils/4337/chains.dart';
 import 'package:pks_4337_sdk/src/utils/4337/signer.dart';
 
 import 'abi/entrypoint.g.dart';
-import 'abi/simpleAccountFactory.g.dart';
+import 'abi/accountFactory.g.dart';
 import "package:web3dart/web3dart.dart";
 import 'package:http/http.dart' as http;
 
@@ -112,23 +109,23 @@ class Wallet extends Signer {
     _walletAddress = await _create(factory, owner, salt);
   }
 
-  Future<EthereumAddress> _createP256(
+  Future<EthereumAddress> _createPasskeyAccount(
     FactoryInterface factory,
-    String credentialId,
-    Uint256 pubKeyX,
-    Uint256 pubKeyY,
+    EthereumAddress credentialAddress,
+    Uint256 x,
+    Uint256 y,
     Uint256 salt,
   ) async {
-    return await factory.getCredential(
-        credentialId, pubKeyX.value, pubKeyY.value, salt.value);
+    return await factory.getPasskeyAccountAddress(
+        credentialAddress, x.value, y.value, salt.value);
   }
 
   /// alternate account contract
   /// generates a smart Account address for secp256r1 signature accounts
   /// requires a p256 account factory contract.
   /// supports creating only p256 wallet by default.
-  Future createP256(String credentialId, Uint256 pubKeyX, Uint256 pubKeyY,
-      Uint256 salt) async {
+  Future createPasskeyAccount(EthereumAddress credentialAddress, Uint256 x,
+      Uint256 y, Uint256 salt) async {
     FactoryInterface factory = SimpleAccountFactory(
         address: Chains.simpleAccountFactory,
         client: walletClient,
@@ -137,16 +134,21 @@ class Wallet extends Signer {
         "Create P256: you need to set PassKeys as your default Signer");
     require(passkey != null, "Create P256: PassKey instance is required!");
     _walletAddress =
-        await _createP256(factory, credentialId, pubKeyX, pubKeyY, salt);
+        await _createPasskeyAccount(factory, credentialAddress, x, y, salt);
   }
 
-  /// safe modular accounts
+  /// safe multisig accounts
   /// default uses hd key, however, can switch between p256 and EOA signers later with modules
   /// p256 based signers are from modules only
   /// [SAFE] helpers are required
   Future _createSAFE() async {}
 
   Future createSAFE() async {}
+
+  /// create 4337 compatible vendor account following Safe Protocol Spec
+  Future _createSafeVendorAccount() async {}
+
+  Future createSafeVendorAccount() async {}
 
   Future buildCustomUserOp() async {
     /// builds a custom user operation
@@ -168,15 +170,11 @@ class Wallet extends Signer {
   }
 
   Future transfer() async {
-    /// transfers erc20/721/1155 tokens via a smart wallet
+    /// transfers eth via a smart wallet
+    /// token transfers will be handled from the wallet class modules
   }
 
-  Future send() async {
-    /// sends ether via a smart wallet
-  }
-
-
-  /// waits for a userOp to complete. 
+  /// waits for a userOp to complete.
   /// Isolates this in a separate thread
   void wait(WaitIsolateMessage message) async {
     final block = await walletClient.getBlockNumber();
@@ -226,3 +224,4 @@ class Wallet extends Signer {
 //   log("etp: ${etp.toString()}");
 //   // walletProvider.sendUserOperation(et, entryPoint)
 // }
+
