@@ -134,7 +134,6 @@ class UserOperationByHash {
   final BigInt blockNumber;
   final BigInt blockHash;
   final BigInt transactionHash;
-
   UserOperationByHash(
     this.userOperation,
     this.entryPoint,

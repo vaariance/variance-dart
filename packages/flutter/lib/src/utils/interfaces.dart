@@ -41,3 +41,4 @@ abstract class HDkeysInterface {
 abstract class PasskeysInterface {
   Future<PassKeySignature> sign(String hash, String credentialId);
 }
+

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -118,5 +119,45 @@ void main() {
     final result3 = hexToBytes(hexStr3);
     final expectedBytes3 = [0x05];
     expect(result3, orderedEquals(expectedBytes3));
+  });
+
+  test('_decode decodes valid auth data', () {
+    // Create a valid authentication data object.
+    final authData = AuthData('credentialHash', 'credentialAddress',
+        'credentialId', ['xCoordinate', 'yCoordinate'], 'aaGUID');
+
+    // Encode the authentication data to bytes.
+    final encodedAuthData = authData;
+
+    // Decode the authentication data back to an object.
+    final decodedAuthData = decode(encodedAuthData);
+
+    // Verify that the decoded authentication data is equal to the original.
+    expect(decodedAuthData, authData);
+  });
+
+  test('_decode throws an exception on invalid auth data', () {
+    // Create invalid authentication data bytes.
+    final invalidAuthData = Uint8List.fromList([1, 2, 3, 4, 5]);
+
+    // Expect an exception to be thrown when decoding the invalid auth data.
+    expect(() => decode(invalidAuthData), throwsException);
+  });
+
+  test('_get credential address returns an address', () {
+    final authData = base64Url
+        .decode("SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2MFAAAAAw==");
+
+    final l = (authData[53] << 8) + authData[54];
+
+    // Calculate the offset for the start of the public key data.
+    final publicKeyOffset = 55 + l;
+
+    // Extract the credential ID from the authentication data.
+    final List<int> credentialId = authData.sublist(55, publicKeyOffset);
+
+    final credentialAddress = PassKey.credentialIdToBytes20Hex(credentialId);
+
+    print("credential address = $credentialAddress");
   });
 }
