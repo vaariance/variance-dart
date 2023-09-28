@@ -9,9 +9,9 @@ import 'package:asn1lib/asn1lib.dart';
 // ignore: depend_on_referenced_packages
 import 'package:cbor/cbor.dart';
 import 'package:crypto/crypto.dart';
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:uuid/uuid.dart';
-import 'package:pks_4337_sdk/src/utils/common.dart';
-import 'package:pks_4337_sdk/src/utils/interfaces.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:webauthn/webauthn.dart';
 
 class PassKey implements PasskeysInterface {
@@ -118,6 +118,7 @@ class PassKey implements PasskeysInterface {
 
   /// converts the credentialId to an 32 bytes hex
   static String credentialIdToBytes32Hex(List<int> credentialId) {
+    require(credentialId.length <= 32, "exception: credentialId too long");
     while (credentialId.length < 32) {
       credentialId.insert(0, 0);
     }

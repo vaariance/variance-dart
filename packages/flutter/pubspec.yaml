@@ -25,13 +25,14 @@ dependencies:
   local_auth: ^2.1.7
   http: ^0.13.5
   pointycastle: ^3.7.3
-  cupertino_icons: ^1.0.2
   walletconnect_flutter_v2: ^2.0.8
   bip39: ^1.0.6
   bip32_bip44: ^1.0.0
   mocktail: ^1.0.0
   eth_sig_util: ^0.0.9
   dio: ^5.3.2
+  ens_dart: ^1.0.0
+  dio_cache_interceptor: ^3.4.3
 
 dev_dependencies:
   flutter_test:

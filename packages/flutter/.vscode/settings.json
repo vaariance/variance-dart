@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "arrayify",
         "cbor",
         "hdkey",
         "hdkeys",
@@ -7,6 +8,7 @@
         "keccak",
         "passkeysafe",
         "pointycastle",
+        "specialnft",
         "Spki",
         "sublist",
         "walletconnect",

@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';
+
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/utils/4337/chains.dart';
+import 'package:pks_4337_sdk/src/4337/chains.dart';
+import 'package:web3dart/crypto.dart' as crypto;
 import 'package:web3dart/web3dart.dart';
 
 class UserOperation {
@@ -18,7 +20,10 @@ class UserOperation {
   final String signature;
   final String paymasterAndData;
 
-  Uint8List hash;
+  Uint8List _hash;
+  Uint8List hash(IChain chain) => keccak256(abi.encode(
+      ['bytes32', 'address', 'uint256'],
+      [keccak256(_hash), chain.entrypoint, chain.chainId]));
 
   UserOperation(
     this.sender,
@@ -32,7 +37,7 @@ class UserOperation {
     this.maxPriorityFeePerGas,
     this.signature,
     this.paymasterAndData,
-  ) : hash = keccak256(abi.encode([
+  ) : _hash = keccak256(abi.encode([
           'address',
           'uint256',
           'bytes32',
@@ -46,14 +51,14 @@ class UserOperation {
         ], [
           EthereumAddress.fromHex(sender),
           nonce,
-          keccak256(Uint8List.fromList(hexToBytes(initCode))),
-          keccak256(Uint8List.fromList(hexToBytes(callData))),
+          keccak256(Uint8List.fromList(crypto.hexToBytes(initCode))),
+          keccak256(Uint8List.fromList(crypto.hexToBytes(callData))),
           callGasLimit,
           verificationGasLimit,
           preVerificationGas,
           maxFeePerGas,
           maxPriorityFeePerGas,
-          keccak256(Uint8List.fromList(hexToBytes(paymasterAndData))),
+          keccak256(Uint8List.fromList(crypto.hexToBytes(paymasterAndData))),
         ]));
 
   Map<String, dynamic> toMap() {
@@ -75,14 +80,14 @@ class UserOperation {
   factory UserOperation.fromMap(Map<String, dynamic> map) {
     return UserOperation(
       map['sender'],
-      BigInt.parse(map['nonce'].substring(2), radix: 16),
+      BigInt.parse(map['nonce']),
       map['initCode'],
       map['callData'],
-      BigInt.parse(map['callGasLimit'].substring(2), radix: 16),
-      BigInt.parse(map['verificationGasLimit'].substring(2), radix: 16),
-      BigInt.parse(map['preVerificationGas'].substring(2), radix: 16),
-      BigInt.parse(map['maxFeePerGas'].substring(2), radix: 16),
-      BigInt.parse(map['maxPriorityFeePerGas'].substring(2), radix: 16),
+      BigInt.parse(map['callGasLimit']),
+      BigInt.parse(map['verificationGasLimit']),
+      BigInt.parse(map['preVerificationGas']),
+      BigInt.parse(map['maxFeePerGas']),
+      BigInt.parse(map['maxPriorityFeePerGas']),
       map['signature'],
       map['paymasterAndData'],
     );
@@ -92,10 +97,6 @@ class UserOperation {
 
   factory UserOperation.fromJson(String source) =>
       UserOperation.fromMap(json.decode(source) as Map<String, dynamic>);
-
-  Uint8List getHash(IChain chain) => keccak256(abi.encode(
-      ['bytes32', 'address', 'uint256'],
-      [keccak256(hash), chain.entrypoint, chain.chainId]));
 }
 
 class UserOperationGas {
@@ -114,16 +115,16 @@ class UserOperationGas {
   factory UserOperationGas.fromMap(Map<String, dynamic> map) {
     return UserOperationGas(
       preVerificationGas:
-          BigInt.parse(map['preVerificationGas'].substring(2), radix: 16),
+          BigInt.parse(map['preVerificationGas']),
       verificationGasLimit:
-          BigInt.parse(map['verificationGasLimit'].substring(2), radix: 16),
+          BigInt.parse(map['verificationGasLimit']),
       validAfter: map['validAfter'] != null
-          ? BigInt.parse(map['validAfter'].substring(2), radix: 16)
+          ? BigInt.parse(map['validAfter'])
           : null,
       validUntil: map['validUntil'] != null
-          ? BigInt.parse(map['validUntil'].substring(2), radix: 16)
+          ? BigInt.parse(map['validUntil'])
           : null,
-      callGasLimit: BigInt.parse(map['callGasLimit'].substring(2), radix: 16),
+      callGasLimit: BigInt.parse(map['callGasLimit']),
     );
   }
 }
@@ -146,9 +147,9 @@ class UserOperationByHash {
     return UserOperationByHash(
       UserOperation.fromMap(map['userOperation']),
       map['entryPoint'],
-      BigInt.parse(map['blockNumber'].substring(2), radix: 16),
-      BigInt.parse(map['blockHash'].substring(2), radix: 16),
-      BigInt.parse(map['transactionHash'].substring(2), radix: 16),
+      BigInt.parse(map['blockNumber']),
+      BigInt.parse(map['blockHash']),
+      BigInt.parse(map['transactionHash']),
     );
   }
 }
@@ -183,10 +184,10 @@ class UserOperationReceipt {
       map['userOpHash'],
       map['entrypoint'],
       map['sender'],
-      BigInt.parse(map['nonce'].substring(2), radix: 16),
+      BigInt.parse(map['nonce']),
       map['paymaster'],
-      BigInt.parse(map['actualGasCost'].substring(2), radix: 16),
-      BigInt.parse(map['actualGasUsed'].substring(2), radix: 16),
+      BigInt.parse(map['actualGasCost']),
+      BigInt.parse(map['actualGasUsed']),
       map['success'],
       map['reason'],
       List.castFrom(map['logs']),

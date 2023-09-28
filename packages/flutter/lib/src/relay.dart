@@ -1,5 +1,12 @@
 import 'dart:convert';
 
+import 'package:web3dart/web3dart.dart';
+
+class Relay {
+  String? payload;
+  Future relay() async {}
+}
+
 class CallWithSyncFeeErc2771 {
   BigInt? chainId;
   String? target;
@@ -66,4 +73,33 @@ class CallWithSyncFeeErc2771 {
   }
 
   String toJson() => json.encode(toMap());
+}
+
+
+class GelatoPayloadConfig {
+  final String ethereumProviderUrl;
+  final EthereumAddress target;
+  final String feeToken;
+  final String functionName;
+  final DeployedContract contract;
+  final ContractFunction function;
+  final List<dynamic> functionParams;
+  final EthereumAddress userAddress;
+  final int retries;
+  final String gasLimit;
+  final int userDeadlineOffsetMs;
+
+  GelatoPayloadConfig(
+    this.contract,
+    this.function, {
+    required this.ethereumProviderUrl,
+    required this.target,
+    required this.feeToken,
+    required this.functionName,
+    required this.functionParams,
+    required this.userAddress,
+    required this.retries,
+    required this.gasLimit,
+    required this.userDeadlineOffsetMs,
+  });
 }

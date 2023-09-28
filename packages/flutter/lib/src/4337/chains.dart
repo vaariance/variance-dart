@@ -1,7 +1,5 @@
-
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:web3dart/credentials.dart';
-
-import '../common.dart';
 
 enum Chain {
   // mainnet
@@ -19,8 +17,8 @@ enum Chain {
 
 ///[IChain]
 ///
-/// Holds information about a chain 
-/// 
+/// Holds information about a chain
+///
 /// and allows for wallet to interact with different chains
 class IChain {
   final int chainId;
@@ -47,7 +45,7 @@ class IChain {
     entrypoint = value;
   }
 
-  /// asserts that [rpcUrl] and [bundlerUrl] are valid
+  /// asserts that [rpcUrl] and [bundlerUrl] is provided
   IChain validate() {
     require(rpcUrl != null && rpcUrl!.isNotEmpty,
         "Chain: please provide a valid url for rpcUrl");
@@ -64,7 +62,7 @@ class Chains {
       enforceEip55: true);
   static EthereumAddress zeroAddress =
       EthereumAddress.fromHex("0x0000000000000000000000000000000000000000");
-  static EthereumAddress simpleAccountFactory = EthereumAddress.fromHex(
+  static EthereumAddress accountFactory = EthereumAddress.fromHex(
       "0x9406Cc6185a346906296840746125a0E44976454",
       enforceEip55: true);
 

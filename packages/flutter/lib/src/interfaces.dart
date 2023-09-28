@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:pks_4337_sdk/src/utils/passkeys.dart';
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -35,10 +35,10 @@ abstract class FactoryInterface {
 
 abstract class HDkeysInterface {
   Future<String> getAddress(int index, {String? id});
-  Future<MsgSignature> sign(Uint8List hash, {int? index, String? id});
+  Future<Uint8List> sign(Uint8List hash, {int? index, String? id});
+  Future<MsgSignature> signToEc(Uint8List hash, {int? index, String? id});
 }
 
 abstract class PasskeysInterface {
   Future<PassKeySignature> sign(String hash, String credentialId);
 }
-

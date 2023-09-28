@@ -9,11 +9,9 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/utils/common.dart';
 
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
-
 
 AndroidOptions _getAndroidOptions() => const AndroidOptions(
       encryptedSharedPreferences: true,
@@ -216,7 +214,14 @@ class HDKey implements HDkeysInterface {
   }
 
   @override
-  Future<MsgSignature> sign(Uint8List hash, {int? index, String? id}) async {
+  Future<Uint8List> sign(Uint8List hash, {int? index, String? id}) async {
+    final privKey = await _getPrivateKey(index ?? 0, id: id);
+    return privKey.signPersonalMessageToUint8List(hash);
+  }
+
+  @override
+  Future<MsgSignature> signToEc(Uint8List hash,
+      {int? index, String? id}) async {
     final privKey = await _getPrivateKey(index ?? 0, id: id);
     return privKey.signToEcSignature(hash);
   }

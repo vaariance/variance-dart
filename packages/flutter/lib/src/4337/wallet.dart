@@ -3,14 +3,13 @@ library pks_4337_sdk;
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/utils/4337/chains.dart';
-import 'package:pks_4337_sdk/src/utils/4337/signer.dart';
-
-import 'abi/entrypoint.g.dart';
-import 'abi/accountFactory.g.dart';
-import "package:web3dart/web3dart.dart";
 import 'package:http/http.dart' as http;
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/4337/chains.dart';
+import 'package:pks_4337_sdk/src/abi/accountFactory.g.dart';
+import 'package:pks_4337_sdk/src/abi/entrypoint.g.dart';
+import "package:web3dart/web3dart.dart";
+
 
 class Wallet extends Signer {
   final Web3Client walletClient;
@@ -21,11 +20,12 @@ class Wallet extends Signer {
   bool _deployed = false;
 
   EthereumAddress _walletAddress;
-  EthereumAddress get address => _walletAddress;
+  Address get address => Address.fromEthAddress(_walletAddress);
   String toHex() => _walletAddress.hexEip55;
 
   /// [Entrypoint] is not initialized
   /// you have to call Wallet.init() instead
+  /// 
   /// instantiate [Wallet] directly when you have the [address] of the account,
   /// and do not need to interact with the entrypoint.
   /// effective during recovery.
@@ -99,7 +99,7 @@ class Wallet extends Signer {
   /// if contract is yet to be deployed, an initCode will be attached on the first transaction.
   Future create(Uint256 salt, {int? account, String? accountId}) async {
     FactoryInterface factory = AccountFactory(
-        address: Chains.simpleAccountFactory,
+        address: Chains.accountFactory,
         client: walletClient,
         chainId: walletChain.chainId) as FactoryInterface;
     require(defaultSigner == SignerType.hdkeys,
@@ -125,10 +125,10 @@ class Wallet extends Signer {
   /// generates a smart Account address for secp256r1 signature accounts
   /// requires a p256 account factory contract.
   /// supports creating only p256 wallet by default.
-  Future createPasskeyAccount(Uint8List credentialHex, Uint256 x,
-      Uint256 y, Uint256 salt) async {
+  Future createPasskeyAccount(
+      Uint8List credentialHex, Uint256 x, Uint256 y, Uint256 salt) async {
     FactoryInterface factory = AccountFactory(
-        address: Chains.simpleAccountFactory,
+        address: Chains.accountFactory,
         client: walletClient,
         chainId: walletChain.chainId) as FactoryInterface;
     require(defaultSigner == SignerType.passkeys,
@@ -138,39 +138,55 @@ class Wallet extends Signer {
         await _createPasskeyAccount(factory, credentialHex, x, y, salt);
   }
 
-  /// safe multisig accounts
-  /// default uses hd key, however, can switch between p256 and EOA signers later with modules
-  /// p256 based signers are from modules only
-  /// [SAFE] helpers are required
-  Future _createSAFE() async {}
 
-  Future createSAFE() async {}
+  // UserOperation buildUserOp() {}
 
-  /// create 4337 compatible vendor account following Safe Protocol Spec
-  Future _createSafeVendorAccount() async {}
-
-  Future createSafeVendorAccount() async {}
-
-  Future buildCustomUserOp() async {
-    /// builds a custom user operation
-  }
-
-  Future sendUserOperation() async {
+  Future signUserOperation() async {}
+  Future sendSignedUserOperation() async {
     /// sends a custom built user operation via a smart wallet
   }
-  Future sendTransaction() async {
-    /// sends a transaction via a smart wallet
+  Future signAndSendUserOperation() async {
+    /// sends a custom built user operation via a smart wallet
+  }
+
+  Future<UserOperationResponse?> sendTransaction({
+    required EthereumAddress to,
+    required Uint256 value,
+    required Uint8List payload,
+    BundlerProvider? bundlerProvider,
+  }) async {
+    if (!(await _checkDeployment())) {}
+    final nonce = await getNonce();
+    UserOperation userOp = UserOperation(
+      toHex(),
+      nonce.value,
+      '',
+      '$payload',
+      BigInt.tryParse('$value') ?? BigInt.from(0),
+      BigInt.from(0),
+      BigInt.from(0),
+      BigInt.from(0),
+      BigInt.from(0),
+      '',
+      '',
+    );
+    final signedOps = await sign(userOp);
+    final response = await bundlerProvider?.sendUserOperation(
+        signedOps, Chains.entrypoint as String);
+    if (response?.userOpHash == null) {
+      throw Exception('Error sending transaction');
+    }
+
+    return response;
   }
 
   Future sendBatchedTransaction() async {
     /// sends a batched transaction via a smart wallet
   }
 
-  Future signTransaction() async {
-    /// signs a transaction via a smart wallet
-  }
+  Future signTransaction() async {}
 
-  Future transfer() async {
+  Future send() async {
     /// transfers eth via a smart wallet
     /// token transfers will be handled from the wallet class modules
   }
@@ -225,4 +241,3 @@ class Wallet extends Signer {
 //   log("etp: ${etp.toString()}");
 //   // walletProvider.sendUserOperation(et, entryPoint)
 // }
-
