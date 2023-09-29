@@ -10,8 +10,7 @@ class Uint256 {
 
   ///create and return a Uint256 value from hex values
   factory Uint256.fromHex(String hex) {
-    final bigIntValue = BigInt.parse(strip0x(hex), radix: 16);
-    return Uint256(bigIntValue);
+    return Uint256(hexToInt(hex));
   }
 
   factory Uint256.fromWei(EtherAmount inWei) {

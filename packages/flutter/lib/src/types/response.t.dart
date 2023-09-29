@@ -1,0 +1,1 @@
+enum ResponseType { withMetadata, withoutMetadata }

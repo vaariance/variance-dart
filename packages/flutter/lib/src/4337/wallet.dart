@@ -6,10 +6,10 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/4337/chains.dart';
+import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
 import 'package:pks_4337_sdk/src/abi/accountFactory.g.dart';
 import 'package:pks_4337_sdk/src/abi/entrypoint.g.dart';
 import "package:web3dart/web3dart.dart";
-
 
 class Wallet extends Signer {
   final Web3Client walletClient;
@@ -25,7 +25,7 @@ class Wallet extends Signer {
 
   /// [Entrypoint] is not initialized
   /// you have to call Wallet.init() instead
-  /// 
+  ///
   /// instantiate [Wallet] directly when you have the [address] of the account,
   /// and do not need to interact with the entrypoint.
   /// effective during recovery.
@@ -70,25 +70,17 @@ class Wallet extends Signer {
     return Uint256(nonce);
   }
 
-  Future<EtherAmount> getGasPrice() async {
-    return await walletClient.getGasPrice();
-  }
-
-  ///Checks if the account has been deployed.
-  ///
-  ///[deployed] will be called before sending any transaction
-  Future<bool> deployed() async {
-    return (await walletClient.getCode(_walletAddress)).isNotEmpty;
-  }
-
   Future<bool> _checkDeployment() async {
-    bool isDeployed = await deployed();
+    bool isDeployed = await Contract(_provider).deployed(_walletAddress);
     isDeployed ? _deployed = true : _deployed = false;
     return isDeployed;
   }
 
-  Future<EthereumAddress> _create(
-      FactoryInterface factory, EthereumAddress owner, Uint256 salt) async {
+  Future<EthereumAddress> _create(EthereumAddress owner, Uint256 salt) async {
+    FactoryInterface factory = AccountFactory(
+        address: Chains.accountFactory,
+        client: walletClient,
+        chainId: walletChain.chainId) as FactoryInterface;
     return await factory.getAddress(owner, salt.value);
   }
 
@@ -98,16 +90,12 @@ class Wallet extends Signer {
   /// [deployed] will be called before sending any transaction
   /// if contract is yet to be deployed, an initCode will be attached on the first transaction.
   Future create(Uint256 salt, {int? account, String? accountId}) async {
-    FactoryInterface factory = AccountFactory(
-        address: Chains.accountFactory,
-        client: walletClient,
-        chainId: walletChain.chainId) as FactoryInterface;
     require(defaultSigner == SignerType.hdkeys,
         "Create: you need to set HD Keys as your default Signer");
     require(hdkey != null, "Create: HD Key instance is required!");
     EthereumAddress owner = EthereumAddress.fromHex(
         await hdkey!.getAddress(account ?? 0, id: accountId));
-    _walletAddress = await _create(factory, owner, salt);
+    _walletAddress = await _create(owner, salt);
   }
 
   Future<EthereumAddress> _createPasskeyAccount(
@@ -127,17 +115,12 @@ class Wallet extends Signer {
   /// supports creating only p256 wallet by default.
   Future createPasskeyAccount(
       Uint8List credentialHex, Uint256 x, Uint256 y, Uint256 salt) async {
-    FactoryInterface factory = AccountFactory(
-        address: Chains.accountFactory,
-        client: walletClient,
-        chainId: walletChain.chainId) as FactoryInterface;
     require(defaultSigner == SignerType.passkeys,
         "Create P256: you need to set PassKeys as your default Signer");
     require(passkey != null, "Create P256: PassKey instance is required!");
     _walletAddress =
         await _createPasskeyAccount(factory, credentialHex, x, y, salt);
   }
-
 
   // UserOperation buildUserOp() {}
 

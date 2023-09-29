@@ -7,6 +7,7 @@ import 'dart:isolate';
 
 import 'package:http/http.dart' as http;
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -31,6 +32,17 @@ class BaseProvider extends JsonRPC {
 
   Future<T> send<T>(String function, [List<dynamic>? params]) async {
     return await _makeRPCCall<T>(function, params);
+  }
+
+  Future<EtherAmount> getGasPrice() async {
+    final data = await _makeRPCCall<String>('eth_gasPrice');
+
+    return EtherAmount.fromBigInt(EtherUnit.wei, hexToInt(data));
+  }
+
+  Future<int> getBlockNumber() {
+    return _makeRPCCall<String>('eth_blockNumber')
+        .then((s) => hexToInt(s).toInt());
   }
 }
 
@@ -111,6 +123,7 @@ class BundlerProvider {
         .send<Map<String, dynamic>>('eth_getUserOperationByHash', [userOpHash]);
     return UserOperationByHash.fromMap(opExtended);
   }
+
   ///gets user operation receipt
   Future<UserOperationReceipt> getUserOpReceipt(String userOpHash) async {
     require(_initialized, "getUserOpReceipt: Wallet Provider not initialized");
@@ -118,6 +131,7 @@ class BundlerProvider {
         'eth_getUserOperationReceipt', [userOpHash]);
     return UserOperationReceipt.fromMap(opReceipt);
   }
+
   ///sends user operation to bundler
   Future<UserOperationResponse> sendUserOperation(
       Map<String, dynamic> userOp, String entrypoint) async {
@@ -127,13 +141,12 @@ class BundlerProvider {
     return UserOperationResponse(opHash, wait);
   }
 
-  
-  ///This function when called, runs in a separate [Isolate] and returns a [FilterEvent] 
+  ///This function when called, runs in a separate [Isolate] and returns a [FilterEvent]
   ///based on an event emitted by the smart contract
   ///
   ///`returns`
   ///
-  ///[FilterEvent] 
+  ///[FilterEvent]
   Future<FilterEvent?> wait(void Function(WaitIsolateMessage) handler,
       {int seconds = 0}) async {
     if (seconds == 0) {
