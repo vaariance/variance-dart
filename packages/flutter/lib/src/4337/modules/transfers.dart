@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/4337/modules/enum.dart';
 import 'package:web3dart/web3dart.dart';
 
 /// uses alchemy transfer api

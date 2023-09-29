@@ -7,6 +7,8 @@ import 'dart:isolate';
 
 import 'package:http/http.dart' as http;
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/4337/chains.dart';
+import 'package:pks_4337_sdk/src/abi/entrypoint.g.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
@@ -14,7 +16,12 @@ import 'package:web3dart/web3dart.dart';
 ///A JsonRPC wrapper for Bundler rpc.
 ///Re-routes rpc calls to Bundler
 class BaseProvider extends JsonRPC {
-  BaseProvider(super.url, super.client);
+  final String _rpcUrl;
+  String get rpcUrl => _rpcUrl;
+
+  BaseProvider(String rpcUrl)
+      : _rpcUrl = rpcUrl,
+        super(rpcUrl, http.Client());
 
   Future<T> _makeRPCCall<T>(String function, [List<dynamic>? params]) async {
     try {
@@ -53,11 +60,14 @@ class BundlerProvider {
   final BaseProvider _bundlerClient;
   late final bool _initialized;
 
-  BundlerProvider(int chainId, String bundlerUrl)
-      : _chainId = chainId,
-        _bundlerUrl = bundlerUrl,
-        _bundlerClient = BaseProvider(bundlerUrl, http.Client()) {
-    validateBundlerChainId();
+  Web3Client? custom;
+  Entrypoint? entrypoint;
+
+  BundlerProvider(IChain chain)
+      : _chainId = chain.chainId,
+        _bundlerUrl = chain.bundlerUrl!,
+        _bundlerClient = BaseProvider(chain.bundlerUrl!) {
+    _initializeBundlerProvider();
   }
 
   static final Set<String> methods = {
@@ -76,7 +86,7 @@ class BundlerProvider {
   }
 
   /// checks that the bundler chainId matches expected chainId
-  Future validateBundlerChainId() async {
+  Future _initializeBundlerProvider() async {
     final chainId = await _bundlerClient
         .send<String>('eth_chainId')
         .then(BigInt.parse)
@@ -87,15 +97,20 @@ class BundlerProvider {
     _initialized = true;
   }
 
-  ///returns the a list of supported entrypoints for the bundler
+  initializeWithEntrypoint(Entrypoint ep, Web3Client bp) {
+    entrypoint = ep;
+    custom = bp;
+  }
+
+  ///returns the a list of supported entrypoint(s) for the bundler
   ///
   ///`returns`
   ///
-  ///a list of supported entrypoints
+  ///a list of supported entrypoint(s)
   Future<List<String>> supportedEntryPoints() async {
-    final entrypoints =
+    final entrypointList =
         await _bundlerClient.send<List<dynamic>>('eth_supportedEntryPoints');
-    return List.castFrom(entrypoints);
+    return List.castFrom(entrypointList);
   }
 
   ///estimates gas cost for user operation
@@ -147,8 +162,7 @@ class BundlerProvider {
   ///`returns`
   ///
   ///[FilterEvent]
-  Future<FilterEvent?> wait(void Function(WaitIsolateMessage) handler,
-      {int seconds = 0}) async {
+  Future<FilterEvent?> wait({int seconds = 0}) async {
     if (seconds == 0) {
       return null;
     }
@@ -156,7 +170,7 @@ class BundlerProvider {
     final completer = Completer<FilterEvent?>();
 
     await Isolate.spawn(
-        handler,
+        _wait,
         WaitIsolateMessage(
             millisecond: seconds * 1000, sendPort: receivePort.sendPort));
 
@@ -168,5 +182,36 @@ class BundlerProvider {
       }
     });
     return completer.future;
+  }
+
+  /// waits for a userOp to complete.
+  /// Isolates this in a separate thread
+  void _wait(WaitIsolateMessage message) async {
+    require(entrypoint != null && custom != null,
+        "Entrypoint required! use Wallet.init");
+    final block = await custom!.getBlockNumber();
+    final end = DateTime.now().millisecondsSinceEpoch + message.millisecond;
+
+    while (DateTime.now().millisecondsSinceEpoch < end) {
+      final filterEvent = await custom!
+          .events(
+            FilterOptions.events(
+              contract: entrypoint!.self,
+              event: entrypoint!.self.event('UserOperationEvent'),
+              fromBlock: BlockNum.exact(block - 100),
+            ),
+          )
+          .take(1)
+          .first;
+      if (filterEvent.transactionHash != null) {
+        Isolate.current.kill(priority: Isolate.immediate);
+        message.sendPort.send(filterEvent);
+        return;
+      }
+      await Future.delayed(Duration(milliseconds: message.millisecond));
+    }
+
+    Isolate.current.kill(priority: Isolate.immediate);
+    message.sendPort.send(null);
   }
 }

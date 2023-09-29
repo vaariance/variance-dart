@@ -1,4 +1,3 @@
-
 import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
@@ -28,12 +27,9 @@ class Contract {
     return func.encodeCall(params);
   }
 
-  Future<List<T>> call<T>(
-      EthereumAddress? sender,
-      EthereumAddress contractAddress,
-      ContractAbi abi,
-      String methodName,
-      List<dynamic> params) {
+  Future<List<T>> call<T>(EthereumAddress contractAddress, ContractAbi abi,
+      String methodName, List<dynamic> params,
+      {EthereumAddress? sender}) {
     final func = getContractFunction(methodName, contractAddress, abi);
     final call = {
       'to': contractAddress.hex,
@@ -45,15 +41,17 @@ class Contract {
         (value) => func.decodeReturnValues(value) as List<T>);
   }
 
-  Future<EtherAmount> getBalance(EthereumAddress address) async {
-    final String balance =
-        await _provider.send<String>('eth_getBalance', [address.hex]);
-    return EtherAmount.fromBigInt(EtherUnit.wei, hexToInt(balance));
+  Future<EtherAmount> getBalance(EthereumAddress address) {
+    return _provider
+        .send<String>('eth_getBalance', [address.hex])
+        .then(BigInt.parse)
+        .then((value) => EtherAmount.fromBigInt(EtherUnit.wei, value));
   }
 
-  Future<bool> deployed(EthereumAddress address) async {
-    final String code =
-        await _provider.send<String>('eth_getCode', [address.hex]);
-    return hexToBytes(code).isNotEmpty;
+  Future<bool> deployed(EthereumAddress address) {
+    return _provider
+        .send<String>('eth_getCode', [address.hex])
+        .then(hexToBytes)
+        .then((value) => value.isNotEmpty);
   }
 }

@@ -1,10 +1,11 @@
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/4337/modules/enum.dart';
 
-enum TransferCategory { external, internal, erc721, erc1155, erc20, specialnft }
-
+@immutable
 class TransferResponse {
   final List<Transfer> transfers;
   final String? pageKey;

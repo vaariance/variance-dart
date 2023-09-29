@@ -3,6 +3,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/signer/passkey_types.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:webauthn/webauthn.dart';
 import 'const.dart';

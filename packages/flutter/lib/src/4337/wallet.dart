@@ -1,48 +1,74 @@
 library pks_4337_sdk;
 
-import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:http/http.dart' as http;
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/4337/chains.dart';
 import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
+import 'package:pks_4337_sdk/src/4337/modules/contract_abis.dart';
+import 'package:pks_4337_sdk/src/4337/modules/nft.dart';
+import 'package:pks_4337_sdk/src/4337/modules/token.dart';
+import 'package:pks_4337_sdk/src/4337/modules/transfers.dart';
 import 'package:pks_4337_sdk/src/abi/accountFactory.g.dart';
 import 'package:pks_4337_sdk/src/abi/entrypoint.g.dart';
 import "package:web3dart/web3dart.dart";
 
 class Wallet extends Signer {
-  final Web3Client walletClient;
-  final BundlerProvider walletProvider;
-  final IChain walletChain;
+  /// [PROVIDERS]
+  final BaseProvider _baseProvider;
+  final BundlerProvider _walletProvider;
+  final IChain _walletChain;
 
-  late final Entrypoint entrypoint;
-  bool _deployed = false;
+  /// [MODULES]
+  late final NFT nft;
+  late final Tokens tokens;
+  late final Transfers transfers;
+  late final Contract contract;
 
+  /// [GETTERS]
+  BaseProvider get baseProvider => _baseProvider;
+  BundlerProvider get walletProvider => _walletProvider;
+  IChain get walletChain => _walletChain;
+
+  /// [WALLET_ADDRESS]
   EthereumAddress _walletAddress;
   Address get address => Address.fromEthAddress(_walletAddress);
   String toHex() => _walletAddress.hexEip55;
 
   /// [Entrypoint] is not initialized
-  /// you have to call Wallet.init() instead
+  /// to initialize with entrypoint, you have to call [Wallet.init] instead
   ///
-  /// instantiate [Wallet] directly when you have the [address] of the account,
-  /// and do not need to interact with the entrypoint.
-  /// effective during recovery.
+  /// Creates an instance of [Wallet]
   Wallet(
       {required IChain chain,
       super.hdkey,
       super.passkey,
       super.signer,
       EthereumAddress? address})
-      : walletChain = chain.validate(),
-        walletProvider = BundlerProvider(chain.chainId, chain.bundlerUrl!),
-        walletClient = Web3Client(chain.rpcUrl!, http.Client()),
-        _walletAddress = address ?? Chains.zeroAddress;
+      : _walletChain = chain.validate(),
+        _walletProvider = BundlerProvider(chain),
+        _baseProvider = BaseProvider(chain.rpcUrl!),
+        _walletAddress = address ?? Chains.zeroAddress {
+    _initializeModules(_baseProvider);
+  }
+
+  /// initializes the [Wallet] modules
+  /// - nft module
+  /// - token module
+  /// - contract module
+  /// - transfers module
+  _initializeModules(BaseProvider provider) {
+    nft = NFT(provider.rpcUrl);
+    tokens = Tokens(provider);
+    transfers = Transfers(provider);
+    contract = Contract(provider);
+  }
 
   /// creates a [Wallet] instance, additionally initializes the [Entrypoint] contract
-  /// call [init] when you have to [wait] for userOp's or need to use entrypoint specific methods
-  /// effective during initial wallet creation
+  /// use [Wallet.init] directly when you:
+  /// - need to interact with the entrypoint.
+  /// - want to [wait] for user Operation Events.
+  /// - recovering account.
   static Wallet init(IChain chain,
       {HDkeysInterface? hdkey,
       PasskeysInterface? passkey,
@@ -54,154 +80,88 @@ class Wallet extends Signer {
         passkey: passkey,
         signer: signer,
         address: address);
-    instance.entrypoint = Entrypoint(
-      address: chain.entrypoint,
-      client: instance.walletClient,
-    );
+    final custom = Web3Client.custom(instance.baseProvider);
+    instance._walletProvider.initializeWithEntrypoint(
+        Entrypoint(
+          address: chain.entrypoint,
+          client: custom,
+        ),
+        custom);
     return instance;
   }
 
-  Future<EtherAmount> getBalance() async {
-    return await walletClient.getBalance(_walletAddress);
+  Future<EtherAmount> get balance => contract.getBalance(_walletAddress);
+
+  Future<bool> get deployed => contract.deployed(_walletAddress);
+
+  Future<Uint256> get nonce => _nonce();
+
+  Future<Uint256> _nonce() async {
+    return contract.call<BigInt>(_walletAddress, ContractAbis.get('getNonce'),
+        "getNonce", []).then((value) => Uint256(value[0]));
   }
 
-  Future<Uint256> getNonce({BigInt? key}) async {
-    final nonce = await entrypoint.getNonce(_walletAddress, key ?? BigInt.zero);
-    return Uint256(nonce);
-  }
-
-  Future<bool> _checkDeployment() async {
-    bool isDeployed = await Contract(_provider).deployed(_walletAddress);
-    isDeployed ? _deployed = true : _deployed = false;
-    return isDeployed;
-  }
-
-  Future<EthereumAddress> _create(EthereumAddress owner, Uint256 salt) async {
+  /// [create] -> creates a new wallet address.
+  /// uses counterfactual deployment, so wallet may not actually be deployed
+  /// given the same exact inputs, the same exact address will be generated.
+  /// use [deployed] to check if wallet is deployed.
+  /// an `initCode` will be attached on the first transaction.
+  create(Uint256 salt, {int? index, String? accountId}) async {
+    require(defaultSigner == SignerType.hdkeys && hdkey != null,
+        "Create: HD Key instance is required!");
+    EthereumAddress owner = EthereumAddress.fromHex(
+        await hdkey!.getAddress(index ?? 0, id: accountId));
     FactoryInterface factory = AccountFactory(
         address: Chains.accountFactory,
-        client: walletClient,
-        chainId: walletChain.chainId) as FactoryInterface;
-    return await factory.getAddress(owner, salt.value);
+        client: Web3Client.custom(_baseProvider),
+        chainId: _walletChain.chainId) as FactoryInterface;
+    factory
+        .getAddress(owner, salt.value)
+        .then((value) => {_walletAddress = value});
   }
 
-  /// does not deploy an account
-  /// only generates an address based on the provided inputs
-  /// give the same exact inputs, the same exact address will be generated.
-  /// [deployed] will be called before sending any transaction
-  /// if contract is yet to be deployed, an initCode will be attached on the first transaction.
-  Future create(Uint256 salt, {int? account, String? accountId}) async {
-    require(defaultSigner == SignerType.hdkeys,
-        "Create: you need to set HD Keys as your default Signer");
-    require(hdkey != null, "Create: HD Key instance is required!");
-    EthereumAddress owner = EthereumAddress.fromHex(
-        await hdkey!.getAddress(account ?? 0, id: accountId));
-    _walletAddress = await _create(owner, salt);
-  }
-
-  Future<EthereumAddress> _createPasskeyAccount(
-    FactoryInterface factory,
-    Uint8List credentialHex,
-    Uint256 x,
-    Uint256 y,
-    Uint256 salt,
-  ) async {
-    return await factory.getPasskeyAccountAddress(
-        credentialHex, x.value, y.value, salt.value);
-  }
-
-  /// alternate account contract
-  /// generates a smart Account address for secp256r1 signature accounts
-  /// requires a p256 account factory contract.
-  /// supports creating only p256 wallet by default.
-  Future createPasskeyAccount(
+  /// [createPasskeyAccount] -> creates a new Passkey wallet address.
+  /// uses counterfactual deployment, so wallet may not actually be deployed
+  /// given the same exact inputs, the same exact address will be generated.
+  /// use [deployed] to check if wallet is deployed.
+  /// an `initCode` will be attached on the first transaction.
+  createPasskeyAccount(
       Uint8List credentialHex, Uint256 x, Uint256 y, Uint256 salt) async {
-    require(defaultSigner == SignerType.passkeys,
-        "Create P256: you need to set PassKeys as your default Signer");
-    require(passkey != null, "Create P256: PassKey instance is required!");
-    _walletAddress =
-        await _createPasskeyAccount(factory, credentialHex, x, y, salt);
+    require(defaultSigner == SignerType.passkeys && passkey != null,
+        "Create P256: PassKey instance is required!");
+    FactoryInterface factory = AccountFactory(
+        address: Chains.accountFactory,
+        client: Web3Client.custom(_baseProvider),
+        chainId: _walletChain.chainId) as FactoryInterface;
+    factory
+        .getPasskeyAccountAddress(credentialHex, x.value, y.value, salt.value)
+        .then((value) => {_walletAddress = value});
   }
 
-  // UserOperation buildUserOp() {}
-
-  Future signUserOperation() async {}
-  Future sendSignedUserOperation() async {
-    /// sends a custom built user operation via a smart wallet
-  }
-  Future signAndSendUserOperation() async {
-    /// sends a custom built user operation via a smart wallet
-  }
-
-  Future<UserOperationResponse?> sendTransaction({
-    required EthereumAddress to,
-    required Uint256 value,
-    required Uint8List payload,
-    BundlerProvider? bundlerProvider,
-  }) async {
-    if (!(await _checkDeployment())) {}
-    final nonce = await getNonce();
-    UserOperation userOp = UserOperation(
-      toHex(),
-      nonce.value,
-      '',
-      '$payload',
-      BigInt.tryParse('$value') ?? BigInt.from(0),
-      BigInt.from(0),
-      BigInt.from(0),
-      BigInt.from(0),
-      BigInt.from(0),
-      '',
-      '',
-    );
-    final signedOps = await sign(userOp);
-    final response = await bundlerProvider?.sendUserOperation(
-        signedOps, Chains.entrypoint as String);
-    if (response?.userOpHash == null) {
-      throw Exception('Error sending transaction');
-    }
-
-    return response;
-  }
-
-  Future sendBatchedTransaction() async {
-    /// sends a batched transaction via a smart wallet
-  }
-
+  // UserOperation buildUserOperation() {}
   Future signTransaction() async {}
+  Future sendTransaction() async {}
+  Future signAndSendTransaction() async {}
+  Future sendBatchedTransaction() async {}
+  Future transferToken(EthereumAddress tokenAddress,
+      EthereumAddress recipientAddress, BigInt amount) async {}
 
-  Future send() async {
-    /// transfers eth via a smart wallet
-    /// token transfers will be handled from the wallet class modules
-  }
+  Future transferNFT(EthereumAddress nftContractAddress,
+      EthereumAddress recipientAddress, num tokenId) async {}
 
-  /// waits for a userOp to complete.
-  /// Isolates this in a separate thread
-  void wait(WaitIsolateMessage message) async {
-    final block = await walletClient.getBlockNumber();
-    final end = DateTime.now().millisecondsSinceEpoch + message.millisecond;
+  Future approveNFT(
+    EthereumAddress nftContractAddress,
+    EthereumAddress spender,
+    BigInt tokenId,
+  ) async {}
 
-    while (DateTime.now().millisecondsSinceEpoch < end) {
-      final filterEvent = await walletClient
-          .events(
-            FilterOptions.events(
-              contract: entrypoint.self,
-              event: entrypoint.self.event('UserOperationEvent'),
-              fromBlock: BlockNum.exact(block - 100),
-            ),
-          )
-          .take(1)
-          .first;
-      if (filterEvent.transactionHash != null) {
-        Isolate.current.kill(priority: Isolate.immediate);
-        message.sendPort.send(filterEvent);
-        return;
-      }
-      await Future.delayed(Duration(milliseconds: message.millisecond));
-    }
+  Future approveToken(
+    EthereumAddress tokenAddress,
+    EthereumAddress spender,
+    BigInt amount,
+  ) async {}
 
-    Isolate.current.kill(priority: Isolate.immediate);
-    message.sendPort.send(null);
-  }
+  Future send() async {}
 }
 
 // Future userOptester() async {
@@ -224,3 +184,33 @@ class Wallet extends Signer {
 //   log("etp: ${etp.toString()}");
 //   // walletProvider.sendUserOperation(et, entryPoint)
 // }
+// Future<UserOperationResponse?> sendTransaction({
+//     required EthereumAddress to,
+//     required Uint256 value,
+//     required Uint8List payload,
+//     BundlerProvider? bundlerProvider,
+//   }) async {
+//     if (!(await _checkDeployment())) {}
+//     final nonce = await getNonce();
+//     UserOperation userOp = UserOperation(
+//       toHex(),
+//       nonce.value,
+//       '',
+//       '$payload',
+//       BigInt.tryParse('$value') ?? BigInt.from(0),
+//       BigInt.from(0),
+//       BigInt.from(0),
+//       BigInt.from(0),
+//       BigInt.from(0),
+//       '',
+//       '',
+//     );
+//     final signedOps = await sign(userOp);
+//     final response = await bundlerProvider?.sendUserOperation(
+//         signedOps, Chains.entrypoint as String);
+//     if (response?.userOpHash == null) {
+//       throw Exception('Error sending transaction');
+//     }
+
+//     return response;
+//   }

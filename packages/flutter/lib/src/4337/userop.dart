@@ -114,16 +114,12 @@ class UserOperationGas {
   });
   factory UserOperationGas.fromMap(Map<String, dynamic> map) {
     return UserOperationGas(
-      preVerificationGas:
-          BigInt.parse(map['preVerificationGas']),
-      verificationGasLimit:
-          BigInt.parse(map['verificationGasLimit']),
-      validAfter: map['validAfter'] != null
-          ? BigInt.parse(map['validAfter'])
-          : null,
-      validUntil: map['validUntil'] != null
-          ? BigInt.parse(map['validUntil'])
-          : null,
+      preVerificationGas: BigInt.parse(map['preVerificationGas']),
+      verificationGasLimit: BigInt.parse(map['verificationGasLimit']),
+      validAfter:
+          map['validAfter'] != null ? BigInt.parse(map['validAfter']) : null,
+      validUntil:
+          map['validUntil'] != null ? BigInt.parse(map['validUntil']) : null,
       callGasLimit: BigInt.parse(map['callGasLimit']),
     );
   }
@@ -203,8 +199,7 @@ class WaitIsolateMessage {
 
 class UserOperationResponse {
   final String userOpHash;
-  final Future<FilterEvent?> Function(void Function(WaitIsolateMessage),
-      {int seconds}) wait;
+  final Future<FilterEvent?> Function({int seconds}) wait;
 
   UserOperationResponse(this.userOpHash, this.wait);
 }

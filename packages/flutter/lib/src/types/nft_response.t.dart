@@ -1,10 +1,8 @@
-
 import 'dart:convert';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/4337/modules/enum.dart';
 import 'package:web3dart/web3dart.dart';
-
-enum NftTokenType { erc721, erc1155 }
 
 class NftResponse {
   final List<NftMetadata>? _ownedNfts;
@@ -246,8 +244,7 @@ class OpenSeaMetadata {
       discordUrl:
           map['discordUrl'] != null ? map['discordUrl'] as String : null,
       bannerImageUrl: map['bannerImageUrl'] as String,
-      lastIngestedAt:
-          DateTime.parse(map['lastIngestedAt']),
+      lastIngestedAt: DateTime.parse(map['lastIngestedAt']),
     );
   }
 
@@ -402,8 +399,7 @@ class NftFloorPrice {
       floorPrice: map['floorPrice'] as double,
       priceCurrency: map['priceCurrency'] as String,
       collectionUrl: map['collectionUrl'] as String,
-      retrievedAt:
-          DateTime.parse(map['retrievedAt']),
+      retrievedAt: DateTime.parse(map['retrievedAt']),
       error: map['error'] as dynamic,
     );
   }

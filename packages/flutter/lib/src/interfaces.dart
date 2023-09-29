@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/signer/passkey_types.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
