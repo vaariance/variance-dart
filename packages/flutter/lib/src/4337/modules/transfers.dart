@@ -11,47 +11,6 @@ class Transfers {
 
   Transfers(this._provider);
 
-  Future<TransferResponse> _getAssetTransfers(
-      {Uint256? fromBlock,
-      Uint256? toBlock,
-      EthereumAddress? from,
-      EthereumAddress? to,
-      bool orderByDesc = false,
-      bool withMetadata = false,
-      bool excludeZeroValue = false,
-      Uint256? maxCount,
-      String? pageKey,
-      List<TransferCategory>? categories,
-      List<EthereumAddress>? addresses}) async {
-    final params = {
-      "fromBlock": fromBlock?.value ?? BigInt.zero,
-      "toBlock": toBlock?.value ?? "latest",
-      "order": orderByDesc ? "desc" : "asc",
-      "withMetadata": withMetadata,
-      "excludeZeroValue": excludeZeroValue,
-      "maxCount": maxCount?.toHex() ?? "0x3e8",
-      "category":
-          categories?.map((e) => e.name).toList(growable: false) ?? ["external"]
-    };
-    if (pageKey != null) {
-      params['pageKey'] = pageKey;
-    }
-    if (addresses != null) {
-      params['contractAddresses'] =
-          addresses.map((e) => e.hex).toList(growable: false);
-    }
-    from != null
-        ? params['fromAddress'] = from.hex
-        : params['toAddress'] = to!.hex;
-    final response = await _provider
-        .send<Map<String, dynamic>>('alchemy_getAssetTransfers', [params]);
-    return TransferResponse.fromMap(
-        response,
-        withMetadata
-            ? ResponseType.withMetadata
-            : ResponseType.withoutMetadata);
-  }
-
   Future<List<Transfer>> getAssetTransfers(EthereumAddress owner,
       {Uint256? fromBlock,
       Uint256? toBlock,
@@ -65,25 +24,6 @@ class Transfers {
           await getOutgoingTransfers(owner).then((res2) => res2.transfers));
       return res.transfers;
     });
-  }
-
-  Future<TransferResponse> getOutgoingTransfers(EthereumAddress owner,
-      {Uint256? fromBlock,
-      Uint256? toBlock,
-      bool orderByDesc = false,
-      bool withMetadata = false,
-      bool excludeZeroValue = false,
-      Uint256? maxCount,
-      String? pageKey}) {
-    return _getAssetTransfers(
-        fromBlock: fromBlock,
-        toBlock: toBlock,
-        orderByDesc: orderByDesc,
-        withMetadata: withMetadata,
-        excludeZeroValue: excludeZeroValue,
-        maxCount: maxCount,
-        pageKey: pageKey,
-        from: owner);
   }
 
   Future<TransferResponse> getIncomingTransfers(EthereumAddress owner,
@@ -103,6 +43,25 @@ class Transfers {
         maxCount: maxCount,
         pageKey: pageKey,
         to: owner);
+  }
+
+  Future<TransferResponse> getOutgoingTransfers(EthereumAddress owner,
+      {Uint256? fromBlock,
+      Uint256? toBlock,
+      bool orderByDesc = false,
+      bool withMetadata = false,
+      bool excludeZeroValue = false,
+      Uint256? maxCount,
+      String? pageKey}) {
+    return _getAssetTransfers(
+        fromBlock: fromBlock,
+        toBlock: toBlock,
+        orderByDesc: orderByDesc,
+        withMetadata: withMetadata,
+        excludeZeroValue: excludeZeroValue,
+        maxCount: maxCount,
+        pageKey: pageKey,
+        from: owner);
   }
 
   Future<TransferResponse> getTransfersByCategory(
@@ -146,5 +105,46 @@ class Transfers {
       from: owner,
       addresses: addresses,
     );
+  }
+
+  Future<TransferResponse> _getAssetTransfers(
+      {Uint256? fromBlock,
+      Uint256? toBlock,
+      EthereumAddress? from,
+      EthereumAddress? to,
+      bool orderByDesc = false,
+      bool withMetadata = false,
+      bool excludeZeroValue = false,
+      Uint256? maxCount,
+      String? pageKey,
+      List<TransferCategory>? categories,
+      List<EthereumAddress>? addresses}) async {
+    final params = {
+      "fromBlock": fromBlock?.value ?? BigInt.zero,
+      "toBlock": toBlock?.value ?? "latest",
+      "order": orderByDesc ? "desc" : "asc",
+      "withMetadata": withMetadata,
+      "excludeZeroValue": excludeZeroValue,
+      "maxCount": maxCount?.toHex() ?? "0x3e8",
+      "category":
+          categories?.map((e) => e.name).toList(growable: false) ?? ["external"]
+    };
+    if (pageKey != null) {
+      params['pageKey'] = pageKey;
+    }
+    if (addresses != null) {
+      params['contractAddresses'] =
+          addresses.map((e) => e.hex).toList(growable: false);
+    }
+    from != null
+        ? params['fromAddress'] = from.hex
+        : params['toAddress'] = to!.hex;
+    final response = await _provider
+        .send<Map<String, dynamic>>('alchemy_getAssetTransfers', [params]);
+    return TransferResponse.fromMap(
+        response,
+        withMetadata
+            ? ResponseType.withMetadata
+            : ResponseType.withoutMetadata);
   }
 }

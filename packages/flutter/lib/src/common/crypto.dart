@@ -5,28 +5,6 @@ import 'dart:typed_data';
 import 'package:pointycastle/export.dart';
 import 'package:webcrypto/webcrypto.dart';
 
-List<int> toBuffer(List<List<int>> buff) {
-  return List<int>.from(buff.expand((element) => element).toList());
-}
-
-bool shouldRemoveLeadingZero(Uint8List bytes) {
-  return bytes[0] == 0x0 && (bytes[1] & (1 << 7)) != 0;
-}
-
-///Converts base64 String to hex
-String hexlify(List<int> b) {
-  var ss = <String>[];
-  for (int value in b) {
-    ss.add(value.toRadixString(16).padLeft(2, '0'));
-  }
-  return "0x${ss.join('')}";
-}
-
-Uint8List keccak256(Uint8List input) {
-  final digest = KeccakDigest(256);
-  return digest.process(input);
-}
-
 Uint8List arrayify(String hexString) {
   hexString = hexString.replaceAll(RegExp(r'\s+'), '');
   List<int> bytes = [];
@@ -57,8 +35,30 @@ Future<List<String>?> getPublicKeyFromBytes(Uint8List publicKeyBytes) async {
   }
 }
 
+///Converts base64 String to hex
+String hexlify(List<int> b) {
+  var ss = <String>[];
+  for (int value in b) {
+    ss.add(value.toRadixString(16).padLeft(2, '0'));
+  }
+  return "0x${ss.join('')}";
+}
+
+Uint8List keccak256(Uint8List input) {
+  final digest = KeccakDigest(256);
+  return digest.process(input);
+}
+
 require(bool requirement, String exception) {
   if (!requirement) {
     throw Exception(exception);
   }
+}
+
+bool shouldRemoveLeadingZero(Uint8List bytes) {
+  return bytes[0] == 0x0 && (bytes[1] & (1 << 7)) != 0;
+}
+
+List<int> toBuffer(List<List<int>> buff) {
+  return List<int>.from(buff.expand((element) => element).toList());
 }

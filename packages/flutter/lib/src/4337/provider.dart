@@ -17,11 +17,26 @@ import 'package:web3dart/web3dart.dart';
 ///Re-routes rpc calls to Bundler
 class BaseProvider extends JsonRPC {
   final String _rpcUrl;
-  String get rpcUrl => _rpcUrl;
-
   BaseProvider(String rpcUrl)
       : _rpcUrl = rpcUrl,
         super(rpcUrl, http.Client());
+
+  String get rpcUrl => _rpcUrl;
+
+  Future<int> getBlockNumber() {
+    return _makeRPCCall<String>('eth_blockNumber')
+        .then((s) => hexToInt(s).toInt());
+  }
+
+  Future<EtherAmount> getGasPrice() async {
+    final data = await _makeRPCCall<String>('eth_gasPrice');
+
+    return EtherAmount.fromBigInt(EtherUnit.wei, hexToInt(data));
+  }
+
+  Future<T> send<T>(String function, [List<dynamic>? params]) async {
+    return await _makeRPCCall<T>(function, params);
+  }
 
   Future<T> _makeRPCCall<T>(String function, [List<dynamic>? params]) async {
     try {
@@ -36,40 +51,10 @@ class BaseProvider extends JsonRPC {
       rethrow;
     }
   }
-
-  Future<T> send<T>(String function, [List<dynamic>? params]) async {
-    return await _makeRPCCall<T>(function, params);
-  }
-
-  Future<EtherAmount> getGasPrice() async {
-    final data = await _makeRPCCall<String>('eth_gasPrice');
-
-    return EtherAmount.fromBigInt(EtherUnit.wei, hexToInt(data));
-  }
-
-  Future<int> getBlockNumber() {
-    return _makeRPCCall<String>('eth_blockNumber')
-        .then((s) => hexToInt(s).toInt());
-  }
 }
 
 ///choose what bundler provider to use
 class BundlerProvider {
-  final int _chainId;
-  final String _bundlerUrl;
-  final BaseProvider _bundlerClient;
-  late final bool _initialized;
-
-  Web3Client? custom;
-  Entrypoint? entrypoint;
-
-  BundlerProvider(IChain chain)
-      : _chainId = chain.chainId,
-        _bundlerUrl = chain.bundlerUrl!,
-        _bundlerClient = BaseProvider(chain.bundlerUrl!) {
-    _initializeBundlerProvider();
-  }
-
   static final Set<String> methods = {
     'eth_chainId',
     'eth_sendUserOperation',
@@ -78,39 +63,20 @@ class BundlerProvider {
     'eth_getUserOperationReceipt',
     'eth_supportedEntryPoints',
   };
+  final int _chainId;
+  final String _bundlerUrl;
+  final BaseProvider _bundlerClient;
 
-  /// Checks that [method] is a valid bundler method
-  static validateBundlerMethod(String method) {
-    require(methods.contains(method),
-        "validateMethod: method ::'$method':: is not a valid method");
-  }
+  late final bool _initialized;
+  Web3Client? custom;
 
-  /// checks that the bundler chainId matches expected chainId
-  Future _initializeBundlerProvider() async {
-    final chainId = await _bundlerClient
-        .send<String>('eth_chainId')
-        .then(BigInt.parse)
-        .then((value) => value.toInt());
-    require(chainId == _chainId,
-        "bundler $_bundlerUrl is on chainId $chainId, but provider is on chainId $_chainId");
-    log("provider initialized");
-    _initialized = true;
-  }
+  Entrypoint? entrypoint;
 
-  initializeWithEntrypoint(Entrypoint ep, Web3Client bp) {
-    entrypoint = ep;
-    custom = bp;
-  }
-
-  ///returns the a list of supported entrypoint(s) for the bundler
-  ///
-  ///`returns`
-  ///
-  ///a list of supported entrypoint(s)
-  Future<List<String>> supportedEntryPoints() async {
-    final entrypointList =
-        await _bundlerClient.send<List<dynamic>>('eth_supportedEntryPoints');
-    return List.castFrom(entrypointList);
+  BundlerProvider(IChain chain)
+      : _chainId = chain.chainId,
+        _bundlerUrl = chain.bundlerUrl!,
+        _bundlerClient = BaseProvider(chain.bundlerUrl!) {
+    _initializeBundlerProvider();
   }
 
   ///estimates gas cost for user operation
@@ -147,6 +113,11 @@ class BundlerProvider {
     return UserOperationReceipt.fromMap(opReceipt);
   }
 
+  initializeWithEntrypoint(Entrypoint ep, Web3Client bp) {
+    entrypoint = ep;
+    custom = bp;
+  }
+
   ///sends user operation to bundler
   Future<UserOperationResponse> sendUserOperation(
       Map<String, dynamic> userOp, String entrypoint) async {
@@ -154,6 +125,17 @@ class BundlerProvider {
     final opHash = await _bundlerClient
         .send<String>('eth_sendUserOperation', [userOp, entrypoint]);
     return UserOperationResponse(opHash, wait);
+  }
+
+  ///returns the a list of supported entrypoint(s) for the bundler
+  ///
+  ///`returns`
+  ///
+  ///a list of supported entrypoint(s)
+  Future<List<String>> supportedEntryPoints() async {
+    final entrypointList =
+        await _bundlerClient.send<List<dynamic>>('eth_supportedEntryPoints');
+    return List.castFrom(entrypointList);
   }
 
   ///This function when called, runs in a separate [Isolate] and returns a [FilterEvent]
@@ -182,6 +164,18 @@ class BundlerProvider {
       }
     });
     return completer.future;
+  }
+
+  /// checks that the bundler chainId matches expected chainId
+  Future _initializeBundlerProvider() async {
+    final chainId = await _bundlerClient
+        .send<String>('eth_chainId')
+        .then(BigInt.parse)
+        .then((value) => value.toInt());
+    require(chainId == _chainId,
+        "bundler $_bundlerUrl is on chainId $chainId, but provider is on chainId $_chainId");
+    log("provider initialized");
+    _initialized = true;
   }
 
   /// waits for a userOp to complete.
@@ -213,5 +207,11 @@ class BundlerProvider {
 
     Isolate.current.kill(priority: Isolate.immediate);
     message.sendPort.send(null);
+  }
+
+  /// Checks that [method] is a valid bundler method
+  static validateBundlerMethod(String method) {
+    require(methods.contains(method),
+        "validateMethod: method ::'$method':: is not a valid method");
   }
 }

@@ -6,7 +6,7 @@ enum Chain {
   mainnet,
   optimism,
   base,
-  polygonZ,
+  arbitrum,
   // testnet
   sepolia,
   op_goerli,
@@ -15,48 +15,7 @@ enum Chain {
   localhost
 }
 
-///[IChain]
-///
-/// Holds information about a chain
-///
-/// and allows for wallet to interact with different chains
-class IChain {
-  final int chainId;
-  final String explorer;
-  String? rpcUrl;
-  String? bundlerUrl;
-  EthereumAddress entrypoint;
-  IChain(
-      {required this.chainId,
-      required this.explorer,
-      this.rpcUrl,
-      required this.entrypoint,
-      this.bundlerUrl});
-
-  void setRpcUrl(String? value) {
-    rpcUrl = value;
-  }
-
-  void setBundlerUrl(String? value) {
-    bundlerUrl = value;
-  }
-
-  void setEntrypoint(EthereumAddress value) {
-    entrypoint = value;
-  }
-
-  /// asserts that [rpcUrl] and [bundlerUrl] is provided
-  IChain validate() {
-    require(rpcUrl != null && rpcUrl!.isNotEmpty,
-        "Chain: please provide a valid url for rpcUrl");
-    require(bundlerUrl != null && bundlerUrl!.isNotEmpty,
-        "Chain: please provide a valid url for bundlerUrl");
-    return this;
-  }
-}
-
 class Chains {
-  Chains._();
   static EthereumAddress entrypoint = EthereumAddress.fromHex(
       "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
       enforceEip55: true);
@@ -65,7 +24,6 @@ class Chains {
   static EthereumAddress accountFactory = EthereumAddress.fromHex(
       "0x9406Cc6185a346906296840746125a0E44976454",
       enforceEip55: true);
-
   static Map<Chain, IChain> chains = {
     Chain.mainnet: IChain(
         chainId: 1,
@@ -82,10 +40,10 @@ class Chains {
         explorer: "https://basescan.org",
         rpcUrl: "https://mainnet.base.org",
         entrypoint: entrypoint),
-    Chain.polygonZ: IChain(
-        chainId: 1101,
-        explorer: "https://zkevm.polygonscan.com/",
-        rpcUrl: "https://rpc.ankr.com/polygon_zkevm",
+    Chain.arbitrum: IChain(
+        chainId: 42161,
+        explorer: "https://arbiscan.io/",
+        rpcUrl: "https://arb1.arbitrum.io/rpc",
         entrypoint: entrypoint),
     Chain.sepolia: IChain(
         chainId: 11155111,
@@ -110,7 +68,49 @@ class Chains {
         bundlerUrl: "http://10.0.2.2:3000/rpc")
   };
 
+  Chains._();
+
   static IChain? getChain(Chain entrypoint) {
     return chains[entrypoint];
+  }
+}
+
+///[IChain]
+///
+/// Holds information about a chain
+///
+/// and allows for wallet to interact with different chains
+class IChain {
+  final int chainId;
+  final String explorer;
+  String? rpcUrl;
+  String? bundlerUrl;
+  EthereumAddress entrypoint;
+  IChain(
+      {required this.chainId,
+      required this.explorer,
+      this.rpcUrl,
+      required this.entrypoint,
+      this.bundlerUrl});
+
+  void setBundlerUrl(String? value) {
+    bundlerUrl = value;
+  }
+
+  void setEntrypoint(EthereumAddress value) {
+    entrypoint = value;
+  }
+
+  void setRpcUrl(String? value) {
+    rpcUrl = value;
+  }
+
+  /// asserts that [rpcUrl] and [bundlerUrl] is provided
+  IChain validate() {
+    require(rpcUrl != null && rpcUrl!.isNotEmpty,
+        "Chain: please provide a valid url for rpcUrl");
+    require(bundlerUrl != null && bundlerUrl!.isNotEmpty,
+        "Chain: please provide a valid url for bundlerUrl");
+    return this;
   }
 }

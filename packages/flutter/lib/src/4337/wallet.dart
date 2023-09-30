@@ -25,14 +25,8 @@ class Wallet extends Signer {
   late final Transfers transfers;
   late final Contract contract;
 
-  /// [GETTERS]
-  BaseProvider get baseProvider => _baseProvider;
-  BundlerProvider get walletProvider => _walletProvider;
-  IChain get walletChain => _walletChain;
-
   /// [WALLET_ADDRESS]
   EthereumAddress _walletAddress;
-  Address get address => Address.fromEthAddress(_walletAddress);
   String toHex() => _walletAddress.hexEip55;
 
   /// [Entrypoint] is not initialized
@@ -52,54 +46,26 @@ class Wallet extends Signer {
     _initializeModules(_baseProvider);
   }
 
-  /// initializes the [Wallet] modules
-  /// - nft module
-  /// - token module
-  /// - contract module
-  /// - transfers module
-  _initializeModules(BaseProvider provider) {
-    nft = NFT(provider.rpcUrl);
-    tokens = Tokens(provider);
-    transfers = Transfers(provider);
-    contract = Contract(provider);
-  }
-
-  /// creates a [Wallet] instance, additionally initializes the [Entrypoint] contract
-  /// use [Wallet.init] directly when you:
-  /// - need to interact with the entrypoint.
-  /// - want to [wait] for user Operation Events.
-  /// - recovering account.
-  static Wallet init(IChain chain,
-      {HDkeysInterface? hdkey,
-      PasskeysInterface? passkey,
-      SignerType signer = SignerType.hdkeys,
-      EthereumAddress? address}) {
-    final instance = Wallet(
-        chain: chain,
-        hdkey: hdkey,
-        passkey: passkey,
-        signer: signer,
-        address: address);
-    final custom = Web3Client.custom(instance.baseProvider);
-    instance._walletProvider.initializeWithEntrypoint(
-        Entrypoint(
-          address: chain.entrypoint,
-          client: custom,
-        ),
-        custom);
-    return instance;
-  }
-
+  /// [GETTERS]
+  Address get address => Address.fromEthAddress(_walletAddress);
   Future<EtherAmount> get balance => contract.getBalance(_walletAddress);
-
+  BaseProvider get baseProvider => _baseProvider;
   Future<bool> get deployed => contract.deployed(_walletAddress);
-
   Future<Uint256> get nonce => _nonce();
+  IChain get walletChain => _walletChain;
+  BundlerProvider get walletProvider => _walletProvider;
 
-  Future<Uint256> _nonce() async {
-    return contract.call<BigInt>(_walletAddress, ContractAbis.get('getNonce'),
-        "getNonce", []).then((value) => Uint256(value[0]));
-  }
+  Future approveNFT(
+    EthereumAddress nftContractAddress,
+    EthereumAddress spender,
+    BigInt tokenId,
+  ) async {}
+
+  Future approveToken(
+    EthereumAddress tokenAddress,
+    EthereumAddress spender,
+    BigInt amount,
+  ) async {}
 
   /// [create] -> creates a new wallet address.
   /// uses counterfactual deployment, so wallet may not actually be deployed
@@ -138,30 +104,63 @@ class Wallet extends Signer {
         .then((value) => {_walletAddress = value});
   }
 
-  // UserOperation buildUserOperation() {}
-  Future signTransaction() async {}
+  Future send() async {}
+
+  Future sendBatchedTransaction() async {}
+
   Future sendTransaction() async {}
   Future signAndSendTransaction() async {}
-  Future sendBatchedTransaction() async {}
-  Future transferToken(EthereumAddress tokenAddress,
-      EthereumAddress recipientAddress, BigInt amount) async {}
-
+  // UserOperation buildUserOperation() {}
+  Future signTransaction() async {}
   Future transferNFT(EthereumAddress nftContractAddress,
       EthereumAddress recipientAddress, num tokenId) async {}
 
-  Future approveNFT(
-    EthereumAddress nftContractAddress,
-    EthereumAddress spender,
-    BigInt tokenId,
-  ) async {}
+  Future transferToken(EthereumAddress tokenAddress,
+      EthereumAddress recipientAddress, BigInt amount) async {}
 
-  Future approveToken(
-    EthereumAddress tokenAddress,
-    EthereumAddress spender,
-    BigInt amount,
-  ) async {}
+  /// initializes the [Wallet] modules
+  /// - nft module
+  /// - token module
+  /// - contract module
+  /// - transfers module
+  _initializeModules(BaseProvider provider) {
+    nft = NFT(provider.rpcUrl);
+    tokens = Tokens(provider);
+    transfers = Transfers(provider);
+    contract = Contract(provider);
+  }
 
-  Future send() async {}
+  Future<Uint256> _nonce() async {
+    return contract
+        .call<BigInt>(_walletAddress, ContractAbis.get('getNonce'), "getNonce")
+        .then((value) => Uint256(value[0]));
+  }
+
+  /// creates a [Wallet] instance, additionally initializes the [Entrypoint] contract
+  /// use [Wallet.init] directly when you:
+  /// - need to interact with the entrypoint.
+  /// - want to [wait] for user Operation Events.
+  /// - recovering account.
+  static Wallet init(IChain chain,
+      {HDkeysInterface? hdkey,
+      PasskeysInterface? passkey,
+      SignerType signer = SignerType.hdkeys,
+      EthereumAddress? address}) {
+    final instance = Wallet(
+        chain: chain,
+        hdkey: hdkey,
+        passkey: passkey,
+        signer: signer,
+        address: address);
+    final custom = Web3Client.custom(instance.baseProvider);
+    instance._walletProvider.initializeWithEntrypoint(
+        Entrypoint(
+          address: chain.entrypoint,
+          client: custom,
+        ),
+        custom);
+    return instance;
+  }
 }
 
 // Future userOptester() async {

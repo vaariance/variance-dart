@@ -1,13 +1,9 @@
 library pks_4337_sdk;
 
-export 'hd_key.dart';
-export 'passkey.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 
-enum SignerType {
-  passkeys,
-  hdkeys,
-}
+export 'hd_key.dart';
+export 'passkey.dart';
 
 class Signer {
   final PasskeysInterface? passkey;
@@ -29,4 +25,9 @@ class Signer {
         return await hdkey!.sign(hash, index: index, id: id) as T;
     }
   }
+}
+
+enum SignerType {
+  passkeys,
+  hdkeys,
 }

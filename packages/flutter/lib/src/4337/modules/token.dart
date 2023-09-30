@@ -1,8 +1,7 @@
-import 'dart:typed_data';
-
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
 import 'package:pks_4337_sdk/src/4337/modules/contract_abis.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 /// uses alchemy token api
@@ -11,6 +10,38 @@ class Tokens {
   final BaseProvider _provider;
 
   Tokens(this._provider);
+
+  String encodeERC20ApproveCall(
+    EthereumAddress tokenAddress,
+    EthereumAddress spender,
+    EtherAmount amount,
+  ) {
+    return bytesToHex(
+        Contract.encodeFunctionCall(
+          'approve',
+          tokenAddress,
+          ContractAbis.get('ERC20'),
+          [tokenAddress.hex, spender.hex, amount.getInWei],
+        ),
+        include0x: true,
+        padToEvenLength: true);
+  }
+
+  String encodeERC20TransferCall(
+    EthereumAddress tokenAddress,
+    EthereumAddress recipient,
+    EtherAmount amount,
+  ) {
+    return bytesToHex(
+        Contract.encodeFunctionCall(
+          'transfer',
+          tokenAddress,
+          ContractAbis.get('ERC20'),
+          [tokenAddress.hex, recipient.hex, amount.getInWei],
+        ),
+        include0x: true,
+        padToEvenLength: true);
+  }
 
   Future<BigInt> getTokenAllowances(EthereumAddress contractAddress,
       EthereumAddress owner, EthereumAddress spender) {
@@ -45,31 +76,5 @@ class Tokens {
   Future<Erc20TokenMetadata> getTokenMetadata(EthereumAddress contractAddress) {
     return _provider.send<Map<String, dynamic>>('alchemy_getTokenMetadata',
         [contractAddress.hex]).then(Erc20TokenMetadata.fromMap);
-  }
-
-  Uint8List encodeERC20ApproveCall(
-    EthereumAddress tokenAddress,
-    EthereumAddress spender,
-    EtherAmount amount,
-  ) {
-    return Contract.encodeFunctionCall(
-      'approve',
-      tokenAddress,
-      ContractAbis.get('ERC20'),
-      [tokenAddress.hex, spender.hex, amount.getInWei],
-    );
-  }
-
-  Uint8List encodeERC20TransferCall(
-    EthereumAddress tokenAddress,
-    EthereumAddress recipient,
-    EtherAmount amount,
-  ) {
-    return Contract.encodeFunctionCall(
-      'transfer',
-      tokenAddress,
-      ContractAbis.get('ERC20'),
-      [tokenAddress.hex, recipient.hex, amount.getInWei],
-    );
   }
 }

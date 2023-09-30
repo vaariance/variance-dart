@@ -6,8 +6,6 @@ class Uint256 {
 
   Uint256(BigInt value) : _value = value;
 
-  BigInt get value => _value;
-
   ///create and return a Uint256 value from hex values
   factory Uint256.fromHex(String hex) {
     return Uint256(hexToInt(hex));
@@ -17,13 +15,15 @@ class Uint256 {
     return Uint256(inWei.getInWei);
   }
 
-  EtherAmount toWei() {
-    return EtherAmount.fromBigInt(EtherUnit.wei, _value);
-  }
+  BigInt get value => _value;
 
   String toHex() {
     final hexString = _value.toRadixString(16);
     return '0x${hexString.padLeft(64, '0')}'; // Ensure it's 256 bits
+  }
+
+  int toInt() {
+    return _value.toInt();
   }
 
   @override
@@ -31,7 +31,7 @@ class Uint256 {
     return toHex();
   }
 
-  int toInt() {
-    return _value.toInt();
+  EtherAmount toWei() {
+    return EtherAmount.fromBigInt(EtherUnit.wei, _value);
   }
 }

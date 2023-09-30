@@ -3,22 +3,6 @@ import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 
-class PassKeysOptions {
-  final String namespace;
-  final String name;
-  final String origin;
-  bool? crossOrigin;
-  String? challenge;
-  String? type;
-  PassKeysOptions(
-      {required this.namespace,
-      required this.name,
-      required this.origin,
-      this.crossOrigin,
-      this.challenge,
-      this.type});
-}
-
 class AuthData {
   final String credentialHex; // 32 bytes hex
   final String credentialId; // base64Url
@@ -46,4 +30,20 @@ class PassKeySignature {
   final String clientDataSuffix;
   PassKeySignature(this.credentialId, this.rs, this.authData,
       this.clientDataPrefix, this.clientDataSuffix);
+}
+
+class PassKeysOptions {
+  final String namespace;
+  final String name;
+  final String origin;
+  bool? crossOrigin;
+  String? challenge;
+  String? type;
+  PassKeysOptions(
+      {required this.namespace,
+      required this.name,
+      required this.origin,
+      this.crossOrigin,
+      this.challenge,
+      this.type});
 }

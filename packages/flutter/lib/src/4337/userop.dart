@@ -17,14 +17,10 @@ class UserOperation {
   final BigInt preVerificationGas;
   final BigInt maxFeePerGas;
   final BigInt maxPriorityFeePerGas;
-  final String signature;
+  String signature;
   final String paymasterAndData;
 
   Uint8List _hash;
-  Uint8List hash(IChain chain) => keccak256(abi.encode(
-      ['bytes32', 'address', 'uint256'],
-      [keccak256(_hash), chain.entrypoint, chain.chainId]));
-
   UserOperation(
     this.sender,
     this.nonce,
@@ -61,21 +57,8 @@ class UserOperation {
           keccak256(Uint8List.fromList(crypto.hexToBytes(paymasterAndData))),
         ]));
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'sender': sender,
-      'nonce': '0x${nonce.toRadixString(16)}',
-      'initCode': initCode,
-      'callData': callData,
-      'callGasLimit': '0x${callGasLimit.toRadixString(16)}',
-      'verificationGasLimit': '0x${verificationGasLimit.toRadixString(16)}',
-      'preVerificationGas': '0x${preVerificationGas.toRadixString(16)}',
-      'maxFeePerGas': '0x${maxFeePerGas.toRadixString(16)}',
-      'maxPriorityFeePerGas': '0x${maxPriorityFeePerGas.toRadixString(16)}',
-      'signature': signature,
-      'paymasterAndData': paymasterAndData,
-    };
-  }
+  factory UserOperation.fromJson(String source) =>
+      UserOperation.fromMap(json.decode(source) as Map<String, dynamic>);
 
   factory UserOperation.fromMap(Map<String, dynamic> map) {
     return UserOperation(
@@ -93,35 +76,26 @@ class UserOperation {
     );
   }
 
+  Uint8List hash(IChain chain) => keccak256(abi.encode(
+      ['bytes32', 'address', 'uint256'],
+      [keccak256(_hash), chain.entrypoint, chain.chainId]));
+
   String toJson() => json.encode(toMap());
 
-  factory UserOperation.fromJson(String source) =>
-      UserOperation.fromMap(json.decode(source) as Map<String, dynamic>);
-}
-
-class UserOperationGas {
-  final BigInt preVerificationGas;
-  final BigInt verificationGasLimit;
-  BigInt? validAfter;
-  BigInt? validUntil;
-  final BigInt callGasLimit;
-  UserOperationGas({
-    required this.preVerificationGas,
-    required this.verificationGasLimit,
-    this.validAfter,
-    this.validUntil,
-    required this.callGasLimit,
-  });
-  factory UserOperationGas.fromMap(Map<String, dynamic> map) {
-    return UserOperationGas(
-      preVerificationGas: BigInt.parse(map['preVerificationGas']),
-      verificationGasLimit: BigInt.parse(map['verificationGasLimit']),
-      validAfter:
-          map['validAfter'] != null ? BigInt.parse(map['validAfter']) : null,
-      validUntil:
-          map['validUntil'] != null ? BigInt.parse(map['validUntil']) : null,
-      callGasLimit: BigInt.parse(map['callGasLimit']),
-    );
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'sender': sender,
+      'nonce': '0x${nonce.toRadixString(16)}',
+      'initCode': initCode,
+      'callData': callData,
+      'callGasLimit': '0x${callGasLimit.toRadixString(16)}',
+      'verificationGasLimit': '0x${verificationGasLimit.toRadixString(16)}',
+      'preVerificationGas': '0x${preVerificationGas.toRadixString(16)}',
+      'maxFeePerGas': '0x${maxFeePerGas.toRadixString(16)}',
+      'maxPriorityFeePerGas': '0x${maxPriorityFeePerGas.toRadixString(16)}',
+      'signature': signature,
+      'paymasterAndData': paymasterAndData,
+    };
   }
 }
 
@@ -146,6 +120,32 @@ class UserOperationByHash {
       BigInt.parse(map['blockNumber']),
       BigInt.parse(map['blockHash']),
       BigInt.parse(map['transactionHash']),
+    );
+  }
+}
+
+class UserOperationGas {
+  final BigInt preVerificationGas;
+  final BigInt verificationGasLimit;
+  BigInt? validAfter;
+  BigInt? validUntil;
+  final BigInt callGasLimit;
+  UserOperationGas({
+    required this.preVerificationGas,
+    required this.verificationGasLimit,
+    this.validAfter,
+    this.validUntil,
+    required this.callGasLimit,
+  });
+  factory UserOperationGas.fromMap(Map<String, dynamic> map) {
+    return UserOperationGas(
+      preVerificationGas: BigInt.parse(map['preVerificationGas']),
+      verificationGasLimit: BigInt.parse(map['verificationGasLimit']),
+      validAfter:
+          map['validAfter'] != null ? BigInt.parse(map['validAfter']) : null,
+      validUntil:
+          map['validUntil'] != null ? BigInt.parse(map['validUntil']) : null,
+      callGasLimit: BigInt.parse(map['callGasLimit']),
     );
   }
 }
@@ -191,15 +191,15 @@ class UserOperationReceipt {
   }
 }
 
-class WaitIsolateMessage {
-  final int millisecond;
-  final SendPort sendPort;
-  WaitIsolateMessage({required this.millisecond, required this.sendPort});
-}
-
 class UserOperationResponse {
   final String userOpHash;
   final Future<FilterEvent?> Function({int seconds}) wait;
 
   UserOperationResponse(this.userOpHash, this.wait);
+}
+
+class WaitIsolateMessage {
+  final int millisecond;
+  final SendPort sendPort;
+  WaitIsolateMessage({required this.millisecond, required this.sendPort});
 }
