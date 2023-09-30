@@ -3,6 +3,8 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/signer/passkey_types.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:webauthn/webauthn.dart';
 import 'const.dart';
 import 'package:mocktail/mocktail.dart';
@@ -118,5 +120,48 @@ void main() {
     final result3 = hexToBytes(hexStr3);
     final expectedBytes3 = [0x05];
     expect(result3, orderedEquals(expectedBytes3));
+  });
+
+  test('_decode decodes valid auth data', () {
+    // Create a valid authentication data object.
+    final authData = AuthData('credentialHash', 'credentialId',
+        ['xCoordinate', 'yCoordinate'], 'aaGUID');
+
+    // Encode the authentication data to bytes.
+    final encodedAuthData = authData;
+
+    // Decode the authentication data back to an object.
+    final decodedAuthData = decode(encodedAuthData);
+
+    // Verify that the decoded authentication data is equal to the original.
+    expect(decodedAuthData, authData);
+  });
+
+  test('_decode throws an exception on invalid auth data', () {
+    // Create invalid authentication data bytes.
+    final invalidAuthData = Uint8List.fromList([1, 2, 3, 4, 5]);
+
+    // Expect an exception to be thrown when decoding the invalid auth data.
+    expect(() => decode(invalidAuthData), throwsException);
+  });
+
+  test('_get credential hex from base64 credential id', () {
+    // Extract the credential ID from the authentication data.
+    final List<int> credentialId =
+        base64Url.decode("EUQ8dgl3CB-p6SewjKsmj25ng2IfKkAQLYzFhube47w=");
+
+    final credentialHash32 = PassKey.credentialIdToBytes32Hex(credentialId);
+
+    expect(credentialHash32,
+        "0x11443c760977081fa9e927b08cab268f6e6783621f2a40102d8cc586e6dee3bc");
+  });
+
+  test('_get credential id base 64 from hex', () {
+    const credentialHex =
+        "0x11443c760977081fa9e927b08cab268f6e6783621f2a40102d8cc586e6dee3bc";
+
+    final credentialId = PassKey.credentialHexToBase64(credentialHex);
+
+    expect("EUQ8dgl3CB-p6SewjKsmj25ng2IfKkAQLYzFhube47w=", credentialId);
   });
 }

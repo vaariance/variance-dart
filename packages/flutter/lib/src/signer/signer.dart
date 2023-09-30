@@ -1,31 +1,22 @@
-library  pks_4337_sdk;
+library pks_4337_sdk;
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 
-
-
-enum SignerType {
-  passkeys,
-  hdkeys,
-}
+export 'hd_key.dart';
+export 'passkey.dart';
 
 class Signer {
   final PasskeysInterface? passkey;
   final HDkeysInterface? hdkey;
-  SignerType _defaultSigner;
 
-  SignerType get defaultSigner => _defaultSigner;
+  SignerType defaultSigner;
 
   Signer({this.passkey, this.hdkey, SignerType signer = SignerType.hdkeys})
       : assert(passkey != null || hdkey != null),
-        _defaultSigner = signer;
-
-  void setDefaultSigner(SignerType type) {
-    _defaultSigner = type;
-  }
+        defaultSigner = signer;
 
   Future<T> sign<T>(dynamic hash, {int? index, String? id}) async {
-    switch (_defaultSigner) {
+    switch (defaultSigner) {
       case SignerType.passkeys:
         require(
             id != null && id.isNotEmpty, "Passkey Credential ID is required");
@@ -34,4 +25,9 @@ class Signer {
         return await hdkey!.sign(hash, index: index, id: id) as T;
     }
   }
+}
+
+enum SignerType {
+  passkeys,
+  hdkeys,
 }

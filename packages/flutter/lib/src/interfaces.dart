@@ -1,18 +1,18 @@
 import 'dart:typed_data';
 
-import 'package:pks_4337_sdk/src/utils/passkeys.dart';
+import 'package:pks_4337_sdk/src/signer/passkey_types.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 abstract class FactoryInterface {
   Future<String> createAccount(
-    EthereumAddress owner,
+    Uint8List credentialHex,
     BigInt salt, {
     required Credentials credentials,
     Transaction? transaction,
   });
   Future<String> createPasskeyAccount(
-    EthereumAddress credentialAddress,
+    Uint8List credentialHex,
     BigInt x,
     BigInt y,
     BigInt salt, {
@@ -25,7 +25,7 @@ abstract class FactoryInterface {
     BlockNum? atBlock,
   });
   Future<EthereumAddress> getPasskeyAccountAddress(
-    EthereumAddress credentialAddress,
+    Uint8List credentialHex,
     BigInt x,
     BigInt y,
     BigInt salt, {
@@ -35,7 +35,8 @@ abstract class FactoryInterface {
 
 abstract class HDkeysInterface {
   Future<String> getAddress(int index, {String? id});
-  Future<MsgSignature> sign(Uint8List hash, {int? index, String? id});
+  Future<Uint8List> sign(Uint8List hash, {int? index, String? id});
+  Future<MsgSignature> signToEc(Uint8List hash, {int? index, String? id});
 }
 
 abstract class PasskeysInterface {

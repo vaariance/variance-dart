@@ -2,14 +2,15 @@
 // @dart=2.12
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:web3dart/web3dart.dart' as _i1;
+import 'dart:typed_data' as _i2;
 
 final _contractAbi = _i1.ContractAbi.fromJson(
-  '[{"inputs":[{"internalType":"contract IEntryPoint","name":"_entryPoint","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"uint256","name":"salt","type":"uint256"}],"name":"createAccount","outputs":[{"internalType":"contract SimpleAccount","name":"ret","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"credentialAddress","type":"address"},{"internalType":"uint256","name":"x","type":"uint256"},{"internalType":"uint256","name":"y","type":"uint256"},{"internalType":"uint256","name":"salt","type":"uint256"}],"name":"createPasskeyAccount","outputs":[{"internalType":"contract SimplePasskeyAccount","name":"ret","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"uint256","name":"salt","type":"uint256"}],"name":"getAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"credentialAddress","type":"address"},{"internalType":"uint256","name":"x","type":"uint256"},{"internalType":"uint256","name":"y","type":"uint256"},{"internalType":"uint256","name":"salt","type":"uint256"}],"name":"getPasskeyAccountAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"simpleAccount","outputs":[{"internalType":"contract SimpleAccount","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"simplePasskeyAccount","outputs":[{"internalType":"contract SimplePasskeyAccount","name":"","type":"address"}],"stateMutability":"view","type":"function"}]',
-  'SimpleAccountFactory',
+  '[{"inputs":[{"internalType":"contract IEntryPoint","name":"_entryPoint","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"uint256","name":"salt","type":"uint256"}],"name":"createAccount","outputs":[{"internalType":"contract SimpleAccount","name":"ret","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"credentialHex","type":"bytes32"},{"internalType":"uint256","name":"x","type":"uint256"},{"internalType":"uint256","name":"y","type":"uint256"},{"internalType":"uint256","name":"salt","type":"uint256"}],"name":"createPasskeyAccount","outputs":[{"internalType":"contract SimplePasskeyAccount","name":"ret","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"uint256","name":"salt","type":"uint256"}],"name":"getAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"credentialHex","type":"bytes32"},{"internalType":"uint256","name":"x","type":"uint256"},{"internalType":"uint256","name":"y","type":"uint256"},{"internalType":"uint256","name":"salt","type":"uint256"}],"name":"getPasskeyAccountAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"simpleAccount","outputs":[{"internalType":"contract SimpleAccount","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"simplePasskeyAccount","outputs":[{"internalType":"contract SimplePasskeyAccount","name":"","type":"address"}],"stateMutability":"view","type":"function"}]',
+  'AccountFactory',
 );
 
-class SimpleAccountFactory extends _i1.GeneratedContract {
-  SimpleAccountFactory({
+class AccountFactory extends _i1.GeneratedContract {
+  AccountFactory({
     required _i1.EthereumAddress address,
     required _i1.Web3Client client,
     int? chainId,
@@ -49,7 +50,7 @@ class SimpleAccountFactory extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> createPasskeyAccount(
-    _i1.EthereumAddress credentialAddress,
+    _i2.Uint8List credentialHex,
     BigInt x,
     BigInt y,
     BigInt salt, {
@@ -57,9 +58,9 @@ class SimpleAccountFactory extends _i1.GeneratedContract {
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[2];
-    assert(checkSignature(function, 'f4a6497d'));
+    assert(checkSignature(function, 'e2bb0bd2'));
     final params = [
-      credentialAddress,
+      credentialHex,
       x,
       y,
       salt,
@@ -98,16 +99,16 @@ class SimpleAccountFactory extends _i1.GeneratedContract {
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<_i1.EthereumAddress> getPasskeyAccountAddress(
-    _i1.EthereumAddress credentialAddress,
+    _i2.Uint8List credentialHex,
     BigInt x,
     BigInt y,
     BigInt salt, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[4];
-    assert(checkSignature(function, '487a5cb7'));
+    assert(checkSignature(function, 'c162e788'));
     final params = [
-      credentialAddress,
+      credentialHex,
       x,
       y,
       salt,
