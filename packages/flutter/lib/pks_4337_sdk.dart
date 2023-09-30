@@ -7,4 +7,3 @@ export '/src/wallet_connect_utils.dart';
 export 'src/4337/userop.dart';
 export 'src/interfaces.dart';
 export 'src/common/common.dart';
-export 'src/types/types.dart';

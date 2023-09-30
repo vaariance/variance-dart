@@ -9,6 +9,7 @@
         "keccak",
         "passkeysafe",
         "pointycastle",
+        "safelist",
         "sepolia",
         "specialnft",
         "Spki",

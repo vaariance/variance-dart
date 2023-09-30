@@ -5,27 +5,27 @@ import 'dart:typed_data';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/4337/chains.dart';
 import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
-import 'package:pks_4337_sdk/src/abi/abis.dart';
-import 'package:pks_4337_sdk/src/4337/modules/nft.dart';
-import 'package:pks_4337_sdk/src/4337/modules/token.dart';
+import 'package:pks_4337_sdk/src/4337/modules/erc20.dart';
+import 'package:pks_4337_sdk/src/4337/modules/erc721.dart';
 import 'package:pks_4337_sdk/src/4337/modules/transfers.dart';
+import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:pks_4337_sdk/src/abi/accountFactory.g.dart';
 import 'package:pks_4337_sdk/src/abi/entrypoint.g.dart';
 import "package:web3dart/web3dart.dart";
 
 class Wallet extends Signer {
-  /// [PROVIDERS]
+  // [PROVIDERS]
   final BaseProvider _baseProvider;
   final BundlerProvider _walletProvider;
   final IChain _walletChain;
 
-  /// [MODULES]
-  late final NFT nft;
-  late final Tokens tokens;
+  // [MODULES]
+  late final ERC721 erc721;
+  late final ERC20 erc20;
   late final Transfers transfers;
   late final Contract contract;
 
-  /// [WALLET_ADDRESS]
+  // [WALLET_ADDRESS]
   EthereumAddress _walletAddress;
   String toHex() => _walletAddress.hexEip55;
 
@@ -46,8 +46,9 @@ class Wallet extends Signer {
     _initializeModules(_baseProvider);
   }
 
-  /// [GETTERS]
-  Address get address => Address.fromEthAddress(_walletAddress);
+  // [GETTERS]
+  Address get address => Address.fromEthAddress(_walletAddress,
+      ethRpc: _walletChain.rpcUrl, ens: true);
   Future<EtherAmount> get balance => contract.getBalance(_walletAddress);
   BaseProvider get baseProvider => _baseProvider;
   Future<bool> get deployed => contract.deployed(_walletAddress);
@@ -109,6 +110,7 @@ class Wallet extends Signer {
   Future sendBatchedTransaction() async {}
 
   Future sendTransaction() async {}
+
   Future signAndSendTransaction() async {}
   // UserOperation buildUserOperation() {}
   Future signTransaction() async {}
@@ -124,8 +126,8 @@ class Wallet extends Signer {
   /// - contract module
   /// - transfers module
   _initializeModules(BaseProvider provider) {
-    nft = NFT(provider.rpcUrl);
-    tokens = Tokens(provider);
+    erc721 = ERC721(provider.rpcUrl);
+    erc20 = ERC20(provider);
     transfers = Transfers(provider);
     contract = Contract(provider);
   }

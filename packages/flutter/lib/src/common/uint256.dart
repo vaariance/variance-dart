@@ -1,10 +1,12 @@
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
+/// 64 bit length big number, same as in solidity
+/// always 64 bit in length, zero padded if necessary
 class Uint256 {
   final BigInt _value;
 
-  Uint256(BigInt value) : _value = value;
+  Uint256(this._value);
 
   ///create and return a Uint256 value from hex values
   factory Uint256.fromHex(String hex) {
@@ -16,6 +18,20 @@ class Uint256 {
   }
 
   BigInt get value => _value;
+
+  static Uint256 get zero => Uint256(BigInt.zero);
+
+  Uint256 operator *(Uint256 other) {
+    return Uint256(_value * other._value);
+  }
+
+  Uint256 operator +(Uint256 other) {
+    return Uint256(_value + other._value);
+  }
+
+  Uint256 operator -(Uint256 other) {
+    return Uint256(_value - other._value);
+  }
 
   String toHex() {
     final hexString = _value.toRadixString(16);
