@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:web3dart/credentials.dart';
 
@@ -9,12 +10,13 @@ enum Chain {
   arbitrum,
   // testnet
   sepolia,
-  op_goerli,
-  base_goerli,
+  opGoerli,
+  baseGoerli,
   // localhost
   localhost
 }
 
+@immutable
 class Chains {
   static EthereumAddress entrypoint = EthereumAddress.fromHex(
       "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
@@ -24,6 +26,7 @@ class Chains {
   static EthereumAddress accountFactory = EthereumAddress.fromHex(
       "0x9406Cc6185a346906296840746125a0E44976454",
       enforceEip55: true);
+
   static Map<Chain, IChain> chains = {
     Chain.mainnet: IChain(
         chainId: 1,
@@ -50,12 +53,12 @@ class Chains {
         explorer: "https://sepolia.etherscan.io/",
         rpcUrl: "https://rpc.sepolia.org",
         entrypoint: entrypoint),
-    Chain.op_goerli: IChain(
+    Chain.opGoerli: IChain(
         chainId: 420,
         explorer: "https://goerli-explorer.optimism.io",
         rpcUrl: "https://goerli.optimism.io",
         entrypoint: entrypoint),
-    Chain.base_goerli: IChain(
+    Chain.baseGoerli: IChain(
         chainId: 84531,
         explorer: "https://goerli.basescan.org",
         rpcUrl: "https://goerli.base.org",
@@ -68,7 +71,7 @@ class Chains {
         bundlerUrl: "http://10.0.2.2:3000/rpc")
   };
 
-  Chains._();
+  const Chains._();
 
   static IChain? getChain(Chain entrypoint) {
     return chains[entrypoint];

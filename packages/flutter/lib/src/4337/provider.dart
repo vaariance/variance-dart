@@ -23,14 +23,54 @@ class BaseProvider extends JsonRPC {
 
   String get rpcUrl => _rpcUrl;
 
+  Future<BigInt> estimateGas(
+    EthereumAddress to,
+    String calldata,
+  ) async {
+    final amountHex = await _makeRPCCall<String>('eth_estimateGas', [
+      {'to': to.hex, 'data': hexToBytes(calldata)}
+    ]);
+    return hexToInt(amountHex);
+  }
+
   Future<int> getBlockNumber() {
     return _makeRPCCall<String>('eth_blockNumber')
         .then((s) => hexToInt(s).toInt());
   }
 
-  Future<EtherAmount> getGasPrice() async {
-    final data = await _makeRPCCall<String>('eth_gasPrice');
+  Future<Map<String, BigInt>> getEip1559GasPrice() async {
+    final fee = await _makeRPCCall<String>("eth_maxPriorityFeePerGas");
+    final tip = BigInt.parse(fee);
+    const mul = 100 * 13;
+    final buffer = BigInt.parse((tip / BigInt.parse(mul.toString())) as String);
+    final maxPriorityFeePerGas = tip + buffer;
+    final maxFeePerGas = maxPriorityFeePerGas;
+    return {
+      'maxFeePerGas': maxFeePerGas,
+      'maxPriorityFeePerGas': maxPriorityFeePerGas
+    };
+  }
 
+  Future<Map<String, BigInt>> getGasPrice() async {
+    try {
+      return await getEip1559GasPrice();
+    } catch (e) {
+      try {
+        return await getLegacyGasPrice().then((value) => {
+              'maxFeePerGas': value.getInWei,
+              'maxPriorityFeePerGas': value.getInWei
+            });
+      } catch (e) {
+        return {
+          'maxFeePerGas': BigInt.zero,
+          'maxPriorityFeePerGas': BigInt.zero
+        };
+      }
+    }
+  }
+
+  Future<EtherAmount> getLegacyGasPrice() async {
+    final data = await _makeRPCCall<String>('eth_gasPrice');
     return EtherAmount.fromBigInt(EtherUnit.wei, hexToInt(data));
   }
 
