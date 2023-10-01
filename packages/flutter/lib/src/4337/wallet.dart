@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/4337/chains.dart';
+import 'package:pks_4337_sdk/src/4337/modules/base.dart';
 import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
 import 'package:pks_4337_sdk/src/4337/modules/erc20.dart';
 import 'package:pks_4337_sdk/src/4337/modules/erc721.dart';
@@ -11,19 +12,14 @@ import 'package:pks_4337_sdk/src/4337/modules/transfers.dart';
 import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:pks_4337_sdk/src/abi/accountFactory.g.dart';
 import 'package:pks_4337_sdk/src/abi/entrypoint.g.dart';
+import 'package:web3dart/crypto.dart';
 import "package:web3dart/web3dart.dart";
 
-class Wallet extends Signer {
+class Wallet extends Signer with Modules {
   // [PROVIDERS]
   final BaseProvider _baseProvider;
   final BundlerProvider _walletProvider;
   final IChain _walletChain;
-
-  // [MODULES]
-  late final ERC721 erc721;
-  late final ERC20 erc20;
-  late final Transfers transfers;
-  late final Contract contract;
 
   // [WALLET_ADDRESS]
   EthereumAddress _walletAddress;
@@ -49,24 +45,15 @@ class Wallet extends Signer {
   // [GETTERS]
   Address get address => Address.fromEthAddress(_walletAddress,
       ethRpc: _walletChain.rpcUrl, ens: true);
-  Future<EtherAmount> get balance => contract.getBalance(_walletAddress);
+  Future<EtherAmount> get balance =>
+      module("contract").getBalance(_walletAddress);
   BaseProvider get baseProvider => _baseProvider;
-  Future<bool> get deployed => contract.deployed(_walletAddress);
+  Future<bool> get deployed => module("contract").deployed(_walletAddress);
   Future<Uint256> get nonce => _nonce();
   IChain get walletChain => _walletChain;
   BundlerProvider get walletProvider => _walletProvider;
 
-  Future approveNFT(
-    EthereumAddress nftContractAddress,
-    EthereumAddress spender,
-    BigInt tokenId,
-  ) async {}
-
-  Future approveToken(
-    EthereumAddress tokenAddress,
-    EthereumAddress spender,
-    BigInt amount,
-  ) async {}
+  Uint8List? _initCode;
 
   /// [create] -> creates a new wallet address.
   /// uses counterfactual deployment, so wallet may not actually be deployed
@@ -78,10 +65,11 @@ class Wallet extends Signer {
         "Create: HD Key instance is required!");
     EthereumAddress owner = EthereumAddress.fromHex(
         await hdkey!.getAddress(index ?? 0, id: accountId));
-    FactoryInterface factory = AccountFactory(
+    AccountFactory factory = AccountFactory(
         address: Chains.accountFactory,
         client: Web3Client.custom(_baseProvider),
-        chainId: _walletChain.chainId) as FactoryInterface;
+        chainId: _walletChain.chainId);
+    _initCode = _initData(factory, 'createAccount', [owner.hex, salt.value]);
     factory
         .getAddress(owner, salt.value)
         .then((value) => {_walletAddress = value});
@@ -96,45 +84,89 @@ class Wallet extends Signer {
       Uint8List credentialHex, Uint256 x, Uint256 y, Uint256 salt) async {
     require(defaultSigner == SignerType.passkeys && passkey != null,
         "Create P256: PassKey instance is required!");
-    FactoryInterface factory = AccountFactory(
+    AccountFactory factory = AccountFactory(
         address: Chains.accountFactory,
         client: Web3Client.custom(_baseProvider),
-        chainId: _walletChain.chainId) as FactoryInterface;
+        chainId: _walletChain.chainId);
+
+    _initCode = _initData(factory, 'createPasskeyAccount',
+        [credentialHex, x.value, y.value, salt.value]);
     factory
         .getPasskeyAccountAddress(credentialHex, x.value, y.value, salt.value)
         .then((value) => {_walletAddress = value});
   }
 
-  Future send() async {}
+  // TODO: START
 
-  Future sendBatchedTransaction() async {}
+  Future send(EthereumAddress recipient, EtherAmount amount) async {
+    // sends out native tokens via syntactic sugar
+  }
 
-  Future sendTransaction() async {}
+  Future sendTransaction() async {
+    // signs the transaction and sends via syntactic sugar
+  }
 
-  Future signAndSendTransaction() async {}
-  // UserOperation buildUserOperation() {}
-  Future signTransaction() async {}
-  Future transferNFT(EthereumAddress nftContractAddress,
-      EthereumAddress recipientAddress, num tokenId) async {}
+  Future sendBatchedTransaction() async {
+    // sends multiple transactions via syntactic sugar
+  }
 
-  Future transferToken(EthereumAddress tokenAddress,
-      EthereumAddress recipientAddress, BigInt amount) async {}
+  Future buildUserOperation() async {
+    // creates a user operation from syntactic sugar
+  }
+
+  Future sendUserOperation() async {
+    // signs and sends a signed user operation
+  }
+
+  Future signUserOperation(UserOperation op) async {
+    // appends a valid signature to a user operation
+  }
+
+  Future sendSignedUserOperation(UserOperation op) async {
+    // assumes operation has been signed
+  }
+
+  // TODO: END
+
+  Uint8List _initData(AccountFactory factory, String name, List params) {
+    final data = factory.self.function(name).encodeCall(params);
+    final initCode =
+        abi.encode(['address', 'bytes'], [factory.self.address, data]);
+    return initCode;
+  }
+
+  Future<BigInt> _initDataGas() {
+    return baseProvider.estimateGas(walletChain.entrypoint,
+        bytesToHex(_initCode ?? Uint8List(0), include0x: true));
+  }
+
+  Uint8List _callData(
+      {EthereumAddress? to, EtherAmount? amount, Uint8List? innerCallData}) {
+    return Contract.encodeFunctionCall(
+      'execute',
+      _walletAddress,
+      ContractAbis.get('SimpleAccount'),
+      [to ?? _walletAddress, amount ?? EtherAmount.zero(), innerCallData],
+    );
+  }
 
   /// initializes the [Wallet] modules
+  /// you can still override the default modules by setting yours.
   /// - nft module
   /// - token module
   /// - contract module
   /// - transfers module
   _initializeModules(BaseProvider provider) {
-    erc721 = ERC721(provider.rpcUrl);
-    erc20 = ERC20(provider);
-    transfers = Transfers(provider);
-    contract = Contract(provider);
+    setModule('erc721', ERC721(provider.rpcUrl));
+    setModule('erc20', ERC20(provider));
+    setModule('transfers', Transfers(provider));
+    setModule('contract', Contract(provider));
   }
 
   Future<Uint256> _nonce() async {
-    return contract
-        .call<BigInt>(_walletAddress, ContractAbis.get('getNonce'), "getNonce")
+    return module("contract")
+        .call<BigInt>(
+            _walletAddress, ContractAbis.get('SimpleAccount'), "getNonce")
         .then((value) => Uint256(value[0]));
   }
 
@@ -165,6 +197,9 @@ class Wallet extends Signer {
   }
 }
 
+
+
+
 // Future userOptester() async {
 //   final uop = UserOperation(
 //     "0x3AcF7270a4e8D1d1b0656aA76E50C28a40446e77",
@@ -185,33 +220,3 @@ class Wallet extends Signer {
 //   log("etp: ${etp.toString()}");
 //   // walletProvider.sendUserOperation(et, entryPoint)
 // }
-// Future<UserOperationResponse?> sendTransaction({
-//     required EthereumAddress to,
-//     required Uint256 value,
-//     required Uint8List payload,
-//     BundlerProvider? bundlerProvider,
-//   }) async {
-//     if (!(await _checkDeployment())) {}
-//     final nonce = await getNonce();
-//     UserOperation userOp = UserOperation(
-//       toHex(),
-//       nonce.value,
-//       '',
-//       '$payload',
-//       BigInt.tryParse('$value') ?? BigInt.from(0),
-//       BigInt.from(0),
-//       BigInt.from(0),
-//       BigInt.from(0),
-//       BigInt.from(0),
-//       '',
-//       '',
-//     );
-//     final signedOps = await sign(userOp);
-//     final response = await bundlerProvider?.sendUserOperation(
-//         signedOps, Chains.entrypoint as String);
-//     if (response?.userOpHash == null) {
-//       throw Exception('Error sending transaction');
-//     }
-
-//     return response;
-//   }

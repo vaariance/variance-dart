@@ -8,16 +8,16 @@ import 'package:web3dart/crypto.dart' as crypto;
 import 'package:web3dart/web3dart.dart';
 
 class UserOperation {
-  final String sender;
+  final EthereumAddress sender;
   final BigInt nonce;
-  final String initCode;
-  final String callData;
+  final Uint8List initCode;
+  final Uint8List callData;
   final BigInt callGasLimit;
   final BigInt verificationGasLimit;
   final BigInt preVerificationGas;
   final BigInt maxFeePerGas;
   final BigInt maxPriorityFeePerGas;
-  String signature;
+  Uint8List signature;
   final String paymasterAndData;
 
   Uint8List _hash;
@@ -45,10 +45,10 @@ class UserOperation {
           'uint256',
           'bytes32',
         ], [
-          EthereumAddress.fromHex(sender),
+          sender,
           nonce,
-          keccak256(Uint8List.fromList(crypto.hexToBytes(initCode))),
-          keccak256(Uint8List.fromList(crypto.hexToBytes(callData))),
+          keccak256(initCode),
+          keccak256(callData),
           callGasLimit,
           verificationGasLimit,
           preVerificationGas,
@@ -62,16 +62,16 @@ class UserOperation {
 
   factory UserOperation.fromMap(Map<String, dynamic> map) {
     return UserOperation(
-      map['sender'],
+      EthereumAddress.fromHex(map['sender']),
       BigInt.parse(map['nonce']),
-      map['initCode'],
-      map['callData'],
+      crypto.hexToBytes(map['initCode']),
+      crypto.hexToBytes(map['callData']),
       BigInt.parse(map['callGasLimit']),
       BigInt.parse(map['verificationGasLimit']),
       BigInt.parse(map['preVerificationGas']),
       BigInt.parse(map['maxFeePerGas']),
       BigInt.parse(map['maxPriorityFeePerGas']),
-      map['signature'],
+      crypto.hexToBytes(map['signature']),
       map['paymasterAndData'],
     );
   }
@@ -84,16 +84,16 @@ class UserOperation {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'sender': sender,
+      'sender': sender.hexEip55,
       'nonce': '0x${nonce.toRadixString(16)}',
-      'initCode': initCode,
-      'callData': callData,
+      'initCode': hexlify(initCode),
+      'callData': hexlify(callData),
       'callGasLimit': '0x${callGasLimit.toRadixString(16)}',
       'verificationGasLimit': '0x${verificationGasLimit.toRadixString(16)}',
       'preVerificationGas': '0x${preVerificationGas.toRadixString(16)}',
       'maxFeePerGas': '0x${maxFeePerGas.toRadixString(16)}',
       'maxPriorityFeePerGas': '0x${maxPriorityFeePerGas.toRadixString(16)}',
-      'signature': signature,
+      'signature': hexlify(signature),
       'paymasterAndData': paymasterAndData,
     };
   }

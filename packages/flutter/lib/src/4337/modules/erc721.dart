@@ -2,8 +2,9 @@ import 'dart:convert';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
-import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:pks_4337_sdk/src/4337/modules/enum.dart';
+import 'package:pks_4337_sdk/src/4337/modules/metadatas.dart';
+import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:pks_4337_sdk/src/dio_client.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
@@ -18,31 +19,13 @@ class ERC721 {
   ERC721(String rpcUrl)
       : _baseNftApiUrl = Uri.parse(ERC721.getBaseNftApiUrl(rpcUrl));
 
-  String encodeERC721ApproveCall(
-      EthereumAddress contractAddress, EthereumAddress to, Uint256 tokenId) {
-    return bytesToHex(
-        Contract.encodeFunctionCall("approve", contractAddress,
-            ContractAbis.get("ERC721"), [to.hex, tokenId.value]),
-        include0x: true,
-        padToEvenLength: true);
-  }
-
-  String encodeERC721SafeTransferCall(EthereumAddress contractAddress,
-      EthereumAddress from, EthereumAddress to, Uint256 tokenId) {
-    return bytesToHex(
-        Contract.encodeFunctionCall("safeTransferFrom", contractAddress,
-            ContractAbis.get("ERC721"), [from.hex, to.hex, tokenId.value]),
-        include0x: true,
-        padToEvenLength: true);
-  }
-
   Future<NFTPrice> getFloorPrice(EthereumAddress contractAddress) async {
     final response = await _fetchNftRequest(
         {'contractAddress': contractAddress.hex}, 'getFloorPrice');
     return NFTPrice.fromMap(response);
   }
 
-  Future<NFTWithMetadata> getNftMetadata(
+  Future<NFTMetadata> getNftMetadata(
       EthereumAddress contractAddress, Uint256 tokenId,
       {NftTokenType? type, bool refreshCache = false}) async {
     final queryParams = {
@@ -55,7 +38,7 @@ class ERC721 {
     }
 
     final response = await _fetchNftRequest(queryParams, 'getNFTMetadata');
-    return NFTWithMetadata.fromMap(response);
+    return NFTMetadata.fromMap(response);
   }
 
   Future<NFTQueryResponse> getNftsForOwner(EthereumAddress address,
@@ -107,6 +90,24 @@ class ERC721 {
     );
   }
 
+  static String encodeERC721ApproveCall(
+      EthereumAddress contractAddress, EthereumAddress to, Uint256 tokenId) {
+    return bytesToHex(
+        Contract.encodeFunctionCall("approve", contractAddress,
+            ContractAbis.get("ERC721"), [to.hex, tokenId.value]),
+        include0x: true,
+        padToEvenLength: true);
+  }
+
+  static String encodeERC721SafeTransferCall(EthereumAddress contractAddress,
+      EthereumAddress from, EthereumAddress to, Uint256 tokenId) {
+    return bytesToHex(
+        Contract.encodeFunctionCall("safeTransferFrom", contractAddress,
+            ContractAbis.get("ERC721"), [from.hex, to.hex, tokenId.value]),
+        include0x: true,
+        padToEvenLength: true);
+  }
+
   static String getBaseNftApiUrl(String rpcUrl) {
     final sections = rpcUrl.split('/v2/');
     sections[1] = "/nft/v3/${sections[1]}";
@@ -114,106 +115,94 @@ class ERC721 {
   }
 }
 
-class NFTQueryResponse {
-  final List<NFTWithMetadata>? _ownedNfts;
-  final List<NFT>? _ownedNftsMinified;
-  final String? pageKey;
-  final int? totalCount;
-  final ResponseType responseType;
-
-  NFTQueryResponse({
-    List<NFTWithMetadata>? ownedNfts,
-    List<NFT>? ownedNftsMinified,
-    this.pageKey,
-    this.totalCount,
-    required this.responseType,
-  })  : _ownedNftsMinified = ownedNftsMinified,
-        _ownedNfts = ownedNfts;
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'ownedNfts': _ownedNfts?.map((x) => x.toMap()).toList(),
-      'ownedNftsMinified': _ownedNftsMinified?.map((x) => x.toMap()).toList(),
-      'pageKey': pageKey,
-      'totalCount': totalCount,
-      'responseType': responseType.name,
-    };
-  }
-
-  T nftList<T>() {
-    if (responseType == ResponseType.withMetadata) {
-      require(T is NFTWithMetadata, "generic doesn't match 'NftMetadata' type");
-      return _ownedNfts as T;
-    }
-    require(T is NFT, "generic doesn't match 'NftMetadataMinified' type");
-    return _ownedNftsMinified as T;
-  }
-
-  factory NFTQueryResponse.fromMap(
-      Map<String, dynamic> map, ResponseType responseType) {
-    return NFTQueryResponse(
-      ownedNfts: responseType == ResponseType.withMetadata
-          ? List<NFTWithMetadata>.from(
-              (map['ownedNfts'] as List<int>).map<NFTWithMetadata?>(
-                (x) => NFTWithMetadata.fromMap(x as Map<String, dynamic>),
-              ),
-            )
-          : null,
-      ownedNftsMinified: responseType == ResponseType.withoutMetadata
-          ? List<NFT>.from(
-              (map['ownedNftsMinified'] as List<int>).map<NFT?>(
-                (x) => NFT.fromMap(x as Map<String, dynamic>),
-              ),
-            )
-          : null,
-      pageKey: map['pageKey'] != null ? map['pageKey'] as String : null,
-      totalCount: map['totalCount'] != null ? map['totalCount'] as int : null,
-      responseType: responseType,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory NFTQueryResponse.fromJson(String source, ResponseType responseType) =>
-      NFTQueryResponse.fromMap(
-          json.decode(source) as Map<String, dynamic>, responseType);
-}
-
 class NFT {
-  final EthereumAddress contractAddress;
+  final EthereumAddress address;
   final int tokenId;
   final int balance;
+  final NFTMetadata? metadata;
 
-  NFT({
-    required this.contractAddress,
-    required this.tokenId,
-    required this.balance,
-  });
+  NFT(
+      {required this.address,
+      required this.tokenId,
+      required this.balance,
+      this.metadata});
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'contractAddress': contractAddress.hex,
-      'tokenId': tokenId,
-      'balance': balance,
-    };
-  }
+  factory NFT.fromJson(String source, ResponseType responseType) =>
+      NFT.fromMap(json.decode(source) as Map<String, dynamic>, responseType);
 
-  factory NFT.fromMap(Map<String, dynamic> map) {
+  factory NFT.fromMap(Map<String, dynamic> map, ResponseType responseType) {
     return NFT(
-      contractAddress:
-          EthereumAddress.fromHex(map['contractAddress'] as String),
+      address: EthereumAddress.fromHex(map['contractAddress'] as String),
       tokenId: map['tokenId'] as int,
       balance: map['balance'] as int,
+      metadata: responseType == ResponseType.withMetadata
+          ? NFTMetadata.fromMap(map)
+          : null,
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory NFT.fromJson(String source) =>
-      NFT.fromMap(json.decode(source) as Map<String, dynamic>);
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'contractAddress': address.hex,
+      'tokenId': tokenId,
+      'balance': balance,
+      'metadata': metadata?.toMap(),
+    };
+  }
+
+  Future approveNFT(NFT nft, EthereumAddress spender) async {
+    // approves nft via syntactic sugar
+  }
+
+  Future transferNFT(NFT nft, EthereumAddress recipient) async {
+    // sends a nft via syntactic sugar
+  }
 }
 
-class NFTWithMetadata {
+class NFTFloorPrice {
+  double floorPrice;
+  String priceCurrency;
+  String collectionUrl;
+  DateTime retrievedAt;
+  dynamic error;
+
+  NFTFloorPrice({
+    required this.floorPrice,
+    required this.priceCurrency,
+    required this.collectionUrl,
+    required this.retrievedAt,
+    required this.error,
+  });
+
+  factory NFTFloorPrice.fromJson(String source) =>
+      NFTFloorPrice.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  factory NFTFloorPrice.fromMap(Map<String, dynamic> map) {
+    return NFTFloorPrice(
+      floorPrice: map['floorPrice'] as double,
+      priceCurrency: map['priceCurrency'] as String,
+      collectionUrl: map['collectionUrl'] as String,
+      retrievedAt: DateTime.parse(map['retrievedAt']),
+      error: map['error'] as dynamic,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'floorPrice': floorPrice,
+      'priceCurrency': priceCurrency,
+      'collectionUrl': collectionUrl,
+      'retrievedAt': retrievedAt.toIso8601String(),
+      'error': error,
+    };
+  }
+}
+
+class NFTMetadata {
   String address;
   String name;
   String symbol;
@@ -228,7 +217,7 @@ class NFTWithMetadata {
   RawMetadata raw;
   int balance;
   DateTime? timeStamp;
-  NFTWithMetadata(
+  NFTMetadata(
       {required this.address,
       required this.name,
       required this.symbol,
@@ -244,27 +233,11 @@ class NFTWithMetadata {
       required this.balance,
       this.timeStamp});
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'address': address,
-      'name': name,
-      'symbol': symbol,
-      'totalSupply': totalSupply,
-      'tokenType': tokenType,
-      'isSpam': isSpam,
-      'tokenId': tokenId,
-      'tokenUri': tokenUri,
-      'openSeaMetadata': openSeaMetadata?.toMap(),
-      'collection': collection?.toMap(),
-      'image': image.toMap(),
-      'raw': raw.toMap(),
-      'balance': balance,
-      'timeStamp': timeStamp?.toIso8601String(),
-    };
-  }
+  factory NFTMetadata.fromJson(String source) =>
+      NFTMetadata.fromMap(json.decode(source) as Map<String, dynamic>);
 
-  factory NFTWithMetadata.fromMap(Map<String, dynamic> map) {
-    return NFTWithMetadata(
+  factory NFTMetadata.fromMap(Map<String, dynamic> map) {
+    return NFTMetadata(
       address: map['contract']['address'] as String,
       name: map['contract']['name'] as String,
       symbol: map['contract']['symbol'] as String,
@@ -291,161 +264,24 @@ class NFTWithMetadata {
   }
   String toJson() => json.encode(toMap());
 
-  factory NFTWithMetadata.fromJson(String source) =>
-      NFTWithMetadata.fromMap(json.decode(source) as Map<String, dynamic>);
-}
-
-class OpenSeaMetadata {
-  int? floorPrice;
-  String collectionName;
-  String collectionSlug;
-  String safelistRequestStatus;
-  String imageUrl;
-  String description;
-  String externalUrl;
-  String? twitterUsername;
-  String? discordUrl;
-  String bannerImageUrl;
-  DateTime lastIngestedAt;
-
-  OpenSeaMetadata({
-    this.floorPrice,
-    required this.collectionName,
-    required this.collectionSlug,
-    required this.safelistRequestStatus,
-    required this.imageUrl,
-    required this.description,
-    required this.externalUrl,
-    this.twitterUsername,
-    this.discordUrl,
-    required this.bannerImageUrl,
-    required this.lastIngestedAt,
-  });
-
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'floorPrice': floorPrice,
-      'collectionName': collectionName,
-      'collectionSlug': collectionSlug,
-      'safelistRequestStatus': safelistRequestStatus,
-      'imageUrl': imageUrl,
-      'description': description,
-      'externalUrl': externalUrl,
-      'twitterUsername': twitterUsername,
-      'discordUrl': discordUrl,
-      'bannerImageUrl': bannerImageUrl,
-      'lastIngestedAt': lastIngestedAt.toIso8601String(),
-    };
-  }
-
-  factory OpenSeaMetadata.fromMap(Map<String, dynamic> map) {
-    return OpenSeaMetadata(
-      floorPrice: map['floorPrice'] != null ? map['floorPrice'] as int : null,
-      collectionName: map['collectionName'] as String,
-      collectionSlug: map['collectionSlug'] as String,
-      safelistRequestStatus: map['safelistRequestStatus'] as String,
-      imageUrl: map['imageUrl'] as String,
-      description: map['description'] as String,
-      externalUrl: map['externalUrl'] as String,
-      twitterUsername: map['twitterUsername'] != null
-          ? map['twitterUsername'] as String
-          : null,
-      discordUrl:
-          map['discordUrl'] != null ? map['discordUrl'] as String : null,
-      bannerImageUrl: map['bannerImageUrl'] as String,
-      lastIngestedAt: DateTime.parse(map['lastIngestedAt']),
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory OpenSeaMetadata.fromJson(String source) =>
-      OpenSeaMetadata.fromMap(json.decode(source) as Map<String, dynamic>);
-}
-
-class Collection {
-  String name;
-  String slug;
-  String externalUrl;
-  String bannerImageUrl;
-
-  Collection({
-    required this.name,
-    required this.slug,
-    required this.externalUrl,
-    required this.bannerImageUrl,
-  });
-
-  Map<String, dynamic> toMap() {
-    return <String, String>{
+      'address': address,
       'name': name,
-      'slug': slug,
-      'externalUrl': externalUrl,
-      'bannerImageUrl': bannerImageUrl,
+      'symbol': symbol,
+      'totalSupply': totalSupply,
+      'tokenType': tokenType,
+      'isSpam': isSpam,
+      'tokenId': tokenId,
+      'tokenUri': tokenUri,
+      'openSeaMetadata': openSeaMetadata?.toMap(),
+      'collection': collection?.toMap(),
+      'image': image.toMap(),
+      'raw': raw.toMap(),
+      'balance': balance,
+      'timeStamp': timeStamp?.toIso8601String(),
     };
   }
-
-  factory Collection.fromMap(Map<String, String> map) {
-    return Collection(
-      name: map['name'] as String,
-      slug: map['slug'] as String,
-      externalUrl: map['externalUrl'] as String,
-      bannerImageUrl: map['bannerImageUrl'] as String,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory Collection.fromJson(String source) =>
-      Collection.fromMap(json.decode(source) as Map<String, String>);
-}
-
-class NFTUris {
-  String? cachedUrl;
-  String? thumbnailUrl;
-  String? pngUrl;
-  String? contentType;
-  int? size;
-  String? originalUrl;
-
-  NFTUris({
-    this.cachedUrl,
-    this.thumbnailUrl,
-    this.pngUrl,
-    this.contentType,
-    this.size,
-    this.originalUrl,
-  });
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'cachedUrl': cachedUrl,
-      'thumbnailUrl': thumbnailUrl,
-      'pngUrl': pngUrl,
-      'contentType': contentType,
-      'size': size,
-      'originalUrl': originalUrl,
-    };
-  }
-
-  factory NFTUris.fromMap(Map<String, dynamic> map) {
-    return NFTUris(
-      cachedUrl: map['cachedUrl'] != null ? map['cachedUrl'] as String : null,
-      thumbnailUrl:
-          map['thumbnailUrl'] != null ? map['thumbnailUrl'] as String : null,
-      pngUrl: map['pngUrl'] != null ? map['pngUrl'] as String : null,
-      contentType:
-          map['contentType'] != null ? map['contentType'] as String : null,
-      size: map['size'] != null ? map['size'] as int : null,
-      originalUrl:
-          map['originalUrl'] != null ? map['originalUrl'] as String : null,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory NFTUris.fromJson(String source) =>
-      NFTUris.fromMap(json.decode(source) as Map<String, dynamic>);
 }
 
 class NFTPrice {
@@ -457,12 +293,8 @@ class NFTPrice {
     required this.looksRare,
   });
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'openSea': openSea.toMap(),
-      'looksRare': looksRare.toMap(),
-    };
-  }
+  factory NFTPrice.fromJson(String source) =>
+      NFTPrice.fromMap(json.decode(source) as Map<String, dynamic>);
 
   factory NFTPrice.fromMap(Map<String, dynamic> map) {
     return NFTPrice(
@@ -474,121 +306,63 @@ class NFTPrice {
 
   String toJson() => json.encode(toMap());
 
-  factory NFTPrice.fromJson(String source) =>
-      NFTPrice.fromMap(json.decode(source) as Map<String, dynamic>);
-}
-
-class NFTFloorPrice {
-  double floorPrice;
-  String priceCurrency;
-  String collectionUrl;
-  DateTime retrievedAt;
-  dynamic error;
-
-  NFTFloorPrice({
-    required this.floorPrice,
-    required this.priceCurrency,
-    required this.collectionUrl,
-    required this.retrievedAt,
-    required this.error,
-  });
-
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'floorPrice': floorPrice,
-      'priceCurrency': priceCurrency,
-      'collectionUrl': collectionUrl,
-      'retrievedAt': retrievedAt.toIso8601String(),
-      'error': error,
+      'openSea': openSea.toMap(),
+      'looksRare': looksRare.toMap(),
     };
   }
+}
 
-  factory NFTFloorPrice.fromMap(Map<String, dynamic> map) {
-    return NFTFloorPrice(
-      floorPrice: map['floorPrice'] as double,
-      priceCurrency: map['priceCurrency'] as String,
-      collectionUrl: map['collectionUrl'] as String,
-      retrievedAt: DateTime.parse(map['retrievedAt']),
-      error: map['error'] as dynamic,
+class NFTQueryResponse {
+  final List<NFT>? _ownedNfts;
+  final String? pageKey;
+  final int? totalCount;
+  final ResponseType responseType;
+
+  NFTQueryResponse({
+    List<NFT>? ownedNfts,
+    this.pageKey,
+    this.totalCount,
+    required this.responseType,
+  }) : _ownedNfts = ownedNfts;
+
+  factory NFTQueryResponse.fromJson(String source, ResponseType responseType) =>
+      NFTQueryResponse.fromMap(
+          json.decode(source) as Map<String, dynamic>, responseType);
+
+  factory NFTQueryResponse.fromMap(
+      Map<String, dynamic> map, ResponseType responseType) {
+    return NFTQueryResponse(
+      ownedNfts: List<NFT>.from(
+        (map['ownedNfts'] as List<int>).map<NFT?>(
+          (x) => NFT.fromMap(x as Map<String, dynamic>, responseType),
+        ),
+      ),
+      pageKey: map['pageKey'] != null ? map['pageKey'] as String : null,
+      totalCount: map['totalCount'] != null ? map['totalCount'] as int : null,
+      responseType: responseType,
     );
+  }
+
+  T nftList<T>() {
+    if (responseType == ResponseType.withMetadata) {
+      require(T is NFTMetadata, "generic doesn't match 'NftMetadata' type");
+      return _ownedNfts as T;
+    }
+    require(T is NFT, "generic doesn't match 'NftMetadataMinified' type");
+    return _ownedNfts as T;
   }
 
   String toJson() => json.encode(toMap());
 
-  factory NFTFloorPrice.fromJson(String source) =>
-      NFTFloorPrice.fromMap(json.decode(source) as Map<String, dynamic>);
-}
-
-class RawMetadata {
-  final String tokenUri;
-  final NFTMetadata? metadata;
-  final String? error;
-
-  RawMetadata({
-    required this.tokenUri,
-    this.metadata,
-    this.error,
-  });
-
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'tokenUri': tokenUri,
-      'metadata': metadata?.toMap(),
-      'error': error,
+      'ownedNfts': _ownedNfts?.map((x) => x.toMap()).toList(),
+      'ownedNftsMinified': _ownedNfts?.map((x) => x.toMap()).toList(),
+      'pageKey': pageKey,
+      'totalCount': totalCount,
+      'responseType': responseType.name,
     };
   }
-
-  factory RawMetadata.fromMap(Map<String, dynamic> map) {
-    return RawMetadata(
-      tokenUri: map['tokenUri'] as String,
-      metadata: map['metadata'] != null
-          ? NFTMetadata.fromMap(map['metadata'] as Map<String, dynamic>)
-          : null,
-      error: map['error'] != null ? map['error'] as String : null,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory RawMetadata.fromJson(String source) =>
-      RawMetadata.fromMap(json.decode(source) as Map<String, dynamic>);
-}
-
-class NFTMetadata {
-  final String? name;
-  final String? image;
-  final List<Map<String, dynamic>>? attributes;
-
-  NFTMetadata({
-    this.name,
-    this.image,
-    this.attributes,
-  });
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'name': name,
-      'image': image,
-      'attributes': attributes,
-    };
-  }
-
-  factory NFTMetadata.fromMap(Map<String, dynamic> map) {
-    return NFTMetadata(
-      name: map['name'] != null ? map['name'] as String : null,
-      image: map['image'] != null ? map['image'] as String : null,
-      attributes: map['attributes'] != null
-          ? List<Map<String, dynamic>>.from(
-              (map['attributes'] as List<dynamic>).map<Map<String, dynamic>?>(
-                (x) => x,
-              ),
-            )
-          : null,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory NFTMetadata.fromJson(String source) =>
-      NFTMetadata.fromMap(json.decode(source) as Map<String, dynamic>);
 }

@@ -13,38 +13,6 @@ class ERC20 {
 
   ERC20(this._provider);
 
-  String encodeERC20ApproveCall(
-    EthereumAddress address,
-    EthereumAddress spender,
-    EtherAmount amount,
-  ) {
-    return bytesToHex(
-        Contract.encodeFunctionCall(
-          'approve',
-          address,
-          ContractAbis.get('ERC20'),
-          [address.hex, spender.hex, amount.getInWei],
-        ),
-        include0x: true,
-        padToEvenLength: true);
-  }
-
-  String encodeERC20TransferCall(
-    EthereumAddress address,
-    EthereumAddress recipient,
-    EtherAmount amount,
-  ) {
-    return bytesToHex(
-        Contract.encodeFunctionCall(
-          'transfer',
-          address,
-          ContractAbis.get('ERC20'),
-          [address.hex, recipient.hex, amount.getInWei],
-        ),
-        include0x: true,
-        padToEvenLength: true);
-  }
-
   Future<List<ERC20>> getBalances(EthereumAddress address,
       {List<String>? allowedContracts, int? pageKey, int? maxCount}) async {
     Map<String, dynamic> params = {
@@ -85,6 +53,38 @@ class ERC20 {
       return TokenMetadata.fromMap(erc20Metadata);
     });
   }
+
+  static String encodeERC20ApproveCall(
+    EthereumAddress address,
+    EthereumAddress spender,
+    EtherAmount amount,
+  ) {
+    return bytesToHex(
+        Contract.encodeFunctionCall(
+          'approve',
+          address,
+          ContractAbis.get('ERC20'),
+          [address.hex, spender.hex, amount.getInWei],
+        ),
+        include0x: true,
+        padToEvenLength: true);
+  }
+
+  static String encodeERC20TransferCall(
+    EthereumAddress address,
+    EthereumAddress recipient,
+    EtherAmount amount,
+  ) {
+    return bytesToHex(
+        Contract.encodeFunctionCall(
+          'transfer',
+          address,
+          ContractAbis.get('ERC20'),
+          [address.hex, recipient.hex, amount.getInWei],
+        ),
+        include0x: true,
+        padToEvenLength: true);
+  }
 }
 
 class Token {
@@ -116,6 +116,18 @@ class Token {
       'balance': balance.getInWei,
       'metadata': metadata?.toMap()
     };
+  }
+
+  Future approveToken(
+    EthereumAddress spender,
+    BigInt amount,
+  ) async {
+    // approves token via syntactic sugar
+  }
+
+  Future transferToken(
+      Token token, EthereumAddress recipient, BigInt amount) async {
+    // sends a token via syntactic sugar
   }
 }
 
