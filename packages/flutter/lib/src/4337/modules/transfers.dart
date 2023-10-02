@@ -4,7 +4,7 @@ import 'dart:convert';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/4337/modules/enum.dart';
-import 'package:pks_4337_sdk/src/4337/modules/erc1155.dart';
+import 'package:pks_4337_sdk/src/4337/modules/metadatas.dart';
 import 'package:web3dart/web3dart.dart';
 
 class RawContract {
@@ -236,8 +236,8 @@ class Transfers {
       from: owner,
       addresses: addresses,
     );
-  }
-
+    }
+  /// [getAssetTransfers]
   Future<TransferResponse> _getAssetTransfers(
       {Uint256? fromBlock,
       Uint256? toBlock,

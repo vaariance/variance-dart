@@ -9,15 +9,22 @@ class Contract {
   Contract(
     this._provider,
   );
+
+
   BaseProvider get provider => _provider;
 
   set setProvider(BaseProvider provider) {
     _provider = provider;
   }
 
+  /// The [call] function makes staticcall to a contract function
+  /// 
+  ///returns a list of decoded values.
   Future<List<T>> call<T>(
       EthereumAddress contractAddress, ContractAbi abi, String methodName,
       {List<dynamic>? params, EthereumAddress? sender}) {
+
+      /// gets contract function
     final func = getContractFunction(methodName, contractAddress, abi);
     final call = {
       'to': contractAddress.hex,
@@ -31,13 +38,14 @@ class Contract {
         (value) => func.decodeReturnValues(value) as List<T>);
   }
 
+  ///[deployed] checks if a contract is deployed
   Future<bool> deployed(EthereumAddress address) {
     return _provider
         .send<String>('eth_getCode', [address.hex])
         .then(hexToBytes)
         .then((value) => value.isNotEmpty);
   }
-
+  /// [getBalance] returns the balance of an Ethereum address
   Future<EtherAmount> getBalance(EthereumAddress address) {
     return _provider
         .send<String>('eth_getBalance', [address.hex])
@@ -45,12 +53,17 @@ class Contract {
         .then((value) => EtherAmount.fromBigInt(EtherUnit.wei, value));
   }
 
+  /// [encodeFunctionCall] calls a contract function and returns the encoded call.
   static Uint8List encodeFunctionCall(String methodName,
       EthereumAddress contractAddress, ContractAbi abi, List<dynamic> params) {
     final func = getContractFunction(methodName, contractAddress, abi);
     return func.encodeCall(params);
   }
-
+  /// Calls a contract function from a deployed contract
+  /// 
+  /// and finds a method that matches the method name.
+  /// 
+  /// If the method name not is found, and it is more than one, it throws an exception
   static ContractFunction getContractFunction(
       String methodName, EthereumAddress contractAddress, ContractAbi abi) {
     final instance = DeployedContract(abi, contractAddress);

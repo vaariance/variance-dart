@@ -36,7 +36,7 @@ class abi {
   ///
   ///   - `values` A list of dynamic objects representing the values to be encoded.
   /// @return A Uint8List containing the ABI encoded types and values.
-  static encode<T>(List<String> types, List<dynamic> values) {
+  static Uint8List encode(List<String> types, List<dynamic> values) {
     List<AbiType> abiTypes = [];
     LengthTrackingByteSink result = LengthTrackingByteSink();
     for (String type in types) {
