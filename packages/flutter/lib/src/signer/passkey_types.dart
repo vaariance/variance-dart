@@ -1,4 +1,3 @@
-
 import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
@@ -30,6 +29,22 @@ class PassKeySignature {
   final String clientDataSuffix;
   PassKeySignature(this.credentialId, this.rs, this.authData,
       this.clientDataPrefix, this.clientDataSuffix);
+
+  Uint8List toHex() {
+    return abi.encode([
+      'uint256',
+      'uint256',
+      'bytes',
+      'string',
+      'string'
+    ], [
+      rs[0].value,
+      rs[1].value,
+      authData,
+      clientDataPrefix,
+      clientDataSuffix
+    ]);
+  }
 }
 
 class PassKeysOptions {

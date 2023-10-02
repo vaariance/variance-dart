@@ -1,12 +1,13 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
 import 'package:pks_4337_sdk/src/4337/modules/enum.dart';
 import 'package:pks_4337_sdk/src/4337/modules/metadatas.dart';
+import 'package:pks_4337_sdk/src/4337/wallet.dart' as sdk;
 import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:pks_4337_sdk/src/dio_client.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 /// uses alchemy nft api
@@ -19,12 +20,17 @@ class ERC721 {
   ERC721(String rpcUrl)
       : _baseNftApiUrl = Uri.parse(ERC721.getBaseNftApiUrl(rpcUrl));
 
+  /// [getFloorPrice] returns the lowest listing price of an NFT
   Future<NFTPrice> getFloorPrice(EthereumAddress contractAddress) async {
+    // sends a fetch request to get the floor price
     final response = await _fetchNftRequest(
         {'contractAddress': contractAddress.hex}, 'getFloorPrice');
+
+    // Convert the response into an NFTPrice object
     return NFTPrice.fromMap(response);
   }
 
+  /// [getNftMetadata] returns the metadata of a fetched NFT
   Future<NFTMetadata> getNftMetadata(
       EthereumAddress contractAddress, Uint256 tokenId,
       {NftTokenType? type, bool refreshCache = false}) async {
@@ -33,6 +39,7 @@ class ERC721 {
       'tokenId': tokenId.toInt(),
       'refreshCache': refreshCache,
     };
+    // Add token type to the query parameters if not null
     if (type != null) {
       queryParams['tokenType'] = type.name.toUpperCase();
     }
@@ -41,6 +48,9 @@ class ERC721 {
     return NFTMetadata.fromMap(response);
   }
 
+  /// [getNftsForOwner] returns the NFTs owned by an owner
+  ///
+  /// returns an [NFTQueryResponse] object
   Future<NFTQueryResponse> getNftsForOwner(EthereumAddress address,
       {bool orderByTransferTime = false,
       bool withMetadata = true,
@@ -64,20 +74,29 @@ class ERC721 {
             : ResponseType.withoutMetadata);
   }
 
+  /// [isAirdropNFT] checks if an NFT of a contract is an airdrop
   Future<bool> isAirdropNFT(
       EthereumAddress contractAddress, Uint256 tokenId) async {
     final response = await _fetchNftRequest(
         {'contractAddress': contractAddress.hex, 'tokenId': tokenId.toInt()},
         'isAirdropNFT');
+
+    //returns true or false depending on if the NFT is an airdrop
     return response["isAirdrop"] as bool;
   }
 
+  /// [isSpamContract] checks if a contract is a spam
   Future<bool> isSpamContract(EthereumAddress contractAddress) async {
     final response = await _fetchNftRequest(
         {'contractAddress': contractAddress.hex}, "isSpamContract");
     return response["isSpamContract"] as bool;
   }
 
+  ///fetches NFT data
+  ///
+  ///`path` is the endpoint or path of the API
+  ///
+  ///`queryParams` The query parameters to be sent with the request
   Future<Map<String, dynamic>> _fetchNftRequest(
       Map<String, Object?> queryParams, String path) async {
     final String requestUrl = _baseNftApiUrl
@@ -90,24 +109,21 @@ class ERC721 {
     );
   }
 
-  static String encodeERC721ApproveCall(
-      EthereumAddress contractAddress, EthereumAddress to, Uint256 tokenId) {
-    return bytesToHex(
-        Contract.encodeFunctionCall("approve", contractAddress,
-            ContractAbis.get("ERC721"), [to.hex, tokenId.value]),
-        include0x: true,
-        padToEvenLength: true);
+  /// [encodeERC721ApproveCall] calls an approve function
+  static Uint8List encodeERC721ApproveCall(
+      EthereumAddress contractAddress, EthereumAddress to, BigInt tokenId) {
+    return Contract.encodeFunctionCall("approve", contractAddress,
+        ContractAbis.get("ERC721"), [to.hex, tokenId]);
   }
 
-  static String encodeERC721SafeTransferCall(EthereumAddress contractAddress,
-      EthereumAddress from, EthereumAddress to, Uint256 tokenId) {
-    return bytesToHex(
-        Contract.encodeFunctionCall("safeTransferFrom", contractAddress,
-            ContractAbis.get("ERC721"), [from.hex, to.hex, tokenId.value]),
-        include0x: true,
-        padToEvenLength: true);
+  /// [encodeERC721SafeTransferCall] creates a string representation of a safe transfer
+  static Uint8List encodeERC721SafeTransferCall(EthereumAddress contractAddress,
+      EthereumAddress from, EthereumAddress to, BigInt tokenId) {
+    return Contract.encodeFunctionCall("safeTransferFrom", contractAddress,
+        ContractAbis.get("ERC721"), [from.hex, to.hex, tokenId]);
   }
 
+  /// gets NFT api url
   static String getBaseNftApiUrl(String rpcUrl) {
     final sections = rpcUrl.split('/v2/');
     sections[1] = "/nft/v3/${sections[1]}";
@@ -141,6 +157,31 @@ class NFT {
     );
   }
 
+  Future<UserOperation> approveNFT(
+      EthereumAddress owner, EthereumAddress spender) async {
+    final innerCallData = sdk.Wallet.callData(owner,
+        to: address,
+        innerCallData: ERC721.encodeERC721ApproveCall(
+          address,
+          spender,
+          BigInt.from(tokenId),
+        ));
+    return UserOperation.partial(hexlify(innerCallData));
+  }
+
+  Future<UserOperation> transferNFT(
+      EthereumAddress owner, EthereumAddress spender) async {
+    final innerCallData = sdk.Wallet.callData(owner,
+        to: address,
+        innerCallData: ERC721.encodeERC721SafeTransferCall(
+          address,
+          owner,
+          spender,
+          BigInt.from(tokenId),
+        ));
+    return UserOperation.partial(hexlify(innerCallData));
+  }
+
   String toJson() => json.encode(toMap());
 
   Map<String, dynamic> toMap() {
@@ -150,14 +191,6 @@ class NFT {
       'balance': balance,
       'metadata': metadata?.toMap(),
     };
-  }
-
-  Future approveNFT(NFT nft, EthereumAddress spender) async {
-    // approves nft via syntactic sugar
-  }
-
-  Future transferNFT(NFT nft, EthereumAddress recipient) async {
-    // sends a nft via syntactic sugar
   }
 }
 

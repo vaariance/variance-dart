@@ -1,18 +1,20 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
+import 'package:pks_4337_sdk/src/4337/wallet.dart' as sdk;
 import 'package:pks_4337_sdk/src/abi/abis.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 /// uses alchemy token api
-/// if want to use another api, you have to create a custom class
+/// If you want to use another api, you have to create a custom class
 class ERC20 {
   final BaseProvider _provider;
 
   ERC20(this._provider);
 
+  /// [getBalances] returns the balance of an ERC20 Ethereum address
   Future<List<ERC20>> getBalances(EthereumAddress address,
       {List<String>? allowedContracts, int? pageKey, int? maxCount}) async {
     Map<String, dynamic> params = {
@@ -35,6 +37,7 @@ class ERC20 {
         .toList();
   }
 
+  ///gets the total allowance to be spent of an ERC20 token
   Future<BigInt> getTokenAllowance(
       EthereumAddress address, EthereumAddress owner, EthereumAddress spender) {
     Map<String, dynamic> params = {
@@ -46,6 +49,7 @@ class ERC20 {
         .send<String>('alchemy_getTokenAllowance', [params]).then(BigInt.parse);
   }
 
+  /// [getTokenMetadata] returns the ERC20 token metadata
   Future<TokenMetadata> getTokenMetadata(EthereumAddress address,
       {bool save = true}) {
     return _provider.send<Map<String, dynamic>>(
@@ -54,36 +58,32 @@ class ERC20 {
     });
   }
 
-  static String encodeERC20ApproveCall(
+  /// [encodeERC20ApproveCall] returns the contract approve function
+  static Uint8List encodeERC20ApproveCall(
     EthereumAddress address,
     EthereumAddress spender,
     EtherAmount amount,
   ) {
-    return bytesToHex(
-        Contract.encodeFunctionCall(
-          'approve',
-          address,
-          ContractAbis.get('ERC20'),
-          [address.hex, spender.hex, amount.getInWei],
-        ),
-        include0x: true,
-        padToEvenLength: true);
+    return Contract.encodeFunctionCall(
+      'approve',
+      address,
+      ContractAbis.get('ERC20'),
+      [spender.hex, amount.getInWei],
+    );
   }
 
-  static String encodeERC20TransferCall(
+  /// [encodeERC20TransferCall] returns the contract transfer function
+  static Uint8List encodeERC20TransferCall(
     EthereumAddress address,
     EthereumAddress recipient,
     EtherAmount amount,
   ) {
-    return bytesToHex(
-        Contract.encodeFunctionCall(
-          'transfer',
-          address,
-          ContractAbis.get('ERC20'),
-          [address.hex, recipient.hex, amount.getInWei],
-        ),
-        include0x: true,
-        padToEvenLength: true);
+    return Contract.encodeFunctionCall(
+      'transfer',
+      address,
+      ContractAbis.get('ERC20'),
+      [recipient.hex, amount.getInWei],
+    );
   }
 }
 
@@ -108,6 +108,26 @@ class Token {
 
   Uint256 get toUint256 => Uint256.fromWei(balance);
 
+  Future<UserOperation> approveToken(
+    EthereumAddress owner,
+    EthereumAddress spender,
+    EtherAmount amount,
+  ) async {
+    final callData = sdk.Wallet.callData(owner,
+        to: address,
+        innerCallData: ERC20.encodeERC20ApproveCall(address, spender, amount));
+    return UserOperation.partial(hexlify(callData));
+  }
+
+  Future<UserOperation> transferToken(EthereumAddress owner,
+      EthereumAddress recipient, EtherAmount amount) async {
+    final callData = sdk.Wallet.callData(owner,
+        to: address,
+        innerCallData:
+            ERC20.encodeERC20TransferCall(address, recipient, amount));
+    return UserOperation.partial(hexlify(callData));
+  }
+
   String toJson() => json.encode(toMap());
 
   Map<String, dynamic> toMap() {
@@ -116,18 +136,6 @@ class Token {
       'balance': balance.getInWei,
       'metadata': metadata?.toMap()
     };
-  }
-
-  Future approveToken(
-    EthereumAddress spender,
-    BigInt amount,
-  ) async {
-    // approves token via syntactic sugar
-  }
-
-  Future transferToken(
-      Token token, EthereumAddress recipient, BigInt amount) async {
-    // sends a token via syntactic sugar
   }
 }
 

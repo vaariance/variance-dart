@@ -12,7 +12,7 @@ import 'package:pks_4337_sdk/src/4337/modules/transfers.dart';
 import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:pks_4337_sdk/src/abi/accountFactory.g.dart';
 import 'package:pks_4337_sdk/src/abi/entrypoint.g.dart';
-import 'package:web3dart/crypto.dart';
+import 'package:pks_4337_sdk/src/signer/passkey_types.dart';
 import "package:web3dart/web3dart.dart";
 
 class Wallet extends Signer with Modules {
@@ -23,7 +23,7 @@ class Wallet extends Signer with Modules {
 
   // [WALLET_ADDRESS]
   EthereumAddress _walletAddress;
-  String toHex() => _walletAddress.hexEip55;
+  String? _initCode;
 
   /// [Entrypoint] is not initialized
   /// to initialize with entrypoint, you have to call [Wallet.init] instead
@@ -50,10 +50,30 @@ class Wallet extends Signer with Modules {
   BaseProvider get baseProvider => _baseProvider;
   Future<bool> get deployed => module("contract").deployed(_walletAddress);
   Future<Uint256> get nonce => _nonce();
+  String get toHex => _walletAddress.hexEip55;
   IChain get walletChain => _walletChain;
   BundlerProvider get walletProvider => _walletProvider;
 
-  Uint8List? _initCode;
+  UserOperation buildUserOperation(
+    Uint8List callData, {
+    BigInt? customNonce,
+    BigInt? callGasLimit,
+    BigInt? verificationGasLimit,
+    BigInt? preVerificationGas,
+    BigInt? maxFeePerGas,
+    BigInt? maxPriorityFeePerGas,
+  }) {
+    return UserOperation.partial(
+      hexlify(callData),
+      sender: _walletAddress,
+      nonce: customNonce,
+      callGasLimit: callGasLimit,
+      verificationGasLimit: verificationGasLimit,
+      preVerificationGas: preVerificationGas,
+      maxFeePerGas: maxFeePerGas,
+      maxPriorityFeePerGas: maxPriorityFeePerGas,
+    );
+  }
 
   /// [create] -> creates a new wallet address.
   /// uses counterfactual deployment, so wallet may not actually be deployed
@@ -69,7 +89,8 @@ class Wallet extends Signer with Modules {
         address: Chains.accountFactory,
         client: Web3Client.custom(_baseProvider),
         chainId: _walletChain.chainId);
-    _initCode = _initData(factory, 'createAccount', [owner.hex, salt.value]);
+    _initCode =
+        hexlify(initData(factory, 'createAccount', [owner.hex, salt.value]));
     factory
         .getAddress(owner, salt.value)
         .then((value) => {_walletAddress = value});
@@ -89,65 +110,65 @@ class Wallet extends Signer with Modules {
         client: Web3Client.custom(_baseProvider),
         chainId: _walletChain.chainId);
 
-    _initCode = _initData(factory, 'createPasskeyAccount',
-        [credentialHex, x.value, y.value, salt.value]);
+    _initCode = hexlify(initData(factory, 'createPasskeyAccount',
+        [credentialHex, x.value, y.value, salt.value]));
     factory
         .getPasskeyAccountAddress(credentialHex, x.value, y.value, salt.value)
         .then((value) => {_walletAddress = value});
   }
 
-  // TODO: START
-
-  Future send(EthereumAddress recipient, EtherAmount amount) async {
-    // sends out native tokens via syntactic sugar
+  Future<BigInt> initCodeGas() {
+    require(_initCode != null, "No init code");
+    return baseProvider.estimateGas(walletChain.entrypoint, _initCode!);
   }
 
-  Future sendTransaction() async {
-    // signs the transaction and sends via syntactic sugar
+  Future<UserOperationResponse> send(
+      EthereumAddress recipient, EtherAmount amount) async {
+    return sendUserOperation(buildUserOperation(
+        callData(_walletAddress, to: recipient, amount: amount)));
   }
 
-  Future sendBatchedTransaction() async {
-    // sends multiple transactions via syntactic sugar
+  Future<UserOperationResponse> sendBatchedTransaction(
+      List<EthereumAddress> recipients, List<Uint8List> calls,
+      {List<EtherAmount>? amounts}) async {
+    return sendUserOperation(buildUserOperation(callDataBatched(
+        walletAddress: _walletAddress,
+        recipients: recipients,
+        amounts: amounts,
+        innerCalls: calls)));
   }
 
-  Future buildUserOperation() async {
-    // creates a user operation from syntactic sugar
+  Future<UserOperationResponse> sendTransaction(
+      EthereumAddress to, Uint8List encodedFunctionData,
+      {EtherAmount? amount}) async {
+    return sendUserOperation(buildUserOperation(callData(_walletAddress,
+        to: to, amount: amount, innerCallData: encodedFunctionData)));
   }
 
-  Future sendUserOperation() async {
-    // signs and sends a signed user operation
+  Future<UserOperationResponse> sendSignedUserOperation(
+      UserOperation op) async {
+    return _walletProvider.sendUserOperation(
+        op.toMap(), _walletChain.entrypoint);
   }
 
-  Future signUserOperation(UserOperation op) async {
-    // appends a valid signature to a user operation
+  Future<UserOperationResponse> sendUserOperation(UserOperation op,
+      {String id = ""}) async {
+    return signUserOperation(op, id: id).then(sendSignedUserOperation);
   }
 
-  Future sendSignedUserOperation(UserOperation op) async {
-    // assumes operation has been signed
-  }
-
-  // TODO: END
-
-  Uint8List _initData(AccountFactory factory, String name, List params) {
-    final data = factory.self.function(name).encodeCall(params);
-    final initCode =
-        abi.encode(['address', 'bytes'], [factory.self.address, data]);
-    return initCode;
-  }
-
-  Future<BigInt> _initDataGas() {
-    return baseProvider.estimateGas(walletChain.entrypoint,
-        bytesToHex(_initCode ?? Uint8List(0), include0x: true));
-  }
-
-  Uint8List _callData(
-      {EthereumAddress? to, EtherAmount? amount, Uint8List? innerCallData}) {
-    return Contract.encodeFunctionCall(
-      'execute',
-      _walletAddress,
-      ContractAbis.get('SimpleAccount'),
-      [to ?? _walletAddress, amount ?? EtherAmount.zero(), innerCallData],
-    );
+  Future<UserOperation> signUserOperation(UserOperation op,
+      {bool update = true, String? id}) async {
+    if (update) await _updateUserOperation(op);
+    final opHash = op.hash(_walletChain);
+    Uint8List signature;
+    if (defaultSigner == SignerType.passkeys) {
+      signature = (await sign<PassKeySignature>(opHash, id: id)).toHex();
+    } else {
+      signature = await sign<Uint8List>(opHash, index: 0, id: id);
+    }
+    op.signature = hexlify(signature);
+    await _validateFields(op);
+    return op;
   }
 
   /// initializes the [Wallet] modules
@@ -164,10 +185,90 @@ class Wallet extends Signer with Modules {
   }
 
   Future<Uint256> _nonce() async {
-    return module("contract")
-        .call<BigInt>(
-            _walletAddress, ContractAbis.get('SimpleAccount'), "getNonce")
-        .then((value) => Uint256(value[0]));
+    try {
+      return module("contract")
+          .call<BigInt>(
+              _walletAddress, ContractAbis.get('SimpleAccount'), "getNonce")
+          .then((value) => Uint256(value[0]));
+    } catch (e) {
+      return Uint256(BigInt.zero);
+    }
+  }
+
+  Future _updateUserOperation(UserOperation op) async {
+    final map = op.toMap();
+    op = await _walletProvider
+        .estimateUserOperationGas(map, _walletChain.entrypoint)
+        .then((opGas) async => UserOperation.update(map, opGas,
+            sender: _walletAddress,
+            nonce: (await nonce).value,
+            initCode: !(await deployed) ? _initCode! : null));
+    await _baseProvider.getGasPrice().then((gasPrice) => {
+          op.maxFeePerGas = gasPrice["maxFeePerGas"] as BigInt,
+          op.maxPriorityFeePerGas = gasPrice["maxPriorityFeePerGas"] as BigInt,
+        });
+  }
+
+  _validateFields(UserOperation op) async {
+    require(op.sender == _walletAddress && op.sender != Chains.zeroAddress,
+        "Operation sender error. ${op.sender} provided.");
+    require(op.initCode == ((await deployed) ? "0x" : _initCode!),
+        "Init code mismatch");
+    require(op.callGasLimit >= BigInt.from(35000),
+        "Call gas limit too small expected 35000+");
+    require(op.verificationGasLimit >= BigInt.from(70000),
+        "Verification gas limit too small expected 70000+");
+    require(op.preVerificationGas >= BigInt.from(21000),
+        "Pre verification gas too small expected 21000+");
+    require(op.callData.length >= 4, "Call data too short, min 4 bytes");
+    require(op.signature.length >= 64, "Signature too short, min 64 bytes");
+  }
+
+  static Uint8List callData(EthereumAddress walletAddress,
+      {required EthereumAddress to,
+      EtherAmount? amount,
+      Uint8List? innerCallData}) {
+    final params = [
+      to,
+      amount ?? EtherAmount.zero().getInWei,
+    ];
+    if (innerCallData != null && innerCallData.isNotEmpty) {
+      params.add(innerCallData);
+    }
+    return Contract.encodeFunctionCall(
+      'execute',
+      walletAddress,
+      ContractAbis.get('SimpleAccount'),
+      params,
+    );
+  }
+
+  static Uint8List callDataBatched(
+      {required EthereumAddress walletAddress,
+      required List<EthereumAddress> recipients,
+      List<EtherAmount>? amounts,
+      List<Uint8List>? innerCalls}) {
+    final params = [
+      recipients,
+      amounts ?? [],
+      innerCalls ?? [],
+    ];
+    if (innerCalls == null || innerCalls.isEmpty) {
+      require(amounts != null && amounts.isNotEmpty, "malformed batch request");
+    }
+    return Contract.encodeFunctionCall(
+      'executeBatch',
+      walletAddress,
+      ContractAbis.get('SimpleAccount'),
+      params,
+    );
+  }
+
+  static Uint8List initData(AccountFactory factory, String name, List params) {
+    final data = factory.self.function(name).encodeCall(params);
+    final initCode =
+        abi.encode(['address', 'bytes'], [factory.self.address, data]);
+    return initCode;
   }
 
   /// creates a [Wallet] instance, additionally initializes the [Entrypoint] contract

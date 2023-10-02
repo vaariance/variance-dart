@@ -1,19 +1,22 @@
 mixin Modules {
-  Map<String, dynamic> modules = {};
+  final Map<String, dynamic> _modules = {};
 
-  void setModule<T>(String name, T module) {
-    modules[name] = module;
-  }
-
-  T module<T>(String name) {
-    return modules[name] as T;
-  }
-
-  void removeModule(String name) {
-    modules.remove(name);
-  }
-
+  ///returns a list of all active modules 
   List<String> activeModules() {
-    return modules.keys.toList(growable: false);
+    return _modules.keys.toList(growable: false);
+  }
+  ///gets a [module] by name
+  T module<T>(String name) {
+    return _modules[name] as T;
+  }
+
+  /// removes an unwanted module by [name]
+  void removeModule(String name) {
+    _modules.remove(name);
+  }
+
+  ///Sets a [module] by name
+  void setModule<T>(String name, T module) {
+    _modules[name] = module;
   }
 }

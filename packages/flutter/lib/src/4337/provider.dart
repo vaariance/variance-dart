@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 library pks_4337_sdk;
 
 import 'dart:async';
@@ -125,10 +124,10 @@ class BundlerProvider {
   ///
   ///[UserOperationGas] object
   Future<UserOperationGas> estimateUserOperationGas(
-      Map<String, dynamic> userOp, String entrypoint) async {
+      Map<String, dynamic> userOp, EthereumAddress entrypoint) async {
     require(_initialized, "estimateUserOpGas: Wallet Provider not initialized");
     final opGas = await _bundlerClient.send<Map<String, dynamic>>(
-        'eth_estimateUserOperationGas', [userOp, entrypoint]);
+        'eth_estimateUserOperationGas', [userOp, entrypoint.hex]);
     return UserOperationGas.fromMap(opGas);
   }
 
@@ -160,10 +159,10 @@ class BundlerProvider {
 
   ///sends user operation to bundler
   Future<UserOperationResponse> sendUserOperation(
-      Map<String, dynamic> userOp, String entrypoint) async {
+      Map<String, dynamic> userOp, EthereumAddress entrypoint) async {
     require(_initialized, "sendUserOp: Wallet Provider not initialized");
     final opHash = await _bundlerClient
-        .send<String>('eth_sendUserOperation', [userOp, entrypoint]);
+        .send<String>('eth_sendUserOperation', [userOp, entrypoint.hex]);
     return UserOperationResponse(opHash, wait);
   }
 

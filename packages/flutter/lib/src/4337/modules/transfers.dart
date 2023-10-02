@@ -236,8 +236,8 @@ class Transfers {
       from: owner,
       addresses: addresses,
     );
-  }
-
+    }
+  /// [getAssetTransfers]
   Future<TransferResponse> _getAssetTransfers(
       {Uint256? fromBlock,
       Uint256? toBlock,

@@ -10,30 +10,31 @@ import 'package:web3dart/web3dart.dart';
 class UserOperation {
   final EthereumAddress sender;
   final BigInt nonce;
-  final Uint8List initCode;
-  final Uint8List callData;
+  final String initCode;
+  final String callData;
   final BigInt callGasLimit;
   final BigInt verificationGasLimit;
   final BigInt preVerificationGas;
-  final BigInt maxFeePerGas;
-  final BigInt maxPriorityFeePerGas;
-  Uint8List signature;
-  final String paymasterAndData;
+  BigInt maxFeePerGas;
+  BigInt maxPriorityFeePerGas;
+  String signature;
+  String paymasterAndData;
 
   Uint8List _hash;
-  UserOperation(
-    this.sender,
-    this.nonce,
-    this.initCode,
-    this.callData,
-    this.callGasLimit,
-    this.verificationGasLimit,
-    this.preVerificationGas,
-    this.maxFeePerGas,
-    this.maxPriorityFeePerGas,
-    this.signature,
-    this.paymasterAndData,
-  ) : _hash = keccak256(abi.encode([
+
+  UserOperation({
+    required this.sender,
+    required this.nonce,
+    required this.initCode,
+    required this.callData,
+    required this.callGasLimit,
+    required this.verificationGasLimit,
+    required this.preVerificationGas,
+    required this.maxFeePerGas,
+    required this.maxPriorityFeePerGas,
+    required this.signature,
+    required this.paymasterAndData,
+  }) : _hash = keccak256(abi.encode([
           'address',
           'uint256',
           'bytes32',
@@ -47,14 +48,14 @@ class UserOperation {
         ], [
           sender,
           nonce,
-          keccak256(initCode),
-          keccak256(callData),
+          keccak256(crypto.hexToBytes(initCode)),
+          keccak256(crypto.hexToBytes(callData)),
           callGasLimit,
           verificationGasLimit,
           preVerificationGas,
           maxFeePerGas,
           maxPriorityFeePerGas,
-          keccak256(Uint8List.fromList(crypto.hexToBytes(paymasterAndData))),
+          keccak256(crypto.hexToBytes(paymasterAndData)),
         ]));
 
   factory UserOperation.fromJson(String source) =>
@@ -62,18 +63,61 @@ class UserOperation {
 
   factory UserOperation.fromMap(Map<String, dynamic> map) {
     return UserOperation(
-      EthereumAddress.fromHex(map['sender']),
-      BigInt.parse(map['nonce']),
-      crypto.hexToBytes(map['initCode']),
-      crypto.hexToBytes(map['callData']),
-      BigInt.parse(map['callGasLimit']),
-      BigInt.parse(map['verificationGasLimit']),
-      BigInt.parse(map['preVerificationGas']),
-      BigInt.parse(map['maxFeePerGas']),
-      BigInt.parse(map['maxPriorityFeePerGas']),
-      crypto.hexToBytes(map['signature']),
-      map['paymasterAndData'],
+      sender: EthereumAddress.fromHex(map['sender']),
+      nonce: BigInt.parse(map['nonce']),
+      initCode: map['initCode'],
+      callData: map['callData'],
+      callGasLimit: BigInt.parse(map['callGasLimit']),
+      verificationGasLimit: BigInt.parse(map['verificationGasLimit']),
+      preVerificationGas: BigInt.parse(map['preVerificationGas']),
+      maxFeePerGas: BigInt.parse(map['maxFeePerGas']),
+      maxPriorityFeePerGas: BigInt.parse(map['maxPriorityFeePerGas']),
+      signature: map['signature'],
+      paymasterAndData: map['paymasterAndData'],
     );
+  }
+
+  factory UserOperation.partial(
+    String callData, {
+    EthereumAddress? sender,
+    BigInt? nonce,
+    String? initCode,
+    BigInt? callGasLimit,
+    BigInt? verificationGasLimit,
+    BigInt? preVerificationGas,
+    BigInt? maxFeePerGas,
+    BigInt? maxPriorityFeePerGas,
+  }) =>
+      UserOperation(
+        sender: sender ?? Chains.zeroAddress,
+        nonce: nonce ?? BigInt.zero,
+        initCode: initCode ?? "0x",
+        callData: callData,
+        callGasLimit: callGasLimit ?? BigInt.from(35000),
+        verificationGasLimit: verificationGasLimit ?? BigInt.from(70000),
+        preVerificationGas: preVerificationGas ?? BigInt.from(21000),
+        maxFeePerGas: maxFeePerGas ?? BigInt.zero,
+        maxPriorityFeePerGas: maxPriorityFeePerGas ?? BigInt.zero,
+        signature: "0x",
+        paymasterAndData: '0x',
+      );
+
+  factory UserOperation.update(
+    Map<String, dynamic> map,
+    UserOperationGas opGas, {
+    EthereumAddress? sender,
+    BigInt? nonce,
+    String? initCode,
+  }) {
+    map['callGasLimit'] = opGas.callGasLimit;
+    map['verificationGasLimit'] = opGas.verificationGasLimit;
+    map['preVerificationGas'] = opGas.preVerificationGas;
+
+    if (sender != null) map['sender'] = sender.hex;
+    if (nonce != null) map['nonce'] = '0x${nonce.toRadixString(16)}';
+    if (initCode != null) map['initCode'] = initCode;
+
+    return UserOperation.fromMap(map);
   }
 
   Uint8List hash(IChain chain) => keccak256(abi.encode(
@@ -86,14 +130,14 @@ class UserOperation {
     return <String, dynamic>{
       'sender': sender.hexEip55,
       'nonce': '0x${nonce.toRadixString(16)}',
-      'initCode': hexlify(initCode),
-      'callData': hexlify(callData),
+      'initCode': initCode,
+      'callData': callData,
       'callGasLimit': '0x${callGasLimit.toRadixString(16)}',
       'verificationGasLimit': '0x${verificationGasLimit.toRadixString(16)}',
       'preVerificationGas': '0x${preVerificationGas.toRadixString(16)}',
       'maxFeePerGas': '0x${maxFeePerGas.toRadixString(16)}',
       'maxPriorityFeePerGas': '0x${maxPriorityFeePerGas.toRadixString(16)}',
-      'signature': hexlify(signature),
+      'signature': signature,
       'paymasterAndData': paymasterAndData,
     };
   }
