@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:developer';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
-import 'package:pks_4337_sdk/src/4337/modules/enum.dart';
-import 'package:pks_4337_sdk/src/4337/modules/metadatas.dart';
+import 'package:pks_4337_sdk/src/4337/modules/alchemyApi/utils/enum.dart';
+import 'package:pks_4337_sdk/src/4337/modules/alchemyApi/utils/metadatas.dart';
 import 'package:pks_4337_sdk/src/4337/wallet.dart' as sdk;
 import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:pks_4337_sdk/src/dio_client.dart';
@@ -22,12 +23,14 @@ class ERC721 {
 
   /// [getFloorPrice] returns the lowest listing price of an NFT
   Future<NFTPrice> getFloorPrice(EthereumAddress contractAddress) async {
-    // sends a fetch request to get the floor price
-    final response = await _fetchNftRequest(
-        {'contractAddress': contractAddress.hex}, 'getFloorPrice');
-
-    // Convert the response into an NFTPrice object
-    return NFTPrice.fromMap(response);
+    try {
+      final response = await _fetchNftRequest(
+          {'contractAddress': contractAddress.hex}, 'getFloorPrice');
+      return NFTPrice.fromMap(response);
+    } catch (e) {
+      log("Error in getFloorPrice: $e");
+      rethrow; // Rethrow the error for handling at a higher level, if needed.
+    }
   }
 
   /// [getNftMetadata] returns the metadata of a fetched NFT
@@ -36,8 +39,8 @@ class ERC721 {
       {NftTokenType? type, bool refreshCache = false}) async {
     final queryParams = {
       'contractAddress': contractAddress.hex,
-      'tokenId': tokenId.toInt(),
-      'refreshCache': refreshCache,
+      'tokenId': tokenId.toString(),
+      'refreshCache': refreshCache.toString(),
     };
     // Add token type to the query parameters if not null
     if (type != null) {
@@ -45,10 +48,11 @@ class ERC721 {
     }
 
     final response = await _fetchNftRequest(queryParams, 'getNFTMetadata');
+    log(response.toString());
     return NFTMetadata.fromMap(response);
   }
 
-  /// [getNftsForOwner] returns the NFTs owned by an owner
+  /// [getNftsForOwner] returns the NFTs owned by an address
   ///
   /// returns an [NFTQueryResponse] object
   Future<NFTQueryResponse> getNftsForOwner(EthereumAddress address,
@@ -57,7 +61,7 @@ class ERC721 {
       String? pageKey}) async {
     final queryParams = {
       'owner': address.hex,
-      'withMetadata': withMetadata,
+      'withMetadata': withMetadata.toString(),
       'orderBy': orderByTransferTime ? 'transferTime' : null,
     };
 
@@ -78,7 +82,7 @@ class ERC721 {
   Future<bool> isAirdropNFT(
       EthereumAddress contractAddress, Uint256 tokenId) async {
     final response = await _fetchNftRequest(
-        {'contractAddress': contractAddress.hex, 'tokenId': tokenId.toInt()},
+        {'contractAddress': contractAddress.hex, 'tokenId': tokenId.toString()},
         'isAirdropNFT');
 
     //returns true or false depending on if the NFT is an airdrop

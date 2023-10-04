@@ -1,24 +1,25 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:mockito/annotations.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
 import 'package:pks_4337_sdk/src/4337/wallet.dart' as sdk;
 import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:web3dart/web3dart.dart';
 
-/// uses alchemy token api
+/// [ERC20] module
+///
+/// uses alchemy token api to get token balances
 /// If you want to use another api, you have to create a custom class
-
-@GenerateMocks([ERC20])
 class ERC20 {
   final BaseProvider _provider;
 
   ERC20(this._provider);
 
-  /// [getBalances] returns the balance of an ERC20 Ethereum address
-  Future<List<ERC20>> getBalances(EthereumAddress address,
+  /// [getBalances] returns the balance of all ERC20 tokens in an address
+  /// metadata is not included in this fetch
+  /// @param [address] is the address to get the balance of
+  Future<List<Token>> getBalances(EthereumAddress address,
       {List<String>? allowedContracts, int? pageKey, int? maxCount}) async {
     Map<String, dynamic> params = {
       'pageKey': pageKey,
@@ -31,20 +32,27 @@ class ERC20 {
     ];
     final balances = await _provider.send<Map<String, dynamic>>(
         'alchemy_getTokenBalances', call);
-    require(balances['address'] == address.hex,
-        "Get ERC20 Balance: Malformed response, try again");
 
-    return balances['tokenBalances']
-        .map((e) => Token(EthereumAddress.fromHex(e['contractAddress']),
+    if (balances['address'] != address.hex) {
+      throw Exception("Get ERC20 Balance: Malformed response, try again");
+    }
+
+    List<Token> erc20List = balances['tokenBalances']
+        .map<Token>((e) => Token(EthereumAddress.fromHex(e['contractAddress']),
             EtherAmount.inWei(BigInt.parse(e['tokenBalance'])), null))
         .toList();
+    return erc20List;
   }
 
-  ///gets the total allowance to be spent of an ERC20 token
-  Future<BigInt> getTokenAllowance(
-      EthereumAddress address, EthereumAddress owner, EthereumAddress spender) {
+  /// [getTokenAllowance] returns the ERC20 token allowance of an address
+  /// @param [contractAddress] is the address of the contract
+  /// @param [owner] is the address of the owner
+  /// @param [spender] is the address of the spender
+  /// returns the allowance in [BigInt]
+  Future<BigInt> getTokenAllowance(EthereumAddress contractAddress,
+      EthereumAddress owner, EthereumAddress spender) {
     Map<String, dynamic> params = {
-      'contractAddress': address.hex,
+      'contract': contractAddress.hex,
       'owner': owner.hex,
       'spender': spender.hex
     };
@@ -52,7 +60,9 @@ class ERC20 {
         .send<String>('alchemy_getTokenAllowance', [params]).then(BigInt.parse);
   }
 
-  /// [getTokenMetadata] returns the ERC20 token metadata
+  /// [getTokenMetadata] returns the metadata for an ERC20 Token
+  /// @param [address] is the address of the token
+  /// @param @optional [save] if you want to cache the fetched metadata in memory
   Future<TokenMetadata> getTokenMetadata(EthereumAddress address,
       {bool save = true}) {
     return _provider.send<Map<String, dynamic>>(
@@ -61,7 +71,7 @@ class ERC20 {
     });
   }
 
-  /// [encodeERC20ApproveCall] returns the contract approve function
+  /// [encodeERC20ApproveCall] returns the calldata for ERC20 approval
   static Uint8List encodeERC20ApproveCall(
     EthereumAddress address,
     EthereumAddress spender,
@@ -71,11 +81,11 @@ class ERC20 {
       'approve',
       address,
       ContractAbis.get('ERC20'),
-      [spender.hex, amount.getInWei],
+      [spender, amount.getInWei],
     );
   }
 
-  /// [encodeERC20TransferCall] returns the contract transfer function
+  /// [encodeERC20TransferCall] returns the calldata for ERC20 transfer
   static Uint8List encodeERC20TransferCall(
     EthereumAddress address,
     EthereumAddress recipient,
@@ -85,7 +95,7 @@ class ERC20 {
       'transfer',
       address,
       ContractAbis.get('ERC20'),
-      [recipient.hex, amount.getInWei],
+      [recipient, amount.getInWei],
     );
   }
 }
@@ -111,19 +121,29 @@ class Token {
 
   Uint256 get toUint256 => Uint256.fromWei(balance);
 
-  Future<UserOperation> approveToken(
+  /// [approveToken] returns the userOperation for an ERC20 approval
+  /// @param [owner] is the 4337 wallet address
+  /// @param [spender] is the address of the approved spender
+  /// @param [amount] is the amount to approve for the spender
+  /// returns the userOperation
+  UserOperation approveToken(
     EthereumAddress owner,
     EthereumAddress spender,
     EtherAmount amount,
-  ) async {
+  ) {
     final callData = sdk.Wallet.callData(owner,
         to: address,
         innerCallData: ERC20.encodeERC20ApproveCall(address, spender, amount));
     return UserOperation.partial(hexlify(callData));
   }
 
-  Future<UserOperation> transferToken(EthereumAddress owner,
-      EthereumAddress recipient, EtherAmount amount) async {
+  /// [transferToken] returns the userOperation for an ERC20 transfer
+  /// @param [owner] is the 4337 wallet address
+  /// @param [recipient] is the address of the recipient
+  /// @param [amount] is the amount to transfer
+  /// returns the userOperation
+  UserOperation transferToken(
+      EthereumAddress owner, EthereumAddress recipient, EtherAmount amount) {
     final callData = sdk.Wallet.callData(owner,
         to: address,
         innerCallData:

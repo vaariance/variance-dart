@@ -6,9 +6,9 @@ import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/4337/chains.dart';
 import 'package:pks_4337_sdk/src/4337/modules/base.dart';
 import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
-import 'package:pks_4337_sdk/src/4337/modules/erc20.dart';
-import 'package:pks_4337_sdk/src/4337/modules/erc721.dart';
-import 'package:pks_4337_sdk/src/4337/modules/transfers.dart';
+import 'package:pks_4337_sdk/src/4337/modules/alchemyApi/erc20.dart';
+import 'package:pks_4337_sdk/src/4337/modules/alchemyApi/erc721.dart';
+import 'package:pks_4337_sdk/src/4337/modules/alchemyApi/transfers.dart';
 import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:pks_4337_sdk/src/abi/accountFactory.g.dart';
 import 'package:pks_4337_sdk/src/abi/entrypoint.g.dart';
@@ -26,7 +26,6 @@ class Wallet extends Signer with Modules {
   // [WALLET_ADDRESS]
   EthereumAddress _walletAddress;
   String? _initCode;
-
 
   /// [Entrypoint] is not initialized
   /// to initialize with entrypoint, you have to call [Wallet.init] instead
@@ -84,7 +83,7 @@ class Wallet extends Signer with Modules {
   /// use [deployed] to check if wallet is deployed.
   /// an `initCode` will be attached on the first transaction.
   create(Uint256 salt, {int? index, String? accountId}) async {
-    require(defaultSigner == SignerType.hdkeys && hdkey != null,
+    require(defaultSigner == SignerType.hdkey && hdkey != null,
         "Create: HD Key instance is required!");
     EthereumAddress owner = EthereumAddress.fromHex(
         await hdkey!.getAddress(index ?? 0, id: accountId));
@@ -102,7 +101,7 @@ class Wallet extends Signer with Modules {
   /// an `initCode` will be attached on the first transaction.
   createPasskeyAccount(
       Uint8List credentialHex, Uint256 x, Uint256 y, Uint256 salt) async {
-    require(defaultSigner == SignerType.passkeys && passkey != null,
+    require(defaultSigner == SignerType.passkey && passkey != null,
         "Create: PassKey instance is required!");
     _initCode = hexlify(initData(_factory, 'createPasskeyAccount',
         [credentialHex, x.value, y.value, salt.value]));
@@ -157,7 +156,7 @@ class Wallet extends Signer with Modules {
     if (update) await _updateUserOperation(userOp);
     final opHash = userOp.hash(_walletChain);
     Uint8List signature;
-    if (defaultSigner == SignerType.passkeys) {
+    if (defaultSigner == SignerType.passkey) {
       signature = (await sign<PassKeySignature>(opHash, id: id)).toHex();
     } else {
       signature = await sign<Uint8List>(opHash, index: 0, id: id);
@@ -283,7 +282,7 @@ class Wallet extends Signer with Modules {
   static Wallet init(IChain chain,
       {HDkeysInterface? hdkey,
       PasskeysInterface? passkey,
-      SignerType signer = SignerType.hdkeys,
+      SignerType signer = SignerType.hdkey,
       EthereumAddress? address}) {
     final instance = Wallet(
         chain: chain,
