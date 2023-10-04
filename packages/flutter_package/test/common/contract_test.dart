@@ -39,7 +39,7 @@ void main() {
       when(mockProvider.send<String>('eth_call', any)).thenAnswer(
           (_) async => '0xEncodedResponse'); // Adjust the response as needed
 
-      final decodedValues = await contract.call<int>(
+      final decodedValues = await contract.call(
         contractAddress,
         abi,
         methodName,
@@ -66,8 +66,10 @@ void main() {
 
     test('deployed returns true if contract is deployed', () async {
       // Mock the 'eth_getCode' call on the provider
-      when(mockProvider.send<String>('eth_getCode', [contractAddress.hex]))
-          .thenReturn(Future.value("0x11443c760977081fa9e927b08cab268f6e6783621f2a40102d8cc586e6dee3bc")); // Some bytecode
+      when(mockProvider
+          .send<String>(
+              'eth_getCode', [contractAddress.hex])).thenReturn(Future.value(
+          "0x11443c760977081fa9e927b08cab268f6e6783621f2a40102d8cc586e6dee3bc")); // Some bytecode
 
       final isDeployed = await contract.deployed(contractAddress);
 

@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
@@ -38,7 +37,6 @@ class Contract {
           : "0x",
       if (sender != null) 'from': sender.hex,
     };
-    log("call: ${call.toString()}");
     return _provider.send<String>(
         'eth_call', [call]).then((value) => func.decodeReturnValues(value));
   }
