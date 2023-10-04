@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:ens_dart/ens_dart.dart';
 import 'package:http/http.dart' as http;
 import 'package:web3dart/web3dart.dart';
@@ -48,7 +46,6 @@ class Address extends EthereumAddress {
       _ens = name;
       return name;
     }).catchError((err) {
-      log("no ens name for $hex");
       return "";
     });
   }
