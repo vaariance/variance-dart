@@ -4,7 +4,6 @@ import 'package:ens_dart/ens_dart.dart';
 import 'package:http/http.dart' as http;
 import 'package:web3dart/web3dart.dart';
 
-
 class Address extends EthereumAddress {
   String _ens = "";
   final String _baseRpc = 'https://rpc.ankr.com/eth';
@@ -35,23 +34,22 @@ class Address extends EthereumAddress {
   }
 
   Future<String> getEnsName({String? ethRpc}) async {
-    return _ens.isEmpty ? await _setEnsName(ethRpc ?? _baseRpc) ?? "" : _ens;
+    return _ens.isEmpty ? await _setEnsName(ethRpc ?? _baseRpc) : _ens;
   }
 
   EthereumAddress toEthAddress() {
     return EthereumAddress(addressBytes);
   }
 
-  Future<String>? _setEnsName(String ethRpc) {
+  Future<String> _setEnsName(String ethRpc) {
     final ens = Ens(client: Web3Client(ethRpc, http.Client()));
-    try {
-      return ens.withAddress(hexEip55).getName().then((name) {
-        _ens = name;
-        return name;
-      });
-    } catch (e) {
+
+    return ens.withAddress(hexEip55).getName().then((name) {
+      _ens = name;
+      return name;
+    }).catchError((err) {
       log("no ens name for $hex");
-      return null;
-    }
+      return "";
+    });
   }
 }
