@@ -22,9 +22,9 @@ class BaseProvider extends JsonRPC {
 
   String get rpcUrl => _rpcUrl;
 
-  /// @param [to] is the address or contract to send the transaction to
-  /// @param [calldata] is the calldata of the transaction
-  /// returns the estimated gas in wei.
+  /// - @param [to] is the address or contract to send the transaction to
+  /// - @param [calldata] is the calldata of the transaction
+  /// - returns the estimated gas in wei.
   Future<BigInt> estimateGas(
     EthereumAddress to,
     String calldata,

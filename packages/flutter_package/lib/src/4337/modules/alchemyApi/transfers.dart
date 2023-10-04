@@ -48,7 +48,7 @@ class Transfer {
   final String hash;
   final String from;
   final String to;
-  final double? value;
+  final num? value;
   final Uint256? erc721TokenId;
   final ERC1155Metadata? erc1155Metadata;
   final Uint256? tokenId;
@@ -85,7 +85,7 @@ class Transfer {
       hash: map['hash'] as String,
       from: map['from'] as String,
       to: map['to'] as String,
-      value: map['value'] != null ? map['value'] as double : null,
+      value: map['value'] != null ? map['value'] as num : null,
       erc721TokenId: map['erc721TokenId'] != null
           ? Uint256.fromHex(map['erc721TokenId'])
           : null,
@@ -142,6 +142,17 @@ class Transfers {
 
   Transfers(this._provider);
 
+  /// [getAssetTransfers] returns all transaction to or from [owner]
+  /// {@template transfers}
+  /// - @param required [owner] is the address or contract to send the transaction to
+  /// - @param optional [fromBlock] is the block number to start from
+  /// - @param optional [toBlock] is the block number to end at
+  /// - @param optional [orderByDesc] is true if you want to sort in descending order
+  /// - @param optional [withMetadata] is true if you want to get metadata
+  /// - @param optional [excludeZeroValue] is true if you want to exclude zero values
+  /// - @param optional [maxCount] is the maximum number of transfers to return
+  /// - @param optional [pageKey] a pageKey is returned if there is a next page
+  /// {@endtemplate}
   Future<List<Transfer>> getAssetTransfers(EthereumAddress owner,
       {Uint256? fromBlock,
       Uint256? toBlock,
@@ -157,6 +168,8 @@ class Transfers {
     });
   }
 
+  /// [getIncomingTransfers] returns all incoming transfers from [owner] only
+  /// {@macro transfers}
   Future<TransferResponse> getIncomingTransfers(EthereumAddress owner,
       {Uint256? fromBlock,
       Uint256? toBlock,
@@ -176,6 +189,8 @@ class Transfers {
         to: owner);
   }
 
+  /// [getOutgoingTransfers] returns all outgoing transfers to [owner] only
+  /// {@macro transfers}
   Future<TransferResponse> getOutgoingTransfers(EthereumAddress owner,
       {Uint256? fromBlock,
       Uint256? toBlock,
@@ -195,6 +210,9 @@ class Transfers {
         from: owner);
   }
 
+  /// [getTransfersByCategory] returns all transfers by category
+  /// - @param required [categories] is the list of categories
+  /// {@macro transfers}
   Future<TransferResponse> getTransfersByCategory(
       EthereumAddress owner, List<TransferCategory> categories,
       {Uint256? fromBlock,
@@ -216,6 +234,9 @@ class Transfers {
         from: owner);
   }
 
+  /// [getTransfersByContracts] returns all transfers by filtered according to provided contracts
+  /// @param required [addresses] is the list of contracts addresses
+  /// {@macro transfers}
   Future getTransfersByContracts(
       EthereumAddress owner, List<EthereumAddress> addresses,
       {Uint256? fromBlock,
@@ -236,7 +257,8 @@ class Transfers {
       from: owner,
       addresses: addresses,
     );
-    }
+  }
+
   /// [getAssetTransfers]
   Future<TransferResponse> _getAssetTransfers(
       {Uint256? fromBlock,
@@ -251,19 +273,19 @@ class Transfers {
       List<TransferCategory>? categories,
       List<EthereumAddress>? addresses}) async {
     final params = {
-      "fromBlock": fromBlock?.value ?? BigInt.zero,
-      "toBlock": toBlock?.value ?? "latest",
+      "fromBlock": fromBlock?.toHex() ?? "0x${BigInt.zero.toRadixString(16)}",
+      "toBlock": toBlock?.toHex() ?? "latest",
       "order": orderByDesc ? "desc" : "asc",
       "withMetadata": withMetadata,
       "excludeZeroValue": excludeZeroValue,
       "maxCount": maxCount?.toHex() ?? "0x3e8",
       "category": categories?.map((e) => e.name).toList(growable: false) ??
           ["external"],
-      if (pageKey != null) ['pageKey']: pageKey,
+      if (pageKey != null) 'pageKey': pageKey,
       if (addresses != null)
-        ['contractAddresses']:
+        'contractAddresses':
             addresses.map((e) => e.hex).toList(growable: false),
-      if (from != null) ['fromAddress']: from.hex else ['toAddress']: to!.hex,
+      if (from != null) 'fromAddress': from.hex else 'toAddress': to!.hex,
     };
 
     final response = await _provider
@@ -274,7 +296,7 @@ class Transfers {
 
     return TransferResponse(
       transfers: List<Transfer>.from(
-        (response['transfers'] as List<Map<String, dynamic>>).map<Transfer>(
+        (response['transfers'] as List<dynamic>).map<Transfer>(
           (x) => Transfer.fromMap(x, responseType),
         ),
       ),
