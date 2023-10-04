@@ -22,12 +22,15 @@ class BaseProvider extends JsonRPC {
 
   String get rpcUrl => _rpcUrl;
 
+  /// @param [to] is the address or contract to send the transaction to
+  /// @param [calldata] is the calldata of the transaction
+  /// returns the estimated gas in wei.
   Future<BigInt> estimateGas(
     EthereumAddress to,
     String calldata,
   ) async {
     final amountHex = await _makeRPCCall<String>('eth_estimateGas', [
-      {'to': to.hex, 'data': hexToBytes(calldata)}
+      {'to': to.hex, 'data': calldata}
     ]);
     return hexToInt(amountHex);
   }
@@ -37,32 +40,31 @@ class BaseProvider extends JsonRPC {
         .then((s) => hexToInt(s).toInt());
   }
 
-  Future<Map<String, BigInt>> getEip1559GasPrice() async {
+  Future<Map<String, EtherAmount>> getEip1559GasPrice() async {
     final fee = await _makeRPCCall<String>("eth_maxPriorityFeePerGas");
-    final tip = BigInt.parse(fee);
-    const mul = 100 * 13;
-    final buffer = BigInt.parse((tip / BigInt.parse(mul.toString())) as String);
+    final tip = Uint256.fromHex(fee);
+    final mul = Uint256(BigInt.from(100 * 13));
+    final buffer = tip / mul;
     final maxPriorityFeePerGas = tip + buffer;
     final maxFeePerGas = maxPriorityFeePerGas;
     return {
-      'maxFeePerGas': maxFeePerGas,
-      'maxPriorityFeePerGas': maxPriorityFeePerGas
+      'maxFeePerGas': EtherAmount.fromBigInt(EtherUnit.wei, maxFeePerGas.value),
+      'maxPriorityFeePerGas':
+          EtherAmount.fromBigInt(EtherUnit.wei, maxPriorityFeePerGas.value)
     };
   }
 
-  Future<Map<String, BigInt>> getGasPrice() async {
+  Future<Map<String, EtherAmount>> getGasPrice() async {
     try {
       return await getEip1559GasPrice();
     } catch (e) {
       try {
-        return await getLegacyGasPrice().then((value) => {
-              'maxFeePerGas': value.getInWei,
-              'maxPriorityFeePerGas': value.getInWei
-            });
+        return await getLegacyGasPrice().then(
+            (value) => {'maxFeePerGas': value, 'maxPriorityFeePerGas': value});
       } catch (e) {
         return {
-          'maxFeePerGas': BigInt.zero,
-          'maxPriorityFeePerGas': BigInt.zero
+          'maxFeePerGas': EtherAmount.zero(),
+          'maxPriorityFeePerGas': EtherAmount.zero()
         };
       }
     }
