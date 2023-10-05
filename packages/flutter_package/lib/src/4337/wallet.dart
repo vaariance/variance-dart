@@ -77,11 +77,15 @@ class Wallet extends Signer with Modules {
     );
   }
 
-  /// [create] -> creates a new wallet address.
+  /// [create] creates a new wallet address.
   /// uses counterfactual deployment, so wallet may not actually be deployed
   /// given the same exact inputs, the same exact address will be generated.
   /// use [deployed] to check if wallet is deployed.
   /// an `initCode` will be attached on the first transaction.
+  ///
+  /// - @param required [salt] is the salt for the wallet
+  /// - @param optional [index] is the index of the wallet
+  /// - @param optional [accountId] is the accountId of the wallet
   create(Uint256 salt, {int? index, String? accountId}) async {
     require(defaultSigner == SignerType.hdkey && hdkey != null,
         "Create: HD Key instance is required!");
@@ -94,11 +98,15 @@ class Wallet extends Signer with Modules {
         .then((value) => {_walletAddress = value});
   }
 
-  /// [createPasskeyAccount] -> creates a new Passkey wallet address.
+  /// [createPasskeyAccount] creates a new Passkey wallet address.
   /// uses counterfactual deployment, so wallet may not actually be deployed
   /// given the same exact inputs, the same exact address will be generated.
   /// use [deployed] to check if wallet is deployed.
   /// an `initCode` will be attached on the first transaction.
+  /// - @param required [credentialHex] is the [Uint8List] hex of the credential
+  /// - @param required [x] is the x coordinate
+  /// - @param required [y] is the y coordinate
+  /// - @param required [salt] is the salt for the wallet
   createPasskeyAccount(
       Uint8List credentialHex, Uint256 x, Uint256 y, Uint256 salt) async {
     require(defaultSigner == SignerType.passkey && passkey != null,
@@ -112,17 +120,29 @@ class Wallet extends Signer with Modules {
             });
   }
 
+  ///[initCodeGas] is the gas required to initialize the wallet
   Future<BigInt> initCodeGas() {
     require(_initCode != null, "No init code");
     return baseProvider.estimateGas(walletChain.entrypoint, _initCode!);
   }
 
+  /// [send] sends a transaction to the wallet
+  /// - @param required [recipient] is the address of the user to send the transaction to
+  /// - @param required [amount] is the amount to send
+  ///
+  /// returns the [UserOperationResponse] of the transaction
   Future<UserOperationResponse> send(
       EthereumAddress recipient, EtherAmount amount) async {
     return sendUserOperation(buildUserOperation(
         callData(_walletAddress, to: recipient, amount: amount)));
   }
 
+  /// [sendBatched] sends a batched transaction to the wallet
+  /// - @param required [recipients] is the address of the user to send the transaction to
+  /// - @param required [calls] is the calldata to send
+  /// - @param required [amounts] is the amounts to send
+  /// 
+  /// returns the [UserOperationResponse] of the transaction
   Future<UserOperationResponse> sendBatchedTransaction(
       List<EthereumAddress> recipients, List<Uint8List> calls,
       {List<EtherAmount>? amounts}) async {
@@ -133,6 +153,12 @@ class Wallet extends Signer with Modules {
         innerCalls: calls)));
   }
 
+  /// [sendTransaction] sends a transaction to the wallet
+  /// - @param required [to] is the address of the user to send the transaction to
+  /// - @param required [encodedFunctionData] is the calldata to send
+  /// - @param optional [amount] is the amount to send
+  /// 
+  /// returns the [UserOperationResponse] of the transaction
   Future<UserOperationResponse> sendTransaction(
       EthereumAddress to, Uint8List encodedFunctionData,
       {EtherAmount? amount}) async {
@@ -140,17 +166,31 @@ class Wallet extends Signer with Modules {
         to: to, amount: amount, innerCallData: encodedFunctionData)));
   }
 
+  /// [sendSignedUserOperation] sends a signed transaction to the wallet
+  /// - @param required [op] is the [UserOperation]
+  /// 
+  /// returns the [UserOperationResponse] of the transaction
   Future<UserOperationResponse> sendSignedUserOperation(
       UserOperation op) async {
     return _walletProvider.sendUserOperation(
         op.toMap(), _walletChain.entrypoint);
   }
 
+  /// [sendUserOperation] sends a user operation to the wallet
+  /// - @param required [op] is the [UserOperation]
+  /// - @param optional [id] is the id of the transaction
+  /// returns [signUserOperation] of [UserOperationResponse] and sends a signed transaction when the future completes
   Future<UserOperationResponse> sendUserOperation(UserOperation op,
       {String id = ""}) async {
     return signUserOperation(op, id: id).then(sendSignedUserOperation);
   }
 
+  /// [signUserOperation] signs a user operation using a passkey or hdkey
+  /// - @param required [userOp] is the [UserOperation]
+  /// - @param optional [id] is the id of the transaction
+  /// - @param optional [update] is true if you want to update the user operation
+  /// 
+  /// returns a signed [UserOperation] 
   Future<UserOperation> signUserOperation(UserOperation userOp,
       {bool update = true, String? id}) async {
     if (update) await _updateUserOperation(userOp);
@@ -187,6 +227,7 @@ class Wallet extends Signer with Modules {
     setModule('contract', Contract(_baseProvider));
   }
 
+  /// [nonce] returns the nonce of the wallet
   Future<Uint256> _nonce() async {
     try {
       return module("contract")
@@ -198,6 +239,8 @@ class Wallet extends Signer with Modules {
     }
   }
 
+  /// [updateUserOperation] updates the user operation
+  /// - @param required [op] is the [UserOperation]
   Future _updateUserOperation(UserOperation op) async {
     final map = op.toMap();
     op = await _walletProvider
@@ -212,6 +255,8 @@ class Wallet extends Signer with Modules {
         });
   }
 
+  /// [validateFields] validates the fields of the user operation
+  /// - @param required [op] is the [UserOperation]
   _validateFields(UserOperation op) async {
     require(op.sender == _walletAddress && op.sender != Chains.zeroAddress,
         "Operation sender error. ${op.sender} provided.");
@@ -227,6 +272,13 @@ class Wallet extends Signer with Modules {
     require(op.signature.length >= 64, "Signature too short, min 64 bytes");
   }
 
+  /// [callData] call data for user operation
+  /// - @param required walletAddress is the address of the wallet
+  /// - @param optional [to] is the address or contract to send the transaction to
+  /// - @param optional [amount] is the amount to send
+  /// - @param optional [innerCallData] is the calldata of the inner call
+  /// 
+  /// returns the [Uint8List] of the call data
   static Uint8List callData(EthereumAddress walletAddress,
       {required EthereumAddress to,
       EtherAmount? amount,
@@ -246,6 +298,13 @@ class Wallet extends Signer with Modules {
     );
   }
 
+  /// [callDataBatched] call data for user operation batched
+  /// - @param required walletAddress is the address of the wallet
+  /// - @param optional [recipients] is a list of addresses to send the transaction
+  /// - @param optional [amounts] is a list of amounts to send
+  /// - @param optional [innerCalls] is a list of calldata of the inner calls
+  /// 
+  /// returns the [Uint8List] of the call data
   static Uint8List callDataBatched(
       {required EthereumAddress walletAddress,
       required List<EthereumAddress> recipients,
@@ -267,6 +326,12 @@ class Wallet extends Signer with Modules {
     );
   }
 
+  /// [initCode] initializes the [AccountFactory]
+  /// - @param required walletAddress is the address of the wallet
+  /// - @param required [name] is the name of the account factory
+  /// - @param required [params] is the params of the account factory 
+  /// 
+  /// returns the init code for the [AccountFactory]
   static Uint8List initData(AccountFactory factory, String name, List params) {
     final data = factory.self.function(name).encodeCall(params);
     final initCode =
@@ -300,9 +365,6 @@ class Wallet extends Signer with Modules {
     return instance;
   }
 }
-
-
-
 
 // Future userOptester() async {
 //   final uop = UserOperation(
