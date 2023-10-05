@@ -259,7 +259,8 @@ class Transfers {
     );
   }
 
-  /// [getAssetTransfers]
+  /// [getAssetTransfers] internal function to return all transfers
+  /// {@macro transfers}
   Future<TransferResponse> _getAssetTransfers(
       {Uint256? fromBlock,
       Uint256? toBlock,

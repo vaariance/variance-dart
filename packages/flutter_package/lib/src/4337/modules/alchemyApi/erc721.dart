@@ -11,6 +11,8 @@ import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:pks_4337_sdk/src/dio_client.dart';
 import 'package:web3dart/web3dart.dart';
 
+///[ERC721] module
+///
 /// uses alchemy nft api
 /// if want to use another api, you have to create a custom class
 class ERC721 {
@@ -22,6 +24,8 @@ class ERC721 {
       : _baseNftApiUrl = Uri.parse(ERC721.getBaseNftApiUrl(rpcUrl));
 
   /// [getFloorPrice] returns the lowest listing price of an NFT
+  /// - @param [contractAddress] is the address of the contract
+  /// returns the [NFTPrice]
   Future<NFTPrice> getFloorPrice(EthereumAddress contractAddress) async {
     try {
       final response = await _fetchNftRequest(
@@ -34,6 +38,11 @@ class ERC721 {
   }
 
   /// [getNftMetadata] returns the metadata of a fetched NFT
+  /// - @param [contractAddress] is the address of the contract
+  /// - @param [tokenId] is the tokenId of the NFT
+  /// - @param optional [type] is the type of the NFT
+  /// - @param optional [refreshCache] is to refresh the cache
+  /// returns the [NFTMetadata]
   Future<NFTMetadata> getNftMetadata(
       EthereumAddress contractAddress, Uint256 tokenId,
       {NftTokenType? type, bool refreshCache = false}) async {
@@ -53,7 +62,10 @@ class ERC721 {
   }
 
   /// [getNftsForOwner] returns the NFTs owned by an address
-  ///
+  /// - @param [address] is the owner address
+  /// - @param optional [pageKey] is the page key for pagination
+  /// - @param optional [orderByTransferTime] is true if you want to sort by transfer time
+  /// - @param optional [withMetadata] is true if you want to get metadata
   /// returns an [NFTQueryResponse] object
   Future<NFTQueryResponse> getNftsForOwner(EthereumAddress address,
       {bool orderByTransferTime = false,
@@ -78,7 +90,10 @@ class ERC721 {
             : ResponseType.withoutMetadata);
   }
 
-  /// [isAirdropNFT] checks if an NFT of a contract is an airdrop
+  /// [isAirdropNFT] checks if an NFT of a contract is an airdrop or not
+  /// - @param [contractAddress] is the contract address of the NFT
+  /// - @param [tokenId] is the tokenId of the NFT
+  /// returns true or false if the NFT is marked NFT or not
   Future<bool> isAirdropNFT(
       EthereumAddress contractAddress, Uint256 tokenId) async {
     final response = await _fetchNftRequest(
@@ -113,14 +128,21 @@ class ERC721 {
     );
   }
 
-  /// [encodeERC721ApproveCall] calls an approve function
+  /// [encodeERC721ApproveCall] returns the callData for ERC721
+  /// - @param [contractAddress] is the address of the contract
+  /// - @param [to] is the address to approve
+  /// - @param [tokenId] is the tokenId to approve
   static Uint8List encodeERC721ApproveCall(
       EthereumAddress contractAddress, EthereumAddress to, BigInt tokenId) {
     return Contract.encodeFunctionCall("approve", contractAddress,
         ContractAbis.get("ERC721"), [to.hex, tokenId]);
   }
 
-  /// [encodeERC721SafeTransferCall] creates a string representation of a safe transfer
+  /// [encodeERC721SafeTransferCall] encodes the callData for ERC721
+  /// - @param [contractAddress] is the address of the contract
+  /// - @param [from] is the address to transfer from
+  /// - @param [to] is the address to transfer to
+  /// - @param [tokenId] is the tokenId to transfer
   static Uint8List encodeERC721SafeTransferCall(EthereumAddress contractAddress,
       EthereumAddress from, EthereumAddress to, BigInt tokenId) {
     return Contract.encodeFunctionCall("safeTransferFrom", contractAddress,
@@ -160,7 +182,9 @@ class NFT {
           : null,
     );
   }
-
+  /// [approveNFT] returns a [UserOperation] to approve the spender of the NFT  
+  /// - @param [owner] is the address of the owner of the NFT
+  /// - @param [spender] is the address of the spender of the NFT
   Future<UserOperation> approveNFT(
       EthereumAddress owner, EthereumAddress spender) async {
     final innerCallData = sdk.Wallet.callData(owner,
@@ -173,6 +197,9 @@ class NFT {
     return UserOperation.partial(hexlify(innerCallData));
   }
 
+  /// [transferNFT] returns a [UserOperation] to transfer an NFT
+  /// - @param [owner] is the address of the owner of the NFT
+  /// - @param [spender] is the address of the spender of the NFT
   Future<UserOperation> transferNFT(
       EthereumAddress owner, EthereumAddress spender) async {
     final innerCallData = sdk.Wallet.callData(owner,
@@ -198,6 +225,7 @@ class NFT {
   }
 }
 
+/// [NFTFloorPrice] response model for a NFT floor price
 class NFTFloorPrice {
   double floorPrice;
   String priceCurrency;
@@ -239,6 +267,7 @@ class NFTFloorPrice {
   }
 }
 
+/// [NFTMetadata] is the metadata model for an NFT
 class NFTMetadata {
   String address;
   String name;
@@ -321,6 +350,7 @@ class NFTMetadata {
   }
 }
 
+/// [NFTPrice] response model for a NFT price
 class NFTPrice {
   final NFTFloorPrice openSea;
   final NFTFloorPrice looksRare;
@@ -351,6 +381,7 @@ class NFTPrice {
   }
 }
 
+/// [NFTQueryResponse] response model for a NFT query
 class NFTQueryResponse {
   final List<NFT>? _ownedNfts;
   final String? pageKey;

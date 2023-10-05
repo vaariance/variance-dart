@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/4337/modules/alchemyApi/transfers.dart';
 import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
 import 'package:pks_4337_sdk/src/4337/wallet.dart' as sdk;
 import 'package:pks_4337_sdk/src/abi/abis.dart';
@@ -19,7 +18,10 @@ class ERC20 {
 
   /// [getBalances] returns the balance of all ERC20 tokens in an address
   /// metadata is not included in this fetch
-  /// @param [address] is the address to get the balance of
+  /// - @param  [address] is the address to get the balance of
+  /// - @param optional [allowedContracts] is the list of allowed contracts
+  /// - @param optional [pageKey] is the page key for pagination
+  /// - @param optional [maxCount] is the maximum number of tokens to return
   Future<List<Token>> getBalances(EthereumAddress address,
       {List<String>? allowedContracts, int? pageKey, int? maxCount}) async {
     Map<String, dynamic> params = {
@@ -45,11 +47,10 @@ class ERC20 {
     return erc20List;
   }
 
-
   /// [getTokenAllowance] returns the ERC20 token allowance of an address
-  /// @param [contractAddress] is the address of the contract
-  /// @param [owner] is the address of the owner
-  /// @param [spender] is the address of the spender
+  /// - @param [contractAddress] is the address of the contract
+  /// - @param [owner] is the address of the owner
+  /// - @param [spender] is the address of the spender
   /// returns the allowance in [BigInt]
   Future<BigInt> getTokenAllowance(EthereumAddress contractAddress,
       EthereumAddress owner, EthereumAddress spender) {
@@ -63,8 +64,8 @@ class ERC20 {
   }
 
   /// [getTokenMetadata] returns the metadata for an ERC20 Token
-  /// @param [address] is the address of the token
-  /// @param @optional [save] if you want to cache the fetched metadata in memory
+  /// - @param [address] is the address of the token
+  /// - @param optional [save] if you want to cache the fetched metadata in memory
   Future<TokenMetadata> getTokenMetadata(EthereumAddress address,
       {bool save = true}) {
     return _provider.send<Map<String, dynamic>>(
@@ -74,6 +75,9 @@ class ERC20 {
   }
 
   /// [encodeERC20ApproveCall] returns the calldata for ERC20 approval
+  /// - @param [address] is the 4337 wallet address
+  /// - @param [spender] is the address of the approved spender
+  /// - @param [amount] is the amount to approve for the spender
   static Uint8List encodeERC20ApproveCall(
     EthereumAddress address,
     EthereumAddress spender,
@@ -88,6 +92,9 @@ class ERC20 {
   }
 
   /// [encodeERC20TransferCall] returns the calldata for ERC20 transfer
+  /// - @param [address] is the 4337 wallet address
+  /// - @param [recipient] is the address of the recipient
+  /// - @param [amount] is the amount to transfer
   static Uint8List encodeERC20TransferCall(
     EthereumAddress address,
     EthereumAddress recipient,
@@ -124,9 +131,9 @@ class Token {
   Uint256 get toUint256 => Uint256.fromWei(balance);
 
   /// [approveToken] returns the userOperation for an ERC20 approval
-  /// @param [owner] is the 4337 wallet address
-  /// @param [spender] is the address of the approved spender
-  /// @param [amount] is the amount to approve for the spender
+  /// - @param [owner] is the 4337 wallet address
+  /// - @param [spender] is the address of the approved spender
+  /// - @param [amount] is the amount to approve for the spender
   /// returns the userOperation
   UserOperation approveToken(
     EthereumAddress owner,
@@ -140,9 +147,9 @@ class Token {
   }
 
   /// [transferToken] returns the userOperation for an ERC20 transfer
-  /// @param [owner] is the 4337 wallet address
-  /// @param [recipient] is the address of the recipient
-  /// @param [amount] is the amount to transfer
+  /// - @param [owner] is the 4337 wallet address
+  /// - @param [recipient] is the address of the recipient
+  /// - @param [amount] is the amount to transfer
   /// returns the userOperation
   UserOperation transferToken(
       EthereumAddress owner, EthereumAddress recipient, EtherAmount amount) {
@@ -164,6 +171,12 @@ class Token {
   }
 }
 
+/// [TokenMetadata] is the metadata for an ERC20 Token
+/// 
+/// - @param [decimals] is the number of decimals
+/// - @param [logo] is the logo url
+/// - @param [name] is the name of the token
+/// - @param [symbol] is the symbol of the token
 class TokenMetadata {
   int decimals;
   String logo;
