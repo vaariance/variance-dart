@@ -19,15 +19,14 @@ class Contract {
   }
 
   /// [call] performs a [StaticCall] to a contract
-  /// @param [contractAddress] is the address of the contract
-  /// @param [abi] is the ABI of the contract
-  /// @param [methodName] is the name of the method in the contract
-  /// @param @optional [params] additional parameters for the method
-  /// @param @optional [sender] additional sender for the transaction
+  /// - @param [contractAddress] is the address of the contract
+  /// - @param [abi] is the ABI of the contract
+  /// - @param [methodName] is the name of the method in the contract
+  /// - @param optional [params] additional parameters for the method
+  /// - @param optional [sender] additional sender for the transaction
   Future<List<dynamic>> call(
       EthereumAddress contractAddress, ContractAbi abi, String methodName,
       {List<dynamic>? params, EthereumAddress? sender}) {
-    /// gets contract function
     final func = getContractFunction(methodName, contractAddress, abi);
     final call = {
       'to': contractAddress.hex,
@@ -42,7 +41,7 @@ class Contract {
   }
 
   ///[deployed] checks if a contract is deployed
-  /// @param [address] is the address of the contract
+  /// - @param [address] is the address of the contract
   Future<bool> deployed(EthereumAddress address) {
     final isDeployed = _provider
         .send<String>('eth_getCode', [address.hex])
@@ -52,7 +51,7 @@ class Contract {
   }
 
   /// [getBalance] returns the balance of an address
-  /// @param [address] is the address to get the balance of
+  /// - @param [address] is the address to get the balance of
   Future<EtherAmount> getBalance(EthereumAddress address) {
     return _provider
         .send<String>('eth_getBalance', [address.hex])
@@ -61,9 +60,9 @@ class Contract {
   }
 
   /// [encodeFunctionCall] encodes the data for a function call to be sent to a contract
-  /// @param [methodName] is the name of the method in the contract
-  /// @param [contractAddress] is the address of the contract
-  /// @param [abi] is the ABI of the contract
+  /// - @param [methodName] is the name of the method in the contract
+  /// - @param [contractAddress] is the address of the contract
+  /// - @param [abi] is the ABI of the contract
   /// returns the calldata as [Uint8List]
   static Uint8List encodeFunctionCall(String methodName,
       EthereumAddress contractAddress, ContractAbi abi, List<dynamic> params) {
@@ -72,9 +71,9 @@ class Contract {
   }
 
   /// [getContractFunction] gets a contract function instance for a given method
-  /// @param [methodName] is the name of the method in the contract
-  /// @param [contractAddress] is the address of the contract
-  /// @param [abi] is the ABI of the contract
+  /// - @param [methodName] is the name of the method in the contract
+  /// - @param [contractAddress] is the address of the contract
+  /// - @param [abi] is the ABI of the contract
   /// returns a [ContractFunction]
   static ContractFunction getContractFunction(
       String methodName, EthereumAddress contractAddress, ContractAbi abi) {

@@ -13,7 +13,9 @@ class DioClient {
         maxStale: const Duration(days: 1),
       ),
     ));
-
+  /// [callWithSyncFeeErc2771] calls the ERC2771 API with a sync fee
+  /// - @param [relayEndpointUrl] is the relay endpoint url
+  /// - @param [data] is the data to send to the relay endpoint
   Future callWithSyncFeeErc2771<T>(
       String relayEndpointUrl, Map<String, dynamic> data) async {
     try {
@@ -26,7 +28,7 @@ class DioClient {
       rethrow;
     }
   }
-
+  /// [callNftApi] calls the NFT API
   Future<T> callNftApi<T>(String nftApiUrl) async {
     try {
       final response = await _dio.get(nftApiUrl);
