@@ -60,7 +60,10 @@ class PassKey implements PasskeysInterface {
 
   PassKeysOptions get opts => _opts;
 
-  ///Creates the [clientDataHash]
+  /// [clientDataHash] creates a client data hash
+  /// - @param [options] is the options object
+  /// -@param [challenge] is a random challenge
+  /// returns a [Uint8List]
   Uint8List clientDataHash(PassKeysOptions options, {String? challenge}) {
     options.challenge = challenge ?? _randomChallenge(options);
     final clientDataJson = jsonEncode({
@@ -72,9 +75,10 @@ class PassKey implements PasskeysInterface {
     return Uint8List.fromList(utf8.encode(clientDataJson));
   }
 
-  ///[clientDataHash32]
-  ///
-  ///Must return a 32 bytes value
+  ///[clientDataHash32] must return a 32 bytes value
+  /// - @param [options] is the options object
+  /// -@param [challenge] is a random challenge 
+  /// returns hash
   Uint8List clientDataHash32(PassKeysOptions options, {String? challenge}) {
     final dataBuffer = clientDataHash(options, challenge: challenge);
 
@@ -89,7 +93,8 @@ class PassKey implements PasskeysInterface {
   ///we then check for the elements by index
   ///Remove leading zeros using [shouldRemoveLeadingZero]
   ///and convert to hex using [hexlify]
-  ///and return [r] and [s]
+  ///and return a list of [String] [r] and [s]
+  /// - @param required [signatureBytes] is the base64 encoded signature
   Future<List<String>> getMessagingSignature(Uint8List signatureBytes) async {
     ASN1Parser parser = ASN1Parser(signatureBytes);
     ASN1Sequence parsedSignature = parser.nextObject() as ASN1Sequence;
@@ -112,6 +117,9 @@ class PassKey implements PasskeysInterface {
 
   /// Call the [register] function in your flutter app
   /// to register a user and return a [PassKeyPair] key pair
+  /// - @param required [name] is the user name
+  /// - @param required [requiresUserVerification] is true if user verification is required
+  /// returns a [PassKeyPair]
   Future<PassKeyPair> register(
       String name, bool requiresUserVerification) async {
     final attestation = await _register(name, requiresUserVerification);
@@ -132,9 +140,10 @@ class PassKey implements PasskeysInterface {
     );
   }
 
-  ///[sign]
-  ///
-  /// Signs the intended request and returns the signedMessage
+  /// [sign] Signs the intended request and returns the signedMessage
+  /// - @param required [hash] is the hash of the intended request
+  /// - @param required [credentialId] is the credential id
+  /// returns a [PassKeySignature]
   @override
   Future<PassKeySignature> sign(String hash, String credentialId) async {
     final options = _opts;
@@ -165,12 +174,11 @@ class PassKey implements PasskeysInterface {
     );
   }
 
-  ///The [_authenticate] function authenticates a user and returns an [Assertion]
-  ///to assert the user is the one using the authenticator
-  ///
-  ///Parameters:
-  ///
-  ///- `credentialIds`: List of credential IDs to be used for authentication.
+  ///[_authenticate] authenticates a user and returns an [Assertion]
+  ///- @param required [credentialIds] is the credential ids
+  ///- @param required [challenge] is a random challenge as part of the auth process
+  ///- @param required [requiresUserVerification] is true if user verification is required
+  /// returns an [Assertion]
   Future<Assertion> _authenticate(List<String> credentialIds,
       Uint8List challenge, bool requiresUserVerification) async {
     final entity = GetAssertionOptions.fromJson(jsonDecode(getAssertionJson));
@@ -190,13 +198,9 @@ class PassKey implements PasskeysInterface {
     return await _auth.getAssertion(entity);
   }
 
-  /// Decodes the raw authentication data to extract relevant authentication details.
-  ///
-  /// Parameters:
-  /// - `authData`: The raw authentication data received from the authentication process.
-  ///
-  /// Returns:
-  /// An AuthData object containing decoded authentication details.
+  /// [_decode] Decodes the raw authentication data to extract relevant authentication details
+  /// - @param required [authData] is the raw authentication data received from the authentication process.
+  /// returns an AuthData object containing decoded authentication details
   AuthData _decode(dynamic authData) {
     // Extract the length of the public key from the authentication data.
     final l = (authData[53] << 8) + authData[54];
@@ -227,9 +231,9 @@ class PassKey implements PasskeysInterface {
         credentialHex, base64Url.encode(credentialId), [x, y], aaGUID);
   }
 
-  ///[_decodeAttestation]
-  ///
-  /// Decodes the attestation certificate data to extract relevant authentication details.
+  ///[_decodeAttestation] Decodes the attestation certificate data to extract relevant authentication details.
+  /// - @param required [attestation] is the attestation certificate
+  /// returns an [AuthData] object
   AuthData _decodeAttestation(Attestation attestation) {
     final attestationAsCbor = attestation.asCBOR();
     final decodedAttestationAsCbor =
@@ -240,16 +244,19 @@ class PassKey implements PasskeysInterface {
     return decode;
   }
 
-  ///Creates random values with [Uuid] to generate the challenge
+  ///Creates random values with [Uuid] to generate a challenge
+  /// - @param required [options] is the options object
+  /// returns a [String]
   String _randomChallenge(PassKeysOptions options) {
     final uuid = const Uuid()
         .v5buffer(Uuid.NAMESPACE_URL, options.name, List<int>.filled(32, 0));
     return base64Url.encode(uuid);
   }
 
-  ///[_register]
-  ///
-  ///Internal function to register a user
+  ///[_register] Internal function to register a user
+  ///- @param required [name] is the user name
+  ///- @param required [requiresUserVerification] is true if user verification is required
+  /// returns a [Attestation]
   Future<Attestation> _register(
       String name, bool requiresUserVerification) async {
     final options = _opts;
@@ -270,7 +277,8 @@ class PassKey implements PasskeysInterface {
     return await _auth.makeCredential(entity);
   }
 
-  /// converts a 32 byte credential hex to a base64 string
+/// [credentialIdToBytes32Hex] converts a 32 byte credentialAddress hex to a base64 string
+/// - @param required [credentialId] is the credential hex
   static String credentialHexToBase64(String credentialAddress) {
     // Remove the "0x" prefix if present.
     if (credentialAddress.startsWith("0x")) {
@@ -286,6 +294,8 @@ class PassKey implements PasskeysInterface {
   }
 
   /// converts the credentialId to an 32 bytes hex
+  /// - @param required [credentialId] is the credentialId
+  /// returns a 32 byte hex string
   static String credentialIdToBytes32Hex(List<int> credentialId) {
     require(credentialId.length <= 32, "exception: credentialId too long");
     while (credentialId.length < 32) {

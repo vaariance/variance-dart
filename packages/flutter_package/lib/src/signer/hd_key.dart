@@ -23,9 +23,11 @@ class HDKey implements HDkeysInterface {
   HDKey({required this.ksNamespace})
       : _keyStore = FlutterSecureStorage(aOptions: _getAndroidOptions());
 
-  ///[addAccount]
-  ///
-  ///Accepts an index, gets seed from keystore and returns a new account
+  ///[addAccount] adds a new account 
+  /// - @param required [index] is the index of the account
+  /// - @param [id] is the id of the account
+  /// 
+  /// returns a new account
   Future<String> addAccount(int index, {String? id}) async {
     await _authWrapper();
     final seed = await _getSecret(id: id);
@@ -33,15 +35,16 @@ class HDKey implements HDkeysInterface {
     return _add(seed, index, id: id);
   }
 
-  /// [exportMnemonic]
-  // retrieves the mnemonic
-  // returns it.
+  /// [exportMnemonic] returns the mnemonic
+  /// - @param [id] is the id of the account
   Future<String> exportMnemonic(String id) async {
     final mnemonic = await _getMnemonic();
     return mnemonic;
   }
 
-  /// [exportPrivateKey]
+  /// [exportPrivateKey] 
+  /// - @param required [index] is the index of the account
+  /// - @param optional [id] is the id of the account
   /// returns the private key
   Future<String> exportPrivateKey(int index, {String? id}) async {
     final ethPrivateKey = await _getPrivateKey(index, id: id);
@@ -53,18 +56,19 @@ class HDKey implements HDkeysInterface {
     return hexlify(privKey);
   }
 
-  /// [generateAccount]
-  ///generates a new account based on hd,
-  /// stores the hdWallet on keystore,
-  ///  and returns an address
+  /// [generateAccount] generates a new account based on hd, stores the hdWallet on keystore
+  /// - @param optional [id] is the id of the account
+  ///returns an address
   Future<String> generateAccount({String? id}) async {
     final mnemonic = _generate();
     final seed = await _recover(mnemonic, id: id);
     return _add(seed, 0, id: id);
   }
 
-  // getPubKey
-  // returns the public key of the account by id
+  ///[getAddress] gets the address of the account by id
+  /// - @param required [index] is the index of the account
+  /// - @param optional [id] is the id of the account
+  /// returns the address
   @override
   Future<String> getAddress(int index, {String? id}) async {
     ExtendedPrivateKey hdKey = await _getHdKey(index, id: id);
@@ -72,37 +76,54 @@ class HDKey implements HDkeysInterface {
     return privKey.address.hexEip55;
   }
 
-  /// [signMessage]
-  /// External function that does the actual signing
+  /// [personalSign] signs a message with the private key
+  /// - @param required [message] is the message to sign
+  /// - @param optional [index] is the index of the account
+  /// - @param optional [id] is the id of the account
+  /// returns the [Uint8List] signature
   Future<Uint8List> personalSign(Uint8List message,
       {int? index, String? id}) async {
     final privKey = await _getPrivateKey(index ?? 0, id: id);
     return privKey.signPersonalMessageToUint8List(message);
   }
 
-  /// [recoverAccount]
-  /// Creates a hd wallet based on the provided seed phrase,
-  /// stores it on keystore,
-  // and returns the address
+  /// [recoverAccount] retrieves the mnemonic from the keystore and returns the address
+  /// - @param required [mnemonic] is the mnemonic
+  /// - @param optional [id] is the id of the account
+  /// 
+  /// returns the address
   Future<String> recoverAccount(String mnemonic, {String? id}) async {
     final seed = await _recover(mnemonic, id: id);
     return _add(seed, 0, id: id);
   }
 
-  /// sets a new id for the hdKey.
+  /// [setId] sets a new id for the hdKey
+  /// 
   /// Id must be one for each hd wallet
+  /// 
   /// the id itself is the sha256 hash of the id + ksNamespace;
+  /// - @param required [id] is the id of the account
   Future setId(String id) async {
     final mnemonic = await _getMnemonic();
     await _recover(mnemonic, id: id);
   }
 
+  /// [sign] signs a message with the private key
+  /// - @param required [hash] is the message hash to sign
+  /// - @param optional [index] is the index of the account
+  /// - @param optional [id] is the id of the account
+  /// returns the [Uint8List] signature
   @override
   Future<Uint8List> sign(Uint8List hash, {int? index, String? id}) async {
     final privKey = await _getPrivateKey(index ?? 0, id: id);
     return privKey.signPersonalMessageToUint8List(hash);
   }
 
+  /// [signToEc] signs a message with the private key
+  /// - @param required [hash] is the message hash to sign
+  /// - @param optional [index] is the index of the account
+  /// - @param optional [id] is the id of the account
+  /// returns the [MsgSignature]
   @override
   Future<MsgSignature> signToEc(Uint8List hash,
       {int? index, String? id}) async {
@@ -110,18 +131,19 @@ class HDKey implements HDkeysInterface {
     return privKey.signToEcSignature(hash);
   }
 
-  ///[_add]
-  ///
-  ///An internal function to add new wallet account using saved seed and index
+  ///[_add] An internal function to add new wallet account using saved seed and index
+  ///- @param required [seed] is the seed
+  /// - @param optional [index] is the index of the account
+  /// - @param optional [id] is the id of the account
   String _add(String seed, int index, {String? id}) {
     final hdKey = _deriveHdKey(seed, index);
     final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
     return privKey.address.hexEip55;
   }
 
-  ///[_addSecret]
-  ///
-  ///Adds a seed to the client keystore using [flutter_secure_storage]
+  ///[_addSecret] Adds a seed to the client keystore using [flutter_secure_storage]
+  /// - @param required [seed] is the seed
+  /// - @param optional [id] is the id of the account
   Future _addSecret(String seed, {String? id}) async {
     if (id != null) {
       id = id + ksNamespace;
@@ -130,7 +152,7 @@ class HDKey implements HDkeysInterface {
     await _keyStore.write(key: key, value: seed);
   }
 
-  ///Internal that request authentication before accessing keystore
+  ///[_authWrapper]Internal that request authentication before accessing keystore
   Future _authWrapper() async {
     final didAuth = await _auth.authenticate(
       localizedReason: 'Please authenticate to access keystore',
@@ -143,17 +165,13 @@ class HDKey implements HDkeysInterface {
     await _keyStore.delete(key: id ?? ksNamespace);
   }
 
-  ///[_deriveEthPrivKey]
-  ///
-  ///Derives an eth private key from the hd key
+  ///[_deriveEthPrivKey] Derives an eth private key from the hd key
   EthPrivateKey _deriveEthPrivKey(String key) {
     final ethPrivateKey = EthPrivateKey.fromHex(key);
     return ethPrivateKey;
   }
 
-  ///[_deriveHdKey]
-  ///
-  ///Derives a hd wallet from the seed and index
+  ///[_deriveHdKey] Derives a hd wallet from the seed and index
   ExtendedPrivateKey _deriveHdKey(String seed, int idx) {
     ///Ethereum derivation path
     final path = "m/44'/60'/0'/0/$idx";
@@ -162,19 +180,17 @@ class HDKey implements HDkeysInterface {
     return hdKey;
   }
 
-  ///[_generate]
-  /// internal function that generates a bip39 mnemonic
+  ///[_generate] Internal function that generates a bip39 mnemonic and saves the mnemonic to client keystore
   ///
-  /// and saves the mnemonic to client keystore
   String _generate() {
     final mnemonic = bip39.generateMnemonic();
     _addSecret(mnemonic, id: ksNamespace);
     return mnemonic;
   }
 
-  ///[_getHdKey]
-  ///
-  // Internal function to get an hd key based on bip39 from an index and an optional id
+  ///[_getHdKey] Internal function to get an hd key based on bip39 from an index and an optional id
+  ///- @param optional [id] is the id of the account
+  ///- @param required [index] is the index of the account
   Future<ExtendedPrivateKey> _getHdKey(int index, {String? id}) async {
     String? seed = await _getSecret(id: id);
     if (seed == null) throw Exception("getHdKey: Not a Valid Wallet");
@@ -182,9 +198,9 @@ class HDKey implements HDkeysInterface {
     return hd;
   }
 
-  ///[_getMnemonic]
+  ///[_getMnemonic] Internal function to get mnemonic from seed stored in the client keystore
   ///
-  ///Internal function to get mnemonic from seed
+  /// returns the mnemonic
   Future<String> _getMnemonic() async {
     await _authWrapper();
     final mnemonic = await _getSecret(id: ksNamespace);
@@ -192,9 +208,11 @@ class HDKey implements HDkeysInterface {
     return mnemonic;
   }
 
-  /// [_getPrivateKey]
-  ///
-  ///
+  /// [_getPrivateKey] Internal function to get a private key from an index and an optional id
+  /// - @param optional [id] is the id of the account
+  /// - @param required [index] is the index of the account
+  /// 
+  /// returns the private key
   Future<EthPrivateKey> _getPrivateKey(int index, {String? id}) async {
     await _authWrapper();
     final hdKey = await _getHdKey(index, id: id);
@@ -202,24 +220,26 @@ class HDKey implements HDkeysInterface {
     return privateKey;
   }
 
-  ///[_getSecret]
-  ///
-  ///Fetches and returns the seed from client keystore using an id
+  ///[_getSecret] Fetches and returns the seed from client keystore using an id
+  ///- @param optional [id] is the id of the account
+  ///returns the seed as a [String]
   Future<String?> _getSecret({String? id}) async {
     final value = await _keyStore.read(key: id ?? ksNamespace);
     return value;
   }
 
-  /// [_recover]
-  ///
-  /// Internal function that recovers the seed from the provided mnemonic and saves it to client keystore
+  /// [_recover] Internal function that recovers the seed from the provided mnemonic and saves it to client keystore
+  /// - @param required [mnemonic] is the mnemonic
+  /// - @param optional [id] is the id of the account
+  /// returns the seed as a [String]
   Future<String> _recover(String mnemonic, {String? id}) async {
     final seed = bip39.mnemonicToSeedHex(mnemonic);
     await _addSecret(seed, id: id);
     return seed;
   }
 
-  ///Hashing util
+  ///[_sha256] Internal function that returns the sha256 hash of an id
+  /// - @param required [id] is the id of the account
   String _sha256(String id) {
     final bytes = utf8.encode(id);
     final digest = sha256.convert(bytes);
