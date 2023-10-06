@@ -6,7 +6,7 @@ class Collection {
   String name;
   String slug;
   String externalUrl;
-  String bannerImageUrl;
+  String? bannerImageUrl;
 
   Collection({
     required this.name,
@@ -16,21 +16,21 @@ class Collection {
   });
 
   factory Collection.fromJson(String source) =>
-      Collection.fromMap(json.decode(source) as Map<String, String>);
+      Collection.fromMap(json.decode(source) as Map<String, dynamic>);
 
-  factory Collection.fromMap(Map<String, String> map) {
+  factory Collection.fromMap(Map<String, dynamic> map) {
     return Collection(
-      name: map['name'] as String,
-      slug: map['slug'] as String,
-      externalUrl: map['externalUrl'] as String,
-      bannerImageUrl: map['bannerImageUrl'] as String,
+      name: map['name'],
+      slug: map['slug'],
+      externalUrl: map['externalUrl'],
+      bannerImageUrl: map['bannerImageUrl'],
     );
   }
 
   String toJson() => json.encode(toMap());
 
   Map<String, dynamic> toMap() {
-    return <String, String>{
+    return <String, dynamic>{
       'name': name,
       'slug': slug,
       'externalUrl': externalUrl,
@@ -221,7 +221,7 @@ class OpenSeaMetadata {
 
 
 class RawMetadata {
-  final String tokenUri;
+  final String? tokenUri;
   final Metadata? metadata;
   final String? error;
 
@@ -236,7 +236,7 @@ class RawMetadata {
 
   factory RawMetadata.fromMap(Map<String, dynamic> map) {
     return RawMetadata(
-      tokenUri: map['tokenUri'] as String,
+      tokenUri: map['tokenUri'],
       metadata: map['metadata'] != null
           ? Metadata.fromMap(map['metadata'] as Map<String, dynamic>)
           : null,

@@ -56,6 +56,15 @@ class Wallet extends Signer with Modules {
   IChain get walletChain => _walletChain;
   BundlerProvider get walletProvider => _walletProvider;
 
+  /// [buildUserOperation] builds a [UserOperation]
+  /// - @param required [callData] is the [Uint8List] calldata
+  /// - @param optional [customNonce] is a custom nonce
+  /// - @param optional [callGasLimit] is the call gas limit
+  /// - @param optional [verificationGasLimit] is the verification gas limit
+  /// - @param optional [preVerificationGas] is the pre verification gas
+  /// - @param optional [maxFeePerGas] is the max fee per gas
+  /// - @param optional [maxPriorityFeePerGas] is the max priority fee per gas
+  /// returns a [UserOperation]
   UserOperation buildUserOperation(
     Uint8List callData, {
     BigInt? customNonce,
@@ -103,10 +112,10 @@ class Wallet extends Signer with Modules {
   /// given the same exact inputs, the same exact address will be generated.
   /// use [deployed] to check if wallet is deployed.
   /// an `initCode` will be attached on the first transaction.
-  /// - @param required [credentialHex] is the [Uint8List] hex of the credential
-  /// - @param required [x] is the x coordinate
-  /// - @param required [y] is the y coordinate
-  /// - @param required [salt] is the salt for the wallet
+  /// - @param required [credentialHex] is the [Uint8List] hex of the credentialId
+  /// - @param required [x] is the x coordinate of the public key
+  /// - @param required [y] is the y coordinate of the public key
+  /// - @param required [salt] is the salt for create2
   createPasskeyAccount(
       Uint8List credentialHex, Uint256 x, Uint256 y, Uint256 salt) async {
     require(defaultSigner == SignerType.passkey && passkey != null,
@@ -120,13 +129,13 @@ class Wallet extends Signer with Modules {
             });
   }
 
-  ///[initCodeGas] is the gas required to initialize the wallet
+  ///[initCodeGas] is the gas required to deploy the wallet
   Future<BigInt> initCodeGas() {
     require(_initCode != null, "No init code");
     return baseProvider.estimateGas(walletChain.entrypoint, _initCode!);
   }
 
-  /// [send] sends a transaction to the wallet
+  /// [send] transfers native tokens to another recipient
   /// - @param required [recipient] is the address of the user to send the transaction to
   /// - @param required [amount] is the amount to send
   ///
@@ -185,7 +194,7 @@ class Wallet extends Signer with Modules {
     return signUserOperation(op, id: id).then(sendSignedUserOperation);
   }
 
-  /// [signUserOperation] signs a user operation using a passkey or hdkey
+  /// [signUserOperation] signs a user operation using the provided key
   /// - @param required [userOp] is the [UserOperation]
   /// - @param optional [id] is the id of the transaction
   /// - @param optional [update] is true if you want to update the user operation
@@ -301,7 +310,7 @@ class Wallet extends Signer with Modules {
   /// [callDataBatched] call data for user operation batched
   /// - @param required walletAddress is the address of the wallet
   /// - @param optional [recipients] is a list of addresses to send the transaction
-  /// - @param optional [amounts] is a list of amounts to send
+  /// - @param optional [amounts] is a list of amounts to send alongside
   /// - @param optional [innerCalls] is a list of calldata of the inner calls
   /// 
   /// returns the [Uint8List] of the call data

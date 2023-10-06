@@ -173,10 +173,10 @@ class Token {
 
 /// [TokenMetadata] is the metadata for an ERC20 Token
 /// 
-/// - @param [decimals] is the number of decimals
-/// - @param [logo] is the logo url
-/// - @param [name] is the name of the token
-/// - @param [symbol] is the symbol of the token
+/// - [decimals] is the number of decimals
+/// - [logo] is the logo url
+/// - [name] is the name of the token
+/// - [symbol] is the symbol of the token
 class TokenMetadata {
   int decimals;
   String logo;

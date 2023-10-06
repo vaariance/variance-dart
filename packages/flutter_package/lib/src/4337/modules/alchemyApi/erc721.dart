@@ -18,7 +18,7 @@ import 'package:web3dart/web3dart.dart';
 class ERC721 {
   final Uri _baseNftApiUrl;
 
-  final DioClient _dioClient = DioClient();
+  final _dioClient = DioClient();
 
   ERC721(String rpcUrl)
       : _baseNftApiUrl = Uri.parse(ERC721.getBaseNftApiUrl(rpcUrl));
@@ -27,14 +27,11 @@ class ERC721 {
   /// - @param [contractAddress] is the address of the contract
   /// returns the [NFTPrice]
   Future<NFTPrice> getFloorPrice(EthereumAddress contractAddress) async {
-    try {
-      final response = await _fetchNftRequest(
-          {'contractAddress': contractAddress.hex}, 'getFloorPrice');
-      return NFTPrice.fromMap(response);
-    } catch (e) {
-      log("Error in getFloorPrice: $e");
-      rethrow; // Rethrow the error for handling at a higher level, if needed.
-    }
+    final response = await _fetchNftRequest(
+      "${_baseNftApiUrl.path}/getFloorPrice",
+      {'contractAddress': contractAddress.hex},
+    );
+    return NFTPrice.fromMap(response);
   }
 
   /// [getNftMetadata] returns the metadata of a fetched NFT
@@ -56,8 +53,10 @@ class ERC721 {
       queryParams['tokenType'] = type.name.toUpperCase();
     }
 
-    final response = await _fetchNftRequest(queryParams, 'getNFTMetadata');
-    log(response.toString());
+    final response = await _fetchNftRequest(
+      "${_baseNftApiUrl.path}/getNFTMetadata",
+      queryParams,
+    );
     return NFTMetadata.fromMap(response);
   }
 
@@ -74,14 +73,17 @@ class ERC721 {
     final queryParams = {
       'owner': address.hex,
       'withMetadata': withMetadata.toString(),
-      'orderBy': orderByTransferTime ? 'transferTime' : null,
+      if (orderByTransferTime) 'orderBy': 'transferTime',
     };
 
     if (pageKey != null) {
       queryParams['pageKey'] = pageKey;
     }
 
-    final response = await _fetchNftRequest(queryParams, 'getOwnersForNFT');
+    final response = await _fetchNftRequest(
+      "${_baseNftApiUrl.path}/getNFTsForOwner",
+      queryParams,
+    );
 
     return NFTQueryResponse.fromMap(
         response,
@@ -93,21 +95,24 @@ class ERC721 {
   /// [isAirdropNFT] checks if an NFT of a contract is an airdrop or not
   /// - @param [contractAddress] is the contract address of the NFT
   /// - @param [tokenId] is the tokenId of the NFT
-  /// returns true or false if the NFT is marked NFT or not
+  /// returns true or false if the NFT is marked as airdrop or not
   Future<bool> isAirdropNFT(
       EthereumAddress contractAddress, Uint256 tokenId) async {
     final response = await _fetchNftRequest(
-        {'contractAddress': contractAddress.hex, 'tokenId': tokenId.toString()},
-        'isAirdropNFT');
+      "${_baseNftApiUrl.path}/isAirdropNFT",
+      {'contractAddress': contractAddress.hex, 'tokenId': tokenId.toString()},
+    );
 
     //returns true or false depending on if the NFT is an airdrop
     return response["isAirdrop"] as bool;
   }
 
-  /// [isSpamContract] checks if a contract is a spam
+  /// [isSpamContract] checks if an NFT is a spam
   Future<bool> isSpamContract(EthereumAddress contractAddress) async {
     final response = await _fetchNftRequest(
-        {'contractAddress': contractAddress.hex}, "isSpamContract");
+      "${_baseNftApiUrl.path}/isSpamContract",
+      {'contractAddress': contractAddress.hex},
+    );
     return response["isSpamContract"] as bool;
   }
 
@@ -117,21 +122,26 @@ class ERC721 {
   ///
   ///`queryParams` The query parameters to be sent with the request
   Future<Map<String, dynamic>> _fetchNftRequest(
-      Map<String, Object?> queryParams, String path) async {
+    String path,
+    Map<String, Object?> queryParams,
+  ) async {
     final String requestUrl = _baseNftApiUrl
         .replace(path: path)
         .replace(queryParameters: queryParams)
         .toString();
 
+    log("requestUrl: $requestUrl");
     return await _dioClient.callNftApi<Map<String, dynamic>>(
       requestUrl,
     );
   }
 
   /// [encodeERC721ApproveCall] returns the callData for ERC721
+  /// {@template approve}
   /// - @param [contractAddress] is the address of the contract
   /// - @param [to] is the address to approve
   /// - @param [tokenId] is the tokenId to approve
+  /// {@endtemplate}
   static Uint8List encodeERC721ApproveCall(
       EthereumAddress contractAddress, EthereumAddress to, BigInt tokenId) {
     return Contract.encodeFunctionCall("approve", contractAddress,
@@ -139,10 +149,8 @@ class ERC721 {
   }
 
   /// [encodeERC721SafeTransferCall] encodes the callData for ERC721
-  /// - @param [contractAddress] is the address of the contract
+  /// {@macro approve}
   /// - @param [from] is the address to transfer from
-  /// - @param [to] is the address to transfer to
-  /// - @param [tokenId] is the tokenId to transfer
   static Uint8List encodeERC721SafeTransferCall(EthereumAddress contractAddress,
       EthereumAddress from, EthereumAddress to, BigInt tokenId) {
     return Contract.encodeFunctionCall("safeTransferFrom", contractAddress,
@@ -159,8 +167,8 @@ class ERC721 {
 
 class NFT {
   final EthereumAddress address;
-  final int tokenId;
-  final int balance;
+  final BigInt tokenId;
+  final BigInt balance;
   final NFTMetadata? metadata;
 
   NFT(
@@ -174,15 +182,18 @@ class NFT {
 
   factory NFT.fromMap(Map<String, dynamic> map, ResponseType responseType) {
     return NFT(
-      address: EthereumAddress.fromHex(map['contractAddress'] as String),
-      tokenId: map['tokenId'] as int,
-      balance: map['balance'] as int,
+      address: EthereumAddress.fromHex(responseType == ResponseType.withMetadata
+          ? map['contract']['address']
+          : map['contractAddress']),
+      tokenId: BigInt.parse(map['tokenId']),
+      balance: BigInt.parse(map['balance']),
       metadata: responseType == ResponseType.withMetadata
           ? NFTMetadata.fromMap(map)
           : null,
     );
   }
-  /// [approveNFT] returns a [UserOperation] to approve the spender of the NFT  
+
+  /// [approveNFT] returns a [UserOperation] to approve the spender of the NFT
   /// - @param [owner] is the address of the owner of the NFT
   /// - @param [spender] is the address of the spender of the NFT
   Future<UserOperation> approveNFT(
@@ -192,7 +203,7 @@ class NFT {
         innerCallData: ERC721.encodeERC721ApproveCall(
           address,
           spender,
-          BigInt.from(tokenId),
+          tokenId,
         ));
     return UserOperation.partial(hexlify(innerCallData));
   }
@@ -208,7 +219,7 @@ class NFT {
           address,
           owner,
           spender,
-          BigInt.from(tokenId),
+          tokenId,
         ));
     return UserOperation.partial(hexlify(innerCallData));
   }
@@ -270,18 +281,18 @@ class NFTFloorPrice {
 /// [NFTMetadata] is the metadata model for an NFT
 class NFTMetadata {
   String address;
-  String name;
-  String symbol;
+  String? name;
+  String? symbol;
   int? totalSupply;
   String tokenType;
-  bool isSpam;
-  int tokenId;
-  String tokenUri;
+  bool? isSpam;
+  BigInt tokenId;
+  String? tokenUri;
   OpenSeaMetadata? openSeaMetadata;
   Collection? collection;
   NFTUris image;
   RawMetadata raw;
-  int balance;
+  BigInt? balance;
   DateTime? timeStamp;
   NFTMetadata(
       {required this.address,
@@ -303,28 +314,31 @@ class NFTMetadata {
       NFTMetadata.fromMap(json.decode(source) as Map<String, dynamic>);
 
   factory NFTMetadata.fromMap(Map<String, dynamic> map) {
+    //log("message: $map");
     return NFTMetadata(
-      address: map['contract']['address'] as String,
-      name: map['contract']['name'] as String,
-      symbol: map['contract']['symbol'] as String,
+      address: map['contract']['address'],
+      name: map['contract']['name'],
+      symbol: map['contract']['symbol'],
       totalSupply:
           map['totalSupply'] != null ? map['totalSupply'] as int : null,
-      tokenType: map['tokenType'] as String,
-      isSpam: map['isSpam'] as bool,
-      tokenId: map['tokenId'] as int,
-      tokenUri: map['tokenUri'] as String,
+      tokenType: map['tokenType'],
+      isSpam: map['isSpam'],
+      tokenId: BigInt.parse(map['tokenId']),
+      tokenUri: map['tokenUri'],
       openSeaMetadata: map['openSeaMetadata'] != null
           ? OpenSeaMetadata.fromMap(
               map['openSeaMetadata'] as Map<String, dynamic>)
           : null,
       collection: map['collection'] != null
-          ? Collection.fromMap(map['collection'] as Map<String, String>)
+          ? Collection.fromMap(map['collection'] as Map<String, dynamic>)
           : null,
       image: NFTUris.fromMap(map['image'] as Map<String, dynamic>),
       raw: RawMetadata.fromMap(map['raw'] as Map<String, dynamic>),
-      balance: map['balance'] as int,
-      timeStamp: map['acquiredAt']['timeStamp'] != null
-          ? DateTime.parse(map['acquiredAt']['timeStamp'])
+      balance: map['balance'] != null ? BigInt.parse(map['balance']) : null,
+      timeStamp: map['acquiredAt'] != null
+          ? map['acquiredAt']['timeStamp'] != null
+              ? DateTime.parse(map['acquiredAt']['timeStamp'])
+              : null
           : null,
     );
   }
@@ -403,12 +417,12 @@ class NFTQueryResponse {
       Map<String, dynamic> map, ResponseType responseType) {
     return NFTQueryResponse(
       ownedNfts: List<NFT>.from(
-        (map['ownedNfts'] as List<int>).map<NFT?>(
+        (map['ownedNfts'] as List<dynamic>).map<NFT?>(
           (x) => NFT.fromMap(x as Map<String, dynamic>, responseType),
         ),
       ),
-      pageKey: map['pageKey'] != null ? map['pageKey'] as String : null,
-      totalCount: map['totalCount'] != null ? map['totalCount'] as int : null,
+      pageKey: map['pageKey'],
+      totalCount: map['totalCount'],
       responseType: responseType,
     );
   }
