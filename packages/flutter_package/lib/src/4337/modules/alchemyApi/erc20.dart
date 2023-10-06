@@ -140,7 +140,7 @@ class Token {
     EthereumAddress spender,
     EtherAmount amount,
   ) {
-    final callData = sdk.Wallet.callData(owner,
+    final callData = sdk.Wallet.execute(owner,
         to: address,
         innerCallData: ERC20.encodeERC20ApproveCall(address, spender, amount));
     return UserOperation.partial(hexlify(callData));
@@ -153,7 +153,7 @@ class Token {
   /// returns the userOperation
   UserOperation transferToken(
       EthereumAddress owner, EthereumAddress recipient, EtherAmount amount) {
-    final callData = sdk.Wallet.callData(owner,
+    final callData = sdk.Wallet.execute(owner,
         to: address,
         innerCallData:
             ERC20.encodeERC20TransferCall(address, recipient, amount));
@@ -172,7 +172,7 @@ class Token {
 }
 
 /// [TokenMetadata] is the metadata for an ERC20 Token
-/// 
+///
 /// - [decimals] is the number of decimals
 /// - [logo] is the logo url
 /// - [name] is the name of the token

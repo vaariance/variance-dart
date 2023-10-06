@@ -198,7 +198,7 @@ class NFT {
   /// - @param [spender] is the address of the spender of the NFT
   Future<UserOperation> approveNFT(
       EthereumAddress owner, EthereumAddress spender) async {
-    final innerCallData = sdk.Wallet.callData(owner,
+    final innerCallData = sdk.Wallet.execute(owner,
         to: address,
         innerCallData: ERC721.encodeERC721ApproveCall(
           address,
@@ -213,7 +213,7 @@ class NFT {
   /// - @param [spender] is the address of the spender of the NFT
   Future<UserOperation> transferNFT(
       EthereumAddress owner, EthereumAddress spender) async {
-    final innerCallData = sdk.Wallet.callData(owner,
+    final innerCallData = sdk.Wallet.execute(owner,
         to: address,
         innerCallData: ERC721.encodeERC721SafeTransferCall(
           address,

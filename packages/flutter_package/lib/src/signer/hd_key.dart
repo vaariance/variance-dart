@@ -16,17 +16,18 @@ AndroidOptions _getAndroidOptions() => const AndroidOptions(
       encryptedSharedPreferences: true,
     );
 
-class HDKey implements HDkeysInterface {
+/// [HD] Wallet
+class HDKey implements HDkeyInterface {
   String ksNamespace;
   final FlutterSecureStorage _keyStore;
   final LocalAuthentication _auth = LocalAuthentication();
   HDKey({required this.ksNamespace})
       : _keyStore = FlutterSecureStorage(aOptions: _getAndroidOptions());
 
-  ///[addAccount] adds a new account 
+  ///[addAccount] adds a new account
   /// - @param required [index] is the index of the account
   /// - @param [id] is the id of the account
-  /// 
+  ///
   /// returns a new account
   Future<String> addAccount(int index, {String? id}) async {
     await _authWrapper();
@@ -42,7 +43,7 @@ class HDKey implements HDkeysInterface {
     return mnemonic;
   }
 
-  /// [exportPrivateKey] 
+  /// [exportPrivateKey]
   /// - @param required [index] is the index of the account
   /// - @param optional [id] is the id of the account
   /// returns the private key
@@ -90,7 +91,7 @@ class HDKey implements HDkeysInterface {
   /// [recoverAccount] retrieves the mnemonic from the keystore and returns the address
   /// - @param required [mnemonic] is the mnemonic
   /// - @param optional [id] is the id of the account
-  /// 
+  ///
   /// returns the address
   Future<String> recoverAccount(String mnemonic, {String? id}) async {
     final seed = await _recover(mnemonic, id: id);
@@ -98,9 +99,9 @@ class HDKey implements HDkeysInterface {
   }
 
   /// [setId] sets a new id for the hdKey
-  /// 
+  ///
   /// Id must be one for each hd wallet
-  /// 
+  ///
   /// the id itself is the sha256 hash of the id + ksNamespace;
   /// - @param required [id] is the id of the account
   Future setId(String id) async {
@@ -211,7 +212,7 @@ class HDKey implements HDkeysInterface {
   /// [_getPrivateKey] Internal function to get a private key from an index and an optional id
   /// - @param optional [id] is the id of the account
   /// - @param required [index] is the index of the account
-  /// 
+  ///
   /// returns the private key
   Future<EthPrivateKey> _getPrivateKey(int index, {String? id}) async {
     await _authWrapper();

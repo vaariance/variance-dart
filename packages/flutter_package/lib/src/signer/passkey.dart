@@ -15,7 +15,8 @@ import 'package:uuid/uuid.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:webauthn/webauthn.dart';
 
-class PassKey implements PasskeysInterface {
+/// Webauthn [PassKeys] 
+class PassKey implements PasskeyInterface {
   static const _makeCredentialJson = '''{
     "authenticatorExtensions": "",
     "clientDataHash": "",
@@ -77,7 +78,7 @@ class PassKey implements PasskeysInterface {
 
   ///[clientDataHash32] must return a 32 bytes value
   /// - @param [options] is the options object
-  /// -@param [challenge] is a random challenge 
+  /// -@param [challenge] is a random challenge
   /// returns hash
   Uint8List clientDataHash32(PassKeysOptions options, {String? challenge}) {
     final dataBuffer = clientDataHash(options, challenge: challenge);
@@ -277,8 +278,8 @@ class PassKey implements PasskeysInterface {
     return await _auth.makeCredential(entity);
   }
 
-/// [credentialIdToBytes32Hex] converts a 32 byte credentialAddress hex to a base64 string
-/// - @param required [credentialId] is the credential hex
+  /// [credentialIdToBytes32Hex] converts a 32 byte credentialAddress hex to a base64 string
+  /// - @param required [credentialId] is the credential hex
   static String credentialHexToBase64(String credentialAddress) {
     // Remove the "0x" prefix if present.
     if (credentialAddress.startsWith("0x")) {
