@@ -1,22 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:ens_dart/ens_dart.dart';
-import 'package:web3dart/src/contracts/abi/abi.dart';
-import 'package:web3dart/src/contracts/deployed_contract.dart';
-import 'package:web3dart/src/core/block_number.dart';
-import 'package:web3dart/src/credentials/address.dart';
-import 'package:web3dart/src/credentials/credentials.dart';
 import 'package:web3dart/web3dart.dart';
 
-class BasicMockENS implements Ens {
-  // Mock mapping of addresses to ENS names
-  final Map<String, String> _addressToENS = {};
-
-  // Function to register a new ENS name for an address
-  void registerENS(String address, String ensName) {
-    _addressToENS[address.toLowerCase()] = ensName;
-  }
-
+class MockENS implements Ens {
   @override
   Stream<ABIChanged> aBIChangedEvents(
       {BlockNum? fromBlock, BlockNum? toBlock}) {
@@ -306,7 +293,6 @@ class BasicMockENS implements Ens {
   // TODO: implement textRecord
   EnsTextRecord? get textRecord => throw UnimplementedError();
 
-  // Simon: Only thing needed for this mock
   @override
   Ens withAddress(Object? _) {
     return this;
@@ -321,6 +307,7 @@ class BasicMockENS implements Ens {
   @override
   Future<String> write(Credentials credentials, Transaction? base,
       ContractFunction function, List parameters) {
+    // TODO: implement write
     throw UnimplementedError();
   }
 }
