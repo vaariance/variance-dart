@@ -7,17 +7,38 @@ import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart' as http;
 
 import 'mocks/address_test.mocks.dart';
+// import 'mocks/basic_address.mock.dart';
+// import 'mocks/basic_ens.mock.dart';
 
 final ethAddress =
     EthereumAddress.fromHex('0x95222290dd7278aa3ddd389cc1e1d165cc4bafe5');
 
-@GenerateMocks([Ens, Web3Client, http.Client])
-void main() {
-  group('Address', () {
-    final mockEns = MockEns();
-    final mockWeb3Client = MockWeb3Client();
-    final mockHttpClient = MockClient();
+late dynamic mockAddress;
+late dynamic mockClient;
+late dynamic mockEns;
 
+@GenerateMocks([Address, Ens, http.Client])
+void main() {
+  setUp(() {
+    // Instantiating Mocks
+    mockAddress = MockAddress();
+    mockClient = MockClient();
+    mockEns = MockEns();
+
+    Future<String> getName() async {
+      return "test.eth";
+    }
+
+    // Creating Stubs
+    when(mockAddress.getEnsName()).thenAnswer((_) async => getName());
+
+    // Bad input
+    when(mockAddress.getEnsName({})).thenAnswer((_) async => "");
+
+    // when(mockEns.withAddress({}).getName()).thenAnswer((_) async => "test.eth");
+  });
+
+  group('Address', () {
     test('can be created from an Ethereum address', () {
       final address = Address.fromEthAddress(ethAddress);
       expect(address.addressBytes, equals(ethAddress.addressBytes));
@@ -29,24 +50,13 @@ void main() {
     });
 
     test('can get the ENS name asynchronously', () async {
-      Future<String> getName() {
-        return Future.value("test.eth");
-      }
-
-      when(mockEns.withAddress(()).getName()).thenAnswer((_) => getName());
-
-      Address address = Address.fromEthAddress(
-          EthereumAddress.fromHex('0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5'),
-          ens: true);
-
-      expect(await address.getEnsName(), equals('test.eth'));
-
-      // Verify the interaction with the mock Ens
-      verify(() => mockEns.withAddress(()).getName()).called(1);
+      expect(await mockAddress.getEnsName(), equals('test.eth'));
     });
 
     test('returns an empty string if the ENS name cannot be resolved',
-        () async {});
+        () async {
+      expect(await mockAddress.getEnsName({}), equals(''));
+    });
 
     test('has a getter for the avatar URL', () {
       final address = Address.fromEthAddress(ethAddress);

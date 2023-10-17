@@ -3,15 +3,14 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i5;
-import 'dart:convert' as _i9;
+import 'dart:async' as _i7;
+import 'dart:convert' as _i8;
 import 'dart:typed_data' as _i6;
 
-import 'package:eip1559/eip1559.dart' as _i8;
-import 'package:ens_dart/src/ens_dart.dart' as _i3;
+import 'package:ens_dart/ens_dart.dart' as _i3;
 import 'package:http/http.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i7;
+import 'package:pks_4337_sdk/src/common/address.dart' as _i5;
 import 'package:web3dart/web3dart.dart' as _i2;
 
 // ignore_for_file: type=lint
@@ -25,50 +24,50 @@ import 'package:web3dart/web3dart.dart' as _i2;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeDeployedContract_0 extends _i1.SmartFake
-    implements _i2.DeployedContract {
-  _FakeDeployedContract_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeWeb3Client_1 extends _i1.SmartFake implements _i2.Web3Client {
-  _FakeWeb3Client_1(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeEns_2 extends _i1.SmartFake implements _i3.Ens {
-  _FakeEns_2(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeABI_3 extends _i1.SmartFake implements _i3.ABI {
-  _FakeABI_3(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeEthereumAddress_4 extends _i1.SmartFake
+class _FakeEthereumAddress_0 extends _i1.SmartFake
     implements _i2.EthereumAddress {
-  _FakeEthereumAddress_4(
+  _FakeEthereumAddress_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeDeployedContract_1 extends _i1.SmartFake
+    implements _i2.DeployedContract {
+  _FakeDeployedContract_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeWeb3Client_2 extends _i1.SmartFake implements _i2.Web3Client {
+  _FakeWeb3Client_2(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeEns_3 extends _i1.SmartFake implements _i3.Ens {
+  _FakeEns_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeABI_4 extends _i1.SmartFake implements _i3.ABI {
+  _FakeABI_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -87,8 +86,8 @@ class _FakePubkey_5 extends _i1.SmartFake implements _i3.Pubkey {
         );
 }
 
-class _FakeEthPrivateKey_6 extends _i1.SmartFake implements _i2.EthPrivateKey {
-  _FakeEthPrivateKey_6(
+class _FakeResponse_6 extends _i1.SmartFake implements _i4.Response {
+  _FakeResponse_6(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -97,57 +96,106 @@ class _FakeEthPrivateKey_6 extends _i1.SmartFake implements _i2.EthPrivateKey {
         );
 }
 
-class _FakeSyncInformation_7 extends _i1.SmartFake
-    implements _i2.SyncInformation {
-  _FakeSyncInformation_7(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeEtherAmount_8 extends _i1.SmartFake implements _i2.EtherAmount {
-  _FakeEtherAmount_8(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeBlockInformation_9 extends _i1.SmartFake
-    implements _i2.BlockInformation {
-  _FakeBlockInformation_9(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeResponse_10 extends _i1.SmartFake implements _i4.Response {
-  _FakeResponse_10(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeStreamedResponse_11 extends _i1.SmartFake
+class _FakeStreamedResponse_7 extends _i1.SmartFake
     implements _i4.StreamedResponse {
-  _FakeStreamedResponse_11(
+  _FakeStreamedResponse_7(
     Object parent,
     Invocation parentInvocation,
   ) : super(
           parent,
           parentInvocation,
         );
+}
+
+/// A class which mocks [Address].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockAddress extends _i1.Mock implements _i5.Address {
+  MockAddress() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  String get ens => (super.noSuchMethod(
+        Invocation.getter(#ens),
+        returnValue: '',
+      ) as String);
+  @override
+  _i6.Uint8List get addressBytes => (super.noSuchMethod(
+        Invocation.getter(#addressBytes),
+        returnValue: _i6.Uint8List(0),
+      ) as _i6.Uint8List);
+  @override
+  String get hex => (super.noSuchMethod(
+        Invocation.getter(#hex),
+        returnValue: '',
+      ) as String);
+  @override
+  String get hexNo0x => (super.noSuchMethod(
+        Invocation.getter(#hexNo0x),
+        returnValue: '',
+      ) as String);
+  @override
+  String get hexEip55 => (super.noSuchMethod(
+        Invocation.getter(#hexEip55),
+        returnValue: '',
+      ) as String);
+  @override
+  String avatarUrl() => (super.noSuchMethod(
+        Invocation.method(
+          #avatarUrl,
+          [],
+        ),
+        returnValue: '',
+      ) as String);
+  @override
+  String diceAvatar() => (super.noSuchMethod(
+        Invocation.method(
+          #diceAvatar,
+          [],
+        ),
+        returnValue: '',
+      ) as String);
+  @override
+  String formattedAddress({int? length = 6}) => (super.noSuchMethod(
+        Invocation.method(
+          #formattedAddress,
+          [],
+          {#length: length},
+        ),
+        returnValue: '',
+      ) as String);
+  @override
+  _i7.Future<String> getEnsName({String? ethRpc}) => (super.noSuchMethod(
+        Invocation.method(
+          #getEnsName,
+          [],
+          {#ethRpc: ethRpc},
+        ),
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
+  @override
+  _i2.EthereumAddress toEthAddress() => (super.noSuchMethod(
+        Invocation.method(
+          #toEthAddress,
+          [],
+        ),
+        returnValue: _FakeEthereumAddress_0(
+          this,
+          Invocation.method(
+            #toEthAddress,
+            [],
+          ),
+        ),
+      ) as _i2.EthereumAddress);
+  @override
+  int compareTo(_i2.EthereumAddress? other) => (super.noSuchMethod(
+        Invocation.method(
+          #compareTo,
+          [other],
+        ),
+        returnValue: 0,
+      ) as int);
 }
 
 /// A class which mocks [Ens].
@@ -161,7 +209,7 @@ class MockEns extends _i1.Mock implements _i3.Ens {
   @override
   _i2.DeployedContract get self => (super.noSuchMethod(
         Invocation.getter(#self),
-        returnValue: _FakeDeployedContract_0(
+        returnValue: _FakeDeployedContract_1(
           this,
           Invocation.getter(#self),
         ),
@@ -169,7 +217,7 @@ class MockEns extends _i1.Mock implements _i3.Ens {
   @override
   _i2.Web3Client get client => (super.noSuchMethod(
         Invocation.getter(#client),
-        returnValue: _FakeWeb3Client_1(
+        returnValue: _FakeWeb3Client_2(
           this,
           Invocation.getter(#client),
         ),
@@ -180,7 +228,7 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           #withName,
           [_name],
         ),
-        returnValue: _FakeEns_2(
+        returnValue: _FakeEns_3(
           this,
           Invocation.method(
             #withName,
@@ -202,7 +250,7 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           #reverseEns,
           [addr],
         ),
-        returnValue: _FakeEns_2(
+        returnValue: _FakeEns_3(
           this,
           Invocation.method(
             #reverseEns,
@@ -216,7 +264,7 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           #withAddress,
           [_],
         ),
-        returnValue: _FakeEns_2(
+        returnValue: _FakeEns_3(
           this,
           Invocation.method(
             #withAddress,
@@ -225,7 +273,7 @@ class MockEns extends _i1.Mock implements _i3.Ens {
         ),
       ) as _i3.Ens);
   @override
-  _i5.Future<_i3.ABI> abi(
+  _i7.Future<_i3.ABI> abi(
     _i6.Uint8List? node,
     BigInt? contentTypes, {
     _i2.BlockNum? atBlock,
@@ -239,7 +287,7 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           ],
           {#atBlock: atBlock},
         ),
-        returnValue: _i5.Future<_i3.ABI>.value(_FakeABI_3(
+        returnValue: _i7.Future<_i3.ABI>.value(_FakeABI_4(
           this,
           Invocation.method(
             #abi,
@@ -250,9 +298,9 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             {#atBlock: atBlock},
           ),
         )),
-      ) as _i5.Future<_i3.ABI>);
+      ) as _i7.Future<_i3.ABI>);
   @override
-  _i5.Future<_i2.EthereumAddress> addr(
+  _i7.Future<_i2.EthereumAddress> addr(
     _i6.Uint8List? node, {
     _i2.BlockNum? atBlock,
   }) =>
@@ -263,7 +311,7 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           {#atBlock: atBlock},
         ),
         returnValue:
-            _i5.Future<_i2.EthereumAddress>.value(_FakeEthereumAddress_4(
+            _i7.Future<_i2.EthereumAddress>.value(_FakeEthereumAddress_0(
           this,
           Invocation.method(
             #addr,
@@ -271,9 +319,9 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             {#atBlock: atBlock},
           ),
         )),
-      ) as _i5.Future<_i2.EthereumAddress>);
+      ) as _i7.Future<_i2.EthereumAddress>);
   @override
-  _i5.Future<_i6.Uint8List> addr$2(
+  _i7.Future<_i6.Uint8List> addr$2(
     _i6.Uint8List? node,
     BigInt? coinType, {
     _i2.BlockNum? atBlock,
@@ -287,10 +335,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           ],
           {#atBlock: atBlock},
         ),
-        returnValue: _i5.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
-      ) as _i5.Future<_i6.Uint8List>);
+        returnValue: _i7.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
+      ) as _i7.Future<_i6.Uint8List>);
   @override
-  _i5.Future<bool> authorisations(
+  _i7.Future<bool> authorisations(
     _i6.Uint8List? $param5,
     _i2.EthereumAddress? $param6,
     _i2.EthereumAddress? $param7, {
@@ -306,10 +354,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           ],
           {#atBlock: atBlock},
         ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+        returnValue: _i7.Future<bool>.value(false),
+      ) as _i7.Future<bool>);
   @override
-  _i5.Future<String> clearDNSZone(
+  _i7.Future<String> clearDNSZone(
     _i6.Uint8List? node, {
     required _i2.Credentials? credentials,
     _i2.Transaction? transaction,
@@ -323,10 +371,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #transaction: transaction,
           },
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<_i6.Uint8List> contenthash(
+  _i7.Future<_i6.Uint8List> contenthash(
     _i6.Uint8List? node, {
     _i2.BlockNum? atBlock,
   }) =>
@@ -336,10 +384,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           [node],
           {#atBlock: atBlock},
         ),
-        returnValue: _i5.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
-      ) as _i5.Future<_i6.Uint8List>);
+        returnValue: _i7.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
+      ) as _i7.Future<_i6.Uint8List>);
   @override
-  _i5.Future<_i6.Uint8List> dnsRecord(
+  _i7.Future<_i6.Uint8List> dnsRecord(
     _i6.Uint8List? node,
     _i6.Uint8List? name,
     BigInt? resource, {
@@ -355,10 +403,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           ],
           {#atBlock: atBlock},
         ),
-        returnValue: _i5.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
-      ) as _i5.Future<_i6.Uint8List>);
+        returnValue: _i7.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
+      ) as _i7.Future<_i6.Uint8List>);
   @override
-  _i5.Future<bool> hasDNSRecords(
+  _i7.Future<bool> hasDNSRecords(
     _i6.Uint8List? node,
     _i6.Uint8List? name, {
     _i2.BlockNum? atBlock,
@@ -372,10 +420,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           ],
           {#atBlock: atBlock},
         ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+        returnValue: _i7.Future<bool>.value(false),
+      ) as _i7.Future<bool>);
   @override
-  _i5.Future<_i2.EthereumAddress> interfaceImplementer(
+  _i7.Future<_i2.EthereumAddress> interfaceImplementer(
     _i6.Uint8List? node,
     _i6.Uint8List? interfaceID, {
     _i2.BlockNum? atBlock,
@@ -390,7 +438,7 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           {#atBlock: atBlock},
         ),
         returnValue:
-            _i5.Future<_i2.EthereumAddress>.value(_FakeEthereumAddress_4(
+            _i7.Future<_i2.EthereumAddress>.value(_FakeEthereumAddress_0(
           this,
           Invocation.method(
             #interfaceImplementer,
@@ -401,9 +449,9 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             {#atBlock: atBlock},
           ),
         )),
-      ) as _i5.Future<_i2.EthereumAddress>);
+      ) as _i7.Future<_i2.EthereumAddress>);
   @override
-  _i5.Future<String> name(
+  _i7.Future<String> name(
     _i6.Uint8List? node, {
     _i2.BlockNum? atBlock,
   }) =>
@@ -413,10 +461,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           [node],
           {#atBlock: atBlock},
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<_i3.Pubkey> pubkey(
+  _i7.Future<_i3.Pubkey> pubkey(
     _i6.Uint8List? node, {
     _i2.BlockNum? atBlock,
   }) =>
@@ -426,7 +474,7 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           [node],
           {#atBlock: atBlock},
         ),
-        returnValue: _i5.Future<_i3.Pubkey>.value(_FakePubkey_5(
+        returnValue: _i7.Future<_i3.Pubkey>.value(_FakePubkey_5(
           this,
           Invocation.method(
             #pubkey,
@@ -434,9 +482,9 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             {#atBlock: atBlock},
           ),
         )),
-      ) as _i5.Future<_i3.Pubkey>);
+      ) as _i7.Future<_i3.Pubkey>);
   @override
-  _i5.Future<String> setABI(
+  _i7.Future<String> setABI(
     _i6.Uint8List? node,
     BigInt? contentType,
     _i6.Uint8List? data, {
@@ -456,10 +504,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #transaction: transaction,
           },
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<String> setAddr(
+  _i7.Future<String> setAddr(
     _i6.Uint8List? node,
     BigInt? coinType,
     _i6.Uint8List? a, {
@@ -479,10 +527,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #transaction: transaction,
           },
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<String> setAddr$2(
+  _i7.Future<String> setAddr$2(
     _i6.Uint8List? node,
     _i2.EthereumAddress? a, {
     required _i2.Credentials? credentials,
@@ -500,10 +548,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #transaction: transaction,
           },
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<String> setAuthorisation(
+  _i7.Future<String> setAuthorisation(
     _i6.Uint8List? node,
     _i2.EthereumAddress? target,
     bool? isAuthorised, {
@@ -523,10 +571,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #transaction: transaction,
           },
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<String> setContenthash(
+  _i7.Future<String> setContenthash(
     _i6.Uint8List? node,
     _i6.Uint8List? hash, {
     required _i2.Credentials? credentials,
@@ -544,10 +592,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #transaction: transaction,
           },
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<String> setDNSRecords(
+  _i7.Future<String> setDNSRecords(
     _i6.Uint8List? node,
     _i6.Uint8List? data, {
     required _i2.Credentials? credentials,
@@ -565,10 +613,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #transaction: transaction,
           },
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<String> setInterface(
+  _i7.Future<String> setInterface(
     _i6.Uint8List? node,
     _i6.Uint8List? interfaceID,
     _i2.EthereumAddress? implementer, {
@@ -588,10 +636,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #transaction: transaction,
           },
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<String> setName(
+  _i7.Future<String> setName(
     _i6.Uint8List? node,
     String? name, {
     required _i2.Credentials? credentials,
@@ -609,10 +657,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #transaction: transaction,
           },
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<String> setPubkey(
+  _i7.Future<String> setPubkey(
     _i6.Uint8List? node,
     _i6.Uint8List? x,
     _i6.Uint8List? y, {
@@ -632,10 +680,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #transaction: transaction,
           },
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<String> setText(
+  _i7.Future<String> setText(
     _i6.Uint8List? node,
     String? key,
     String? value, {
@@ -655,10 +703,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #transaction: transaction,
           },
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<bool> supportsInterface(
+  _i7.Future<bool> supportsInterface(
     _i6.Uint8List? interfaceID, {
     _i2.BlockNum? atBlock,
   }) =>
@@ -668,10 +716,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           [interfaceID],
           {#atBlock: atBlock},
         ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+        returnValue: _i7.Future<bool>.value(false),
+      ) as _i7.Future<bool>);
   @override
-  _i5.Future<String> text(
+  _i7.Future<String> text(
     _i6.Uint8List? node,
     String? key, {
     _i2.BlockNum? atBlock,
@@ -685,10 +733,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
           ],
           {#atBlock: atBlock},
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Stream<_i3.ABIChanged> aBIChangedEvents({
+  _i7.Stream<_i3.ABIChanged> aBIChangedEvents({
     _i2.BlockNum? fromBlock,
     _i2.BlockNum? toBlock,
   }) =>
@@ -701,10 +749,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #toBlock: toBlock,
           },
         ),
-        returnValue: _i5.Stream<_i3.ABIChanged>.empty(),
-      ) as _i5.Stream<_i3.ABIChanged>);
+        returnValue: _i7.Stream<_i3.ABIChanged>.empty(),
+      ) as _i7.Stream<_i3.ABIChanged>);
   @override
-  _i5.Stream<_i3.AddrChanged> addrChangedEvents({
+  _i7.Stream<_i3.AddrChanged> addrChangedEvents({
     _i2.BlockNum? fromBlock,
     _i2.BlockNum? toBlock,
   }) =>
@@ -717,10 +765,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #toBlock: toBlock,
           },
         ),
-        returnValue: _i5.Stream<_i3.AddrChanged>.empty(),
-      ) as _i5.Stream<_i3.AddrChanged>);
+        returnValue: _i7.Stream<_i3.AddrChanged>.empty(),
+      ) as _i7.Stream<_i3.AddrChanged>);
   @override
-  _i5.Stream<_i3.AddressChanged> addressChangedEvents({
+  _i7.Stream<_i3.AddressChanged> addressChangedEvents({
     _i2.BlockNum? fromBlock,
     _i2.BlockNum? toBlock,
   }) =>
@@ -733,10 +781,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #toBlock: toBlock,
           },
         ),
-        returnValue: _i5.Stream<_i3.AddressChanged>.empty(),
-      ) as _i5.Stream<_i3.AddressChanged>);
+        returnValue: _i7.Stream<_i3.AddressChanged>.empty(),
+      ) as _i7.Stream<_i3.AddressChanged>);
   @override
-  _i5.Stream<_i3.AuthorisationChanged> authorisationChangedEvents({
+  _i7.Stream<_i3.AuthorisationChanged> authorisationChangedEvents({
     _i2.BlockNum? fromBlock,
     _i2.BlockNum? toBlock,
   }) =>
@@ -749,10 +797,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #toBlock: toBlock,
           },
         ),
-        returnValue: _i5.Stream<_i3.AuthorisationChanged>.empty(),
-      ) as _i5.Stream<_i3.AuthorisationChanged>);
+        returnValue: _i7.Stream<_i3.AuthorisationChanged>.empty(),
+      ) as _i7.Stream<_i3.AuthorisationChanged>);
   @override
-  _i5.Stream<_i3.ContenthashChanged> contenthashChangedEvents({
+  _i7.Stream<_i3.ContenthashChanged> contenthashChangedEvents({
     _i2.BlockNum? fromBlock,
     _i2.BlockNum? toBlock,
   }) =>
@@ -765,10 +813,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #toBlock: toBlock,
           },
         ),
-        returnValue: _i5.Stream<_i3.ContenthashChanged>.empty(),
-      ) as _i5.Stream<_i3.ContenthashChanged>);
+        returnValue: _i7.Stream<_i3.ContenthashChanged>.empty(),
+      ) as _i7.Stream<_i3.ContenthashChanged>);
   @override
-  _i5.Stream<_i3.DNSRecordChanged> dNSRecordChangedEvents({
+  _i7.Stream<_i3.DNSRecordChanged> dNSRecordChangedEvents({
     _i2.BlockNum? fromBlock,
     _i2.BlockNum? toBlock,
   }) =>
@@ -781,10 +829,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #toBlock: toBlock,
           },
         ),
-        returnValue: _i5.Stream<_i3.DNSRecordChanged>.empty(),
-      ) as _i5.Stream<_i3.DNSRecordChanged>);
+        returnValue: _i7.Stream<_i3.DNSRecordChanged>.empty(),
+      ) as _i7.Stream<_i3.DNSRecordChanged>);
   @override
-  _i5.Stream<_i3.DNSRecordDeleted> dNSRecordDeletedEvents({
+  _i7.Stream<_i3.DNSRecordDeleted> dNSRecordDeletedEvents({
     _i2.BlockNum? fromBlock,
     _i2.BlockNum? toBlock,
   }) =>
@@ -797,10 +845,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #toBlock: toBlock,
           },
         ),
-        returnValue: _i5.Stream<_i3.DNSRecordDeleted>.empty(),
-      ) as _i5.Stream<_i3.DNSRecordDeleted>);
+        returnValue: _i7.Stream<_i3.DNSRecordDeleted>.empty(),
+      ) as _i7.Stream<_i3.DNSRecordDeleted>);
   @override
-  _i5.Stream<_i3.DNSZoneCleared> dNSZoneClearedEvents({
+  _i7.Stream<_i3.DNSZoneCleared> dNSZoneClearedEvents({
     _i2.BlockNum? fromBlock,
     _i2.BlockNum? toBlock,
   }) =>
@@ -813,10 +861,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #toBlock: toBlock,
           },
         ),
-        returnValue: _i5.Stream<_i3.DNSZoneCleared>.empty(),
-      ) as _i5.Stream<_i3.DNSZoneCleared>);
+        returnValue: _i7.Stream<_i3.DNSZoneCleared>.empty(),
+      ) as _i7.Stream<_i3.DNSZoneCleared>);
   @override
-  _i5.Stream<_i3.InterfaceChanged> interfaceChangedEvents({
+  _i7.Stream<_i3.InterfaceChanged> interfaceChangedEvents({
     _i2.BlockNum? fromBlock,
     _i2.BlockNum? toBlock,
   }) =>
@@ -829,10 +877,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #toBlock: toBlock,
           },
         ),
-        returnValue: _i5.Stream<_i3.InterfaceChanged>.empty(),
-      ) as _i5.Stream<_i3.InterfaceChanged>);
+        returnValue: _i7.Stream<_i3.InterfaceChanged>.empty(),
+      ) as _i7.Stream<_i3.InterfaceChanged>);
   @override
-  _i5.Stream<_i3.NameChanged> nameChangedEvents({
+  _i7.Stream<_i3.NameChanged> nameChangedEvents({
     _i2.BlockNum? fromBlock,
     _i2.BlockNum? toBlock,
   }) =>
@@ -845,10 +893,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #toBlock: toBlock,
           },
         ),
-        returnValue: _i5.Stream<_i3.NameChanged>.empty(),
-      ) as _i5.Stream<_i3.NameChanged>);
+        returnValue: _i7.Stream<_i3.NameChanged>.empty(),
+      ) as _i7.Stream<_i3.NameChanged>);
   @override
-  _i5.Stream<_i3.PubkeyChanged> pubkeyChangedEvents({
+  _i7.Stream<_i3.PubkeyChanged> pubkeyChangedEvents({
     _i2.BlockNum? fromBlock,
     _i2.BlockNum? toBlock,
   }) =>
@@ -861,10 +909,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #toBlock: toBlock,
           },
         ),
-        returnValue: _i5.Stream<_i3.PubkeyChanged>.empty(),
-      ) as _i5.Stream<_i3.PubkeyChanged>);
+        returnValue: _i7.Stream<_i3.PubkeyChanged>.empty(),
+      ) as _i7.Stream<_i3.PubkeyChanged>);
   @override
-  _i5.Stream<_i3.TextChanged> textChangedEvents({
+  _i7.Stream<_i3.TextChanged> textChangedEvents({
     _i2.BlockNum? fromBlock,
     _i2.BlockNum? toBlock,
   }) =>
@@ -877,8 +925,8 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             #toBlock: toBlock,
           },
         ),
-        returnValue: _i5.Stream<_i3.TextChanged>.empty(),
-      ) as _i5.Stream<_i3.TextChanged>);
+        returnValue: _i7.Stream<_i3.TextChanged>.empty(),
+      ) as _i7.Stream<_i3.TextChanged>);
   @override
   bool checkSignature(
     _i2.ContractFunction? function,
@@ -895,7 +943,7 @@ class MockEns extends _i1.Mock implements _i3.Ens {
         returnValue: false,
       ) as bool);
   @override
-  _i5.Future<List<dynamic>> read(
+  _i7.Future<List<dynamic>> read(
     _i2.ContractFunction? function,
     List<dynamic>? params,
     _i2.BlockNum? atBlock,
@@ -909,10 +957,10 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             atBlock,
           ],
         ),
-        returnValue: _i5.Future<List<dynamic>>.value(<dynamic>[]),
-      ) as _i5.Future<List<dynamic>>);
+        returnValue: _i7.Future<List<dynamic>>.value(<dynamic>[]),
+      ) as _i7.Future<List<dynamic>>);
   @override
-  _i5.Future<String> write(
+  _i7.Future<String> write(
     _i2.Credentials? credentials,
     _i2.Transaction? base,
     _i2.ContractFunction? function,
@@ -928,487 +976,8 @@ class MockEns extends _i1.Mock implements _i3.Ens {
             parameters,
           ],
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
-}
-
-/// A class which mocks [Web3Client].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockWeb3Client extends _i1.Mock implements _i2.Web3Client {
-  MockWeb3Client() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  bool get printErrors => (super.noSuchMethod(
-        Invocation.getter(#printErrors),
-        returnValue: false,
-      ) as bool);
-  @override
-  set printErrors(bool? _printErrors) => super.noSuchMethod(
-        Invocation.setter(
-          #printErrors,
-          _printErrors,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  _i5.Future<_i2.EthPrivateKey> credentialsFromPrivateKey(String? privateKey) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #credentialsFromPrivateKey,
-          [privateKey],
-        ),
-        returnValue: _i5.Future<_i2.EthPrivateKey>.value(_FakeEthPrivateKey_6(
-          this,
-          Invocation.method(
-            #credentialsFromPrivateKey,
-            [privateKey],
-          ),
-        )),
-      ) as _i5.Future<_i2.EthPrivateKey>);
-  @override
-  _i5.Future<String> getClientVersion() => (super.noSuchMethod(
-        Invocation.method(
-          #getClientVersion,
-          [],
-        ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
-  @override
-  _i5.Future<int> getNetworkId() => (super.noSuchMethod(
-        Invocation.method(
-          #getNetworkId,
-          [],
-        ),
-        returnValue: _i5.Future<int>.value(0),
-      ) as _i5.Future<int>);
-  @override
-  _i5.Future<BigInt> getChainId() => (super.noSuchMethod(
-        Invocation.method(
-          #getChainId,
-          [],
-        ),
-        returnValue: _i5.Future<BigInt>.value(_i7.dummyValue<BigInt>(
-          this,
-          Invocation.method(
-            #getChainId,
-            [],
-          ),
-        )),
-      ) as _i5.Future<BigInt>);
-  @override
-  _i5.Future<bool> isListeningForNetwork() => (super.noSuchMethod(
-        Invocation.method(
-          #isListeningForNetwork,
-          [],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
-  @override
-  _i5.Future<int> getPeerCount() => (super.noSuchMethod(
-        Invocation.method(
-          #getPeerCount,
-          [],
-        ),
-        returnValue: _i5.Future<int>.value(0),
-      ) as _i5.Future<int>);
-  @override
-  _i5.Future<int> getEtherProtocolVersion() => (super.noSuchMethod(
-        Invocation.method(
-          #getEtherProtocolVersion,
-          [],
-        ),
-        returnValue: _i5.Future<int>.value(0),
-      ) as _i5.Future<int>);
-  @override
-  _i5.Future<_i2.SyncInformation> getSyncStatus() => (super.noSuchMethod(
-        Invocation.method(
-          #getSyncStatus,
-          [],
-        ),
-        returnValue:
-            _i5.Future<_i2.SyncInformation>.value(_FakeSyncInformation_7(
-          this,
-          Invocation.method(
-            #getSyncStatus,
-            [],
-          ),
-        )),
-      ) as _i5.Future<_i2.SyncInformation>);
-  @override
-  _i5.Future<_i2.EthereumAddress> coinbaseAddress() => (super.noSuchMethod(
-        Invocation.method(
-          #coinbaseAddress,
-          [],
-        ),
-        returnValue:
-            _i5.Future<_i2.EthereumAddress>.value(_FakeEthereumAddress_4(
-          this,
-          Invocation.method(
-            #coinbaseAddress,
-            [],
-          ),
-        )),
-      ) as _i5.Future<_i2.EthereumAddress>);
-  @override
-  _i5.Future<bool> isMining() => (super.noSuchMethod(
-        Invocation.method(
-          #isMining,
-          [],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
-  @override
-  _i5.Future<int> getMiningHashrate() => (super.noSuchMethod(
-        Invocation.method(
-          #getMiningHashrate,
-          [],
-        ),
-        returnValue: _i5.Future<int>.value(0),
-      ) as _i5.Future<int>);
-  @override
-  _i5.Future<_i2.EtherAmount> getGasPrice() => (super.noSuchMethod(
-        Invocation.method(
-          #getGasPrice,
-          [],
-        ),
-        returnValue: _i5.Future<_i2.EtherAmount>.value(_FakeEtherAmount_8(
-          this,
-          Invocation.method(
-            #getGasPrice,
-            [],
-          ),
-        )),
-      ) as _i5.Future<_i2.EtherAmount>);
-  @override
-  _i5.Future<int> getBlockNumber() => (super.noSuchMethod(
-        Invocation.method(
-          #getBlockNumber,
-          [],
-        ),
-        returnValue: _i5.Future<int>.value(0),
-      ) as _i5.Future<int>);
-  @override
-  _i5.Future<_i2.BlockInformation> getBlockInformation({
-    String? blockNumber = r'latest',
-    bool? isContainFullObj = true,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getBlockInformation,
-          [],
-          {
-            #blockNumber: blockNumber,
-            #isContainFullObj: isContainFullObj,
-          },
-        ),
-        returnValue:
-            _i5.Future<_i2.BlockInformation>.value(_FakeBlockInformation_9(
-          this,
-          Invocation.method(
-            #getBlockInformation,
-            [],
-            {
-              #blockNumber: blockNumber,
-              #isContainFullObj: isContainFullObj,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i2.BlockInformation>);
-  @override
-  _i5.Future<_i2.EtherAmount> getBalance(
-    _i2.EthereumAddress? address, {
-    _i2.BlockNum? atBlock,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getBalance,
-          [address],
-          {#atBlock: atBlock},
-        ),
-        returnValue: _i5.Future<_i2.EtherAmount>.value(_FakeEtherAmount_8(
-          this,
-          Invocation.method(
-            #getBalance,
-            [address],
-            {#atBlock: atBlock},
-          ),
-        )),
-      ) as _i5.Future<_i2.EtherAmount>);
-  @override
-  _i5.Future<_i6.Uint8List> getStorage(
-    _i2.EthereumAddress? address,
-    BigInt? position, {
-    _i2.BlockNum? atBlock,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getStorage,
-          [
-            address,
-            position,
-          ],
-          {#atBlock: atBlock},
-        ),
-        returnValue: _i5.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
-      ) as _i5.Future<_i6.Uint8List>);
-  @override
-  _i5.Future<int> getTransactionCount(
-    _i2.EthereumAddress? address, {
-    _i2.BlockNum? atBlock,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getTransactionCount,
-          [address],
-          {#atBlock: atBlock},
-        ),
-        returnValue: _i5.Future<int>.value(0),
-      ) as _i5.Future<int>);
-  @override
-  _i5.Future<_i2.TransactionInformation?> getTransactionByHash(
-          String? transactionHash) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getTransactionByHash,
-          [transactionHash],
-        ),
-        returnValue: _i5.Future<_i2.TransactionInformation?>.value(),
-      ) as _i5.Future<_i2.TransactionInformation?>);
-  @override
-  _i5.Future<_i2.TransactionReceipt?> getTransactionReceipt(String? hash) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getTransactionReceipt,
-          [hash],
-        ),
-        returnValue: _i5.Future<_i2.TransactionReceipt?>.value(),
-      ) as _i5.Future<_i2.TransactionReceipt?>);
-  @override
-  _i5.Future<_i6.Uint8List> getCode(
-    _i2.EthereumAddress? address, {
-    _i2.BlockNum? atBlock,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getCode,
-          [address],
-          {#atBlock: atBlock},
-        ),
-        returnValue: _i5.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
-      ) as _i5.Future<_i6.Uint8List>);
-  @override
-  _i5.Future<List<_i2.FilterEvent>> getLogs(_i2.FilterOptions? options) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getLogs,
-          [options],
-        ),
-        returnValue:
-            _i5.Future<List<_i2.FilterEvent>>.value(<_i2.FilterEvent>[]),
-      ) as _i5.Future<List<_i2.FilterEvent>>);
-  @override
-  _i5.Future<Map<String, dynamic>> getFeeHistory(
-    int? blockCount, {
-    _i2.BlockNum? atBlock,
-    List<double>? rewardPercentiles,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getFeeHistory,
-          [blockCount],
-          {
-            #atBlock: atBlock,
-            #rewardPercentiles: rewardPercentiles,
-          },
-        ),
-        returnValue:
-            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i5.Future<Map<String, dynamic>>);
-  @override
-  _i5.Future<String> sendTransaction(
-    _i2.Credentials? cred,
-    _i2.Transaction? transaction, {
-    int? chainId = 1,
-    bool? fetchChainIdFromNetworkId = false,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #sendTransaction,
-          [
-            cred,
-            transaction,
-          ],
-          {
-            #chainId: chainId,
-            #fetchChainIdFromNetworkId: fetchChainIdFromNetworkId,
-          },
-        ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
-  @override
-  _i5.Future<String> sendRawTransaction(_i6.Uint8List? signedTransaction) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #sendRawTransaction,
-          [signedTransaction],
-        ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
-  @override
-  _i5.Future<_i6.Uint8List> signTransaction(
-    _i2.Credentials? cred,
-    _i2.Transaction? transaction, {
-    int? chainId = 1,
-    bool? fetchChainIdFromNetworkId = false,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #signTransaction,
-          [
-            cred,
-            transaction,
-          ],
-          {
-            #chainId: chainId,
-            #fetchChainIdFromNetworkId: fetchChainIdFromNetworkId,
-          },
-        ),
-        returnValue: _i5.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
-      ) as _i5.Future<_i6.Uint8List>);
-  @override
-  _i5.Future<List<dynamic>> call({
-    _i2.EthereumAddress? sender,
-    required _i2.DeployedContract? contract,
-    required _i2.ContractFunction? function,
-    required List<dynamic>? params,
-    _i2.BlockNum? atBlock,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #call,
-          [],
-          {
-            #sender: sender,
-            #contract: contract,
-            #function: function,
-            #params: params,
-            #atBlock: atBlock,
-          },
-        ),
-        returnValue: _i5.Future<List<dynamic>>.value(<dynamic>[]),
-      ) as _i5.Future<List<dynamic>>);
-  @override
-  _i5.Future<BigInt> estimateGas({
-    _i2.EthereumAddress? sender,
-    _i2.EthereumAddress? to,
-    _i2.EtherAmount? value,
-    BigInt? amountOfGas,
-    _i2.EtherAmount? gasPrice,
-    _i2.EtherAmount? maxPriorityFeePerGas,
-    _i2.EtherAmount? maxFeePerGas,
-    _i6.Uint8List? data,
-    _i2.BlockNum? atBlock,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #estimateGas,
-          [],
-          {
-            #sender: sender,
-            #to: to,
-            #value: value,
-            #amountOfGas: amountOfGas,
-            #gasPrice: gasPrice,
-            #maxPriorityFeePerGas: maxPriorityFeePerGas,
-            #maxFeePerGas: maxFeePerGas,
-            #data: data,
-            #atBlock: atBlock,
-          },
-        ),
-        returnValue: _i5.Future<BigInt>.value(_i7.dummyValue<BigInt>(
-          this,
-          Invocation.method(
-            #estimateGas,
-            [],
-            {
-              #sender: sender,
-              #to: to,
-              #value: value,
-              #amountOfGas: amountOfGas,
-              #gasPrice: gasPrice,
-              #maxPriorityFeePerGas: maxPriorityFeePerGas,
-              #maxFeePerGas: maxFeePerGas,
-              #data: data,
-              #atBlock: atBlock,
-            },
-          ),
-        )),
-      ) as _i5.Future<BigInt>);
-  @override
-  _i5.Future<List<_i8.Fee>> getGasInEIP1559() => (super.noSuchMethod(
-        Invocation.method(
-          #getGasInEIP1559,
-          [],
-        ),
-        returnValue: _i5.Future<List<_i8.Fee>>.value(<_i8.Fee>[]),
-      ) as _i5.Future<List<_i8.Fee>>);
-  @override
-  _i5.Future<String> callRaw({
-    _i2.EthereumAddress? sender,
-    required _i2.EthereumAddress? contract,
-    required _i6.Uint8List? data,
-    _i2.BlockNum? atBlock,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #callRaw,
-          [],
-          {
-            #sender: sender,
-            #contract: contract,
-            #data: data,
-            #atBlock: atBlock,
-          },
-        ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
-  @override
-  _i5.Stream<String> addedBlocks() => (super.noSuchMethod(
-        Invocation.method(
-          #addedBlocks,
-          [],
-        ),
-        returnValue: _i5.Stream<String>.empty(),
-      ) as _i5.Stream<String>);
-  @override
-  _i5.Stream<String> pendingTransactions() => (super.noSuchMethod(
-        Invocation.method(
-          #pendingTransactions,
-          [],
-        ),
-        returnValue: _i5.Stream<String>.empty(),
-      ) as _i5.Stream<String>);
-  @override
-  _i5.Stream<_i2.FilterEvent> events(_i2.FilterOptions? options) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #events,
-          [options],
-        ),
-        returnValue: _i5.Stream<_i2.FilterEvent>.empty(),
-      ) as _i5.Stream<_i2.FilterEvent>);
-  @override
-  _i5.Future<void> dispose() => (super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
 }
 
 /// A class which mocks [Client].
@@ -1420,7 +989,7 @@ class MockClient extends _i1.Mock implements _i4.Client {
   }
 
   @override
-  _i5.Future<_i4.Response> head(
+  _i7.Future<_i4.Response> head(
     Uri? url, {
     Map<String, String>? headers,
   }) =>
@@ -1430,7 +999,7 @@ class MockClient extends _i1.Mock implements _i4.Client {
           [url],
           {#headers: headers},
         ),
-        returnValue: _i5.Future<_i4.Response>.value(_FakeResponse_10(
+        returnValue: _i7.Future<_i4.Response>.value(_FakeResponse_6(
           this,
           Invocation.method(
             #head,
@@ -1438,9 +1007,9 @@ class MockClient extends _i1.Mock implements _i4.Client {
             {#headers: headers},
           ),
         )),
-      ) as _i5.Future<_i4.Response>);
+      ) as _i7.Future<_i4.Response>);
   @override
-  _i5.Future<_i4.Response> get(
+  _i7.Future<_i4.Response> get(
     Uri? url, {
     Map<String, String>? headers,
   }) =>
@@ -1450,7 +1019,7 @@ class MockClient extends _i1.Mock implements _i4.Client {
           [url],
           {#headers: headers},
         ),
-        returnValue: _i5.Future<_i4.Response>.value(_FakeResponse_10(
+        returnValue: _i7.Future<_i4.Response>.value(_FakeResponse_6(
           this,
           Invocation.method(
             #get,
@@ -1458,13 +1027,13 @@ class MockClient extends _i1.Mock implements _i4.Client {
             {#headers: headers},
           ),
         )),
-      ) as _i5.Future<_i4.Response>);
+      ) as _i7.Future<_i4.Response>);
   @override
-  _i5.Future<_i4.Response> post(
+  _i7.Future<_i4.Response> post(
     Uri? url, {
     Map<String, String>? headers,
     Object? body,
-    _i9.Encoding? encoding,
+    _i8.Encoding? encoding,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1476,7 +1045,7 @@ class MockClient extends _i1.Mock implements _i4.Client {
             #encoding: encoding,
           },
         ),
-        returnValue: _i5.Future<_i4.Response>.value(_FakeResponse_10(
+        returnValue: _i7.Future<_i4.Response>.value(_FakeResponse_6(
           this,
           Invocation.method(
             #post,
@@ -1488,13 +1057,13 @@ class MockClient extends _i1.Mock implements _i4.Client {
             },
           ),
         )),
-      ) as _i5.Future<_i4.Response>);
+      ) as _i7.Future<_i4.Response>);
   @override
-  _i5.Future<_i4.Response> put(
+  _i7.Future<_i4.Response> put(
     Uri? url, {
     Map<String, String>? headers,
     Object? body,
-    _i9.Encoding? encoding,
+    _i8.Encoding? encoding,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1506,7 +1075,7 @@ class MockClient extends _i1.Mock implements _i4.Client {
             #encoding: encoding,
           },
         ),
-        returnValue: _i5.Future<_i4.Response>.value(_FakeResponse_10(
+        returnValue: _i7.Future<_i4.Response>.value(_FakeResponse_6(
           this,
           Invocation.method(
             #put,
@@ -1518,13 +1087,13 @@ class MockClient extends _i1.Mock implements _i4.Client {
             },
           ),
         )),
-      ) as _i5.Future<_i4.Response>);
+      ) as _i7.Future<_i4.Response>);
   @override
-  _i5.Future<_i4.Response> patch(
+  _i7.Future<_i4.Response> patch(
     Uri? url, {
     Map<String, String>? headers,
     Object? body,
-    _i9.Encoding? encoding,
+    _i8.Encoding? encoding,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1536,7 +1105,7 @@ class MockClient extends _i1.Mock implements _i4.Client {
             #encoding: encoding,
           },
         ),
-        returnValue: _i5.Future<_i4.Response>.value(_FakeResponse_10(
+        returnValue: _i7.Future<_i4.Response>.value(_FakeResponse_6(
           this,
           Invocation.method(
             #patch,
@@ -1548,13 +1117,13 @@ class MockClient extends _i1.Mock implements _i4.Client {
             },
           ),
         )),
-      ) as _i5.Future<_i4.Response>);
+      ) as _i7.Future<_i4.Response>);
   @override
-  _i5.Future<_i4.Response> delete(
+  _i7.Future<_i4.Response> delete(
     Uri? url, {
     Map<String, String>? headers,
     Object? body,
-    _i9.Encoding? encoding,
+    _i8.Encoding? encoding,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1566,7 +1135,7 @@ class MockClient extends _i1.Mock implements _i4.Client {
             #encoding: encoding,
           },
         ),
-        returnValue: _i5.Future<_i4.Response>.value(_FakeResponse_10(
+        returnValue: _i7.Future<_i4.Response>.value(_FakeResponse_6(
           this,
           Invocation.method(
             #delete,
@@ -1578,9 +1147,9 @@ class MockClient extends _i1.Mock implements _i4.Client {
             },
           ),
         )),
-      ) as _i5.Future<_i4.Response>);
+      ) as _i7.Future<_i4.Response>);
   @override
-  _i5.Future<String> read(
+  _i7.Future<String> read(
     Uri? url, {
     Map<String, String>? headers,
   }) =>
@@ -1590,10 +1159,10 @@ class MockClient extends _i1.Mock implements _i4.Client {
           [url],
           {#headers: headers},
         ),
-        returnValue: _i5.Future<String>.value(''),
-      ) as _i5.Future<String>);
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
   @override
-  _i5.Future<_i6.Uint8List> readBytes(
+  _i7.Future<_i6.Uint8List> readBytes(
     Uri? url, {
     Map<String, String>? headers,
   }) =>
@@ -1603,24 +1172,24 @@ class MockClient extends _i1.Mock implements _i4.Client {
           [url],
           {#headers: headers},
         ),
-        returnValue: _i5.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
-      ) as _i5.Future<_i6.Uint8List>);
+        returnValue: _i7.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
+      ) as _i7.Future<_i6.Uint8List>);
   @override
-  _i5.Future<_i4.StreamedResponse> send(_i4.BaseRequest? request) =>
+  _i7.Future<_i4.StreamedResponse> send(_i4.BaseRequest? request) =>
       (super.noSuchMethod(
         Invocation.method(
           #send,
           [request],
         ),
         returnValue:
-            _i5.Future<_i4.StreamedResponse>.value(_FakeStreamedResponse_11(
+            _i7.Future<_i4.StreamedResponse>.value(_FakeStreamedResponse_7(
           this,
           Invocation.method(
             #send,
             [request],
           ),
         )),
-      ) as _i5.Future<_i4.StreamedResponse>);
+      ) as _i7.Future<_i4.StreamedResponse>);
   @override
   void close() => super.noSuchMethod(
         Invocation.method(
