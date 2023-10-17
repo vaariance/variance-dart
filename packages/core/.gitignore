@@ -1,14 +1,21 @@
-# Compiler files
-cache/
+cache*/
 out/
-
-# Ignores development broadcast logs
+.gas-snapshot
+.vscode/
+.env
+.encryptedKey
 !/broadcast
 /broadcast/*/31337/
 /broadcast/**/dry-run/
 
-# Docs
-docs/
+node_modules
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
 
-# Dotenv file
-.env
+.DS_Store
+src/.DS_Store
+
+artifacts
+.deps
+*.reduced.sol
