@@ -1,19 +1,16 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/4337/wallet.dart' as sdk;
-import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:web3dart/web3dart.dart';
 
-/// [ERC20] module
+/// [AlchemyTokenApi] module
 ///
 /// uses alchemy token api to get token balances
 /// If you want to use another api, you have to create a custom class
-class ERC20 {
+class AlchemyTokenApi {
   final BaseProvider _provider;
 
-  ERC20(this._provider);
+  AlchemyTokenApi(this._provider);
 
   /// [getBalances] returns the balance of all ERC20 tokens in an address
   /// metadata is not included in this fetch
@@ -72,40 +69,6 @@ class ERC20 {
       return TokenMetadata.fromMap(erc20Metadata);
     });
   }
-
-  /// [encodeERC20ApproveCall] returns the calldata for ERC20 approval
-  /// - @param [address] is the 4337 wallet address
-  /// - @param [spender] is the address of the approved spender
-  /// - @param [amount] is the amount to approve for the spender
-  static Uint8List encodeERC20ApproveCall(
-    EthereumAddress address,
-    EthereumAddress spender,
-    EtherAmount amount,
-  ) {
-    return Contract.encodeFunctionCall(
-      'approve',
-      address,
-      ContractAbis.get('ERC20'),
-      [spender, amount.getInWei],
-    );
-  }
-
-  /// [encodeERC20TransferCall] returns the calldata for ERC20 transfer
-  /// - @param [address] is the 4337 wallet address
-  /// - @param [recipient] is the address of the recipient
-  /// - @param [amount] is the amount to transfer
-  static Uint8List encodeERC20TransferCall(
-    EthereumAddress address,
-    EthereumAddress recipient,
-    EtherAmount amount,
-  ) {
-    return Contract.encodeFunctionCall(
-      'transfer',
-      address,
-      ContractAbis.get('ERC20'),
-      [recipient, amount.getInWei],
-    );
-  }
 }
 
 class Token {
@@ -139,10 +102,7 @@ class Token {
     EthereumAddress spender,
     EtherAmount amount,
   ) {
-    final callData = sdk.Wallet.execute(owner,
-        to: address,
-        innerCallData: ERC20.encodeERC20ApproveCall(address, spender, amount));
-    return UserOperation.partial(hexlify(callData));
+    return Contract.tokenApproveOperation(address, owner, spender, amount);
   }
 
   /// [transferToken] returns the userOperation for an ERC20 transfer
@@ -152,11 +112,7 @@ class Token {
   /// returns the userOperation
   UserOperation transferToken(
       EthereumAddress owner, EthereumAddress recipient, EtherAmount amount) {
-    final callData = sdk.Wallet.execute(owner,
-        to: address,
-        innerCallData:
-            ERC20.encodeERC20TransferCall(address, recipient, amount));
-    return UserOperation.partial(hexlify(callData));
+    return Contract.tokenTransferOperation(address, owner, recipient, amount);
   }
 
   String toJson() => json.encode(toMap());

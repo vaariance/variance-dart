@@ -7,4 +7,3 @@ export 'src/4337/chains.dart';
 export 'src/signer/signer.dart';
 export 'src/interfaces.dart';
 export 'src/common/common.dart';
-export 'src/modules/contract.dart';

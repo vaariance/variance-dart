@@ -16,7 +16,7 @@ class DioClient {
   /// [callWithSyncFeeErc2771] calls the ERC2771 API with a sync fee
   /// - @param [relayEndpointUrl] is the relay endpoint url
   /// - @param [data] is the data to send to the relay endpoint
-  Future callWithSyncFeeErc2771<T>(
+  Future callWithSyncFeeErc2771(
       String relayEndpointUrl, Map<String, dynamic> data) async {
     try {
       await _dio.post(
@@ -28,10 +28,11 @@ class DioClient {
       rethrow;
     }
   }
-  /// [callNftApi] calls the NFT API
-  Future<T> callNftApi<T>(String nftApiUrl) async {
+
+  /// [callWeb3Api] calls the provided API url and returns the response.
+  Future<T> callWeb3Api<T>(String apiUrl) async {
     try {
-      final response = await _dio.get(nftApiUrl);
+      final response = await _dio.get(apiUrl);
       return response.data as T;
     } on DioException catch (e) {
       log(e.message!);

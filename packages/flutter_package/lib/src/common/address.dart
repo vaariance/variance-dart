@@ -2,7 +2,7 @@ import 'package:ens_dart/ens_dart.dart';
 import 'package:http/http.dart' as http;
 import 'package:web3dart/web3dart.dart';
 
-///[Address] is an ENS address resolver
+///[Address] extends EthereumAddress with ENS address resolution
 class Address extends EthereumAddress {
   String _ens = "";
   final String _baseRpc = 'https://rpc.ankr.com/eth';
