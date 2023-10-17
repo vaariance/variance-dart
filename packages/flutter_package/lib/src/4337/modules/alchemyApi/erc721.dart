@@ -182,7 +182,8 @@ class NFT {
           : null,
     );
   }
-  /// [approveNFT] returns a [UserOperation] to approve the spender of the NFT  
+
+  /// [approveNFT] returns a [UserOperation] to approve the spender of the NFT
   /// - @param [owner] is the address of the owner of the NFT
   /// - @param [spender] is the address of the spender of the NFT
   Future<UserOperation> approveNFT(
