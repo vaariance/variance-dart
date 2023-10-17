@@ -22,47 +22,52 @@ class BaseProvider extends JsonRPC {
 
   String get rpcUrl => _rpcUrl;
 
+  /// - @param [to] is the address or contract to send the transaction to
+  /// - @param [calldata] is the calldata of the transaction
+  /// - returns the estimated gas in wei.
   Future<BigInt> estimateGas(
     EthereumAddress to,
     String calldata,
   ) async {
     final amountHex = await _makeRPCCall<String>('eth_estimateGas', [
-      {'to': to.hex, 'data': hexToBytes(calldata)}
+      {'to': to.hex, 'data': calldata}
     ]);
     return hexToInt(amountHex);
   }
 
+  ///
   Future<int> getBlockNumber() {
     return _makeRPCCall<String>('eth_blockNumber')
         .then((s) => hexToInt(s).toInt());
   }
 
-  Future<Map<String, BigInt>> getEip1559GasPrice() async {
+  ///[getEip1559GasPrice] returns the EIP1559 gas price in wei for a network
+  Future<Map<String, EtherAmount>> getEip1559GasPrice() async {
     final fee = await _makeRPCCall<String>("eth_maxPriorityFeePerGas");
-    final tip = BigInt.parse(fee);
-    const mul = 100 * 13;
-    final buffer = BigInt.parse((tip / BigInt.parse(mul.toString())) as String);
+    final tip = Uint256.fromHex(fee);
+    final mul = Uint256(BigInt.from(100 * 13));
+    final buffer = tip / mul;
     final maxPriorityFeePerGas = tip + buffer;
     final maxFeePerGas = maxPriorityFeePerGas;
     return {
-      'maxFeePerGas': maxFeePerGas,
-      'maxPriorityFeePerGas': maxPriorityFeePerGas
+      'maxFeePerGas': EtherAmount.fromBigInt(EtherUnit.wei, maxFeePerGas.value),
+      'maxPriorityFeePerGas':
+          EtherAmount.fromBigInt(EtherUnit.wei, maxPriorityFeePerGas.value)
     };
   }
 
-  Future<Map<String, BigInt>> getGasPrice() async {
+  ///[getLegacyGasPrice] returns the legacy gas price in wei for a network
+  Future<Map<String, EtherAmount>> getGasPrice() async {
     try {
       return await getEip1559GasPrice();
     } catch (e) {
       try {
-        return await getLegacyGasPrice().then((value) => {
-              'maxFeePerGas': value.getInWei,
-              'maxPriorityFeePerGas': value.getInWei
-            });
+        return await getLegacyGasPrice().then(
+            (value) => {'maxFeePerGas': value, 'maxPriorityFeePerGas': value});
       } catch (e) {
         return {
-          'maxFeePerGas': BigInt.zero,
-          'maxPriorityFeePerGas': BigInt.zero
+          'maxFeePerGas': EtherAmount.zero(),
+          'maxPriorityFeePerGas': EtherAmount.zero()
         };
       }
     }
@@ -73,6 +78,10 @@ class BaseProvider extends JsonRPC {
     return EtherAmount.fromBigInt(EtherUnit.wei, hexToInt(data));
   }
 
+  /// [send] sends a transaction to the bundler
+  /// - @param [function] is the method to call
+  /// - @param [params] is the parameters for request
+  /// returns an rpc response
   Future<T> send<T>(String function, [List<dynamic>? params]) async {
     return await _makeRPCCall<T>(function, params);
   }
@@ -118,11 +127,10 @@ class BundlerProvider {
     _initializeBundlerProvider();
   }
 
-  ///estimates gas cost for user operation
-  ///
-  ///`returns`
-  ///
-  ///[UserOperationGas] object
+  ///[estimateUserOperationGas] estimates gas cost for user operation
+  /// - @param [userOp] is the user operation
+  /// - @param [entrypoint] is the entrypoint address operation should pass through
+  /// returns a [UserOperationGas] object
   Future<UserOperationGas> estimateUserOperationGas(
       Map<String, dynamic> userOp, EthereumAddress entrypoint) async {
     require(_initialized, "estimateUserOpGas: Wallet Provider not initialized");
@@ -131,12 +139,9 @@ class BundlerProvider {
     return UserOperationGas.fromMap(opGas);
   }
 
-  ///retrieves a user operation object by hash from a bundler
-  ///
-  ///
-  ///`returns`
-  ///
-  ///[UserOperationByHash] object
+  ///[getUserOperationByHash]retrieves a user operation object associated to a userOpHash
+  /// - @param [userOpHash] is a hashed string of the user operation
+  /// returns a [UserOperationByHash] object
   Future<UserOperationByHash> getUserOperationByHash(String userOpHash) async {
     require(_initialized, "getUserOpByHash: Wallet Provider not initialized");
     final opExtended = await _bundlerClient
@@ -144,7 +149,9 @@ class BundlerProvider {
     return UserOperationByHash.fromMap(opExtended);
   }
 
-  ///gets user operation receipt
+  ///[getUserOpReceipt] retrieves a user operation receipt associated to a userOpHash
+  /// - @param [userOpHash] is a hashed string of the user operation
+  /// returns a [UserOperationReceipt] object
   Future<UserOperationReceipt> getUserOpReceipt(String userOpHash) async {
     require(_initialized, "getUserOpReceipt: Wallet Provider not initialized");
     final opReceipt = await _bundlerClient.send<Map<String, dynamic>>(
@@ -157,7 +164,10 @@ class BundlerProvider {
     custom = bp;
   }
 
-  ///sends user operation to bundler
+  ///[sendUserOperation] sends a user operation to the given network
+  /// - @param [userOp] is the user operation
+  /// - @param [entrypoint] is the entrypoint address operation should pass through
+  /// returns a [UserOperationResponse]  object
   Future<UserOperationResponse> sendUserOperation(
       Map<String, dynamic> userOp, EthereumAddress entrypoint) async {
     require(_initialized, "sendUserOp: Wallet Provider not initialized");
@@ -166,7 +176,7 @@ class BundlerProvider {
     return UserOperationResponse(opHash, wait);
   }
 
-  ///returns the a list of supported entrypoint(s) for the bundler
+  ///[supportedEntryPoints] returns the a list of supported entrypoint(s) for the bundler
   ///
   ///`returns`
   ///
@@ -177,12 +187,8 @@ class BundlerProvider {
     return List.castFrom(entrypointList);
   }
 
-  ///This function when called, runs in a separate [Isolate] and returns a [FilterEvent]
-  ///based on an event emitted by the smart contract
-  ///
-  ///`returns`
-  ///
-  ///[FilterEvent]
+  ///[wait] when called, runs in a separate [Isolate] and
+  ///returns a [FilterEvent] based on an event emitted by the smart contract
   Future<FilterEvent?> wait({int seconds = 0}) async {
     if (seconds == 0) {
       return null;
@@ -205,7 +211,7 @@ class BundlerProvider {
     return completer.future;
   }
 
-  /// checks that the bundler chainId matches expected chainId
+  ///[_initializeBundlerProvider] checks that the bundler chainId matches expected chainId
   Future _initializeBundlerProvider() async {
     final chainId = await _bundlerClient
         .send<String>('eth_chainId')
@@ -217,8 +223,7 @@ class BundlerProvider {
     _initialized = true;
   }
 
-  /// waits for a userOp to complete.
-  /// Isolates this in a separate thread
+  /// [_wait] waits performs the userOperations in a separate [Isolate]
   void _wait(WaitIsolateMessage message) async {
     require(entrypoint != null && custom != null,
         "Entrypoint required! use Wallet.init");

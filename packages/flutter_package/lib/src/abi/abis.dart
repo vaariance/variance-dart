@@ -3,7 +3,7 @@ import 'package:web3dart/web3dart.dart';
 
 @immutable
 class ContractAbis {
-  static ContractAbi get(String name) {
+  static ContractAbi get(String name, {ContractAbi? abi}) {
     String abi;
     switch (name) {
       case 'ERC721':

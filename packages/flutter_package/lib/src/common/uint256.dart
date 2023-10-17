@@ -33,11 +33,17 @@ class Uint256 {
     return Uint256(_value - other._value);
   }
 
+  Uint256 operator /(Uint256 other) {
+    return Uint256(BigInt.from(_value / other._value));
+  }
+
+  /// convert to hex
   String toHex() {
     final hexString = _value.toRadixString(16);
     return '0x${hexString.padLeft(64, '0')}'; // Ensure it's 256 bits
   }
 
+  /// convert to int
   int toInt() {
     return _value.toInt();
   }
@@ -47,6 +53,7 @@ class Uint256 {
     return toHex();
   }
 
+  /// convert to EtherAmount in wei
   EtherAmount toWei() {
     return EtherAmount.fromBigInt(EtherUnit.wei, _value);
   }

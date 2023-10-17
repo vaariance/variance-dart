@@ -7,6 +7,7 @@ import 'package:pks_4337_sdk/src/4337/chains.dart';
 import 'package:web3dart/crypto.dart' as crypto;
 import 'package:web3dart/web3dart.dart';
 
+/// [UserOperation] model for user operations
 class UserOperation {
   final EthereumAddress sender;
   final BigInt nonce;
@@ -143,6 +144,7 @@ class UserOperation {
   }
 }
 
+/// [UserOperationByHash] model for user operations hash
 class UserOperationByHash {
   UserOperation userOperation;
   final String entryPoint;

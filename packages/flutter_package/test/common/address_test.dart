@@ -6,7 +6,7 @@ import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart' as http;
 
-import 'address_test.mocks.dart';
+import 'mocks/address_test.mocks.dart';
 
 final ethAddress =
     EthereumAddress.fromHex('0x95222290dd7278aa3ddd389cc1e1d165cc4bafe5');
