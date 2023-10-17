@@ -94,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
               "0xe785E82358879F061BC3dcAC6f0444462D4b5330");
           final tokenId = BigInt.from(44);
 
-          final erc721 = ERC721(provider.rpcUrl);
+          final erc721 = AlchemyNftApi(provider.rpcUrl);
           final floorPrice = await erc721.isSpamContract(contractAddress);
           log("floorPrice.toMap(): $floorPrice");
         },

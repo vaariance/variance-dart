@@ -12,7 +12,6 @@ import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
 
 ///A JsonRPC wrapper for Bundler rpc.
-///Re-routes rpc calls to Bundler
 class BaseProvider extends JsonRPC {
   final String _rpcUrl;
   BaseProvider(String rpcUrl)
@@ -115,8 +114,8 @@ class BundlerProvider {
   final BaseProvider _bundlerClient;
 
   late final bool _initialized;
-  Web3Client? custom;
 
+  Web3Client? custom;
   Entrypoint? entrypoint;
 
   BundlerProvider(IChain chain)

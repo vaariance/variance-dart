@@ -7,140 +7,10 @@ import 'package:pks_4337_sdk/src/modules/alchemy_api/utils/enum.dart';
 import 'package:pks_4337_sdk/src/modules/alchemy_api/utils/metadatas.dart';
 import 'package:web3dart/web3dart.dart';
 
-class RawContract {
-  final Uint256? value;
-  final String? address;
-  final Uint256? decimal;
-
-  RawContract({
-    this.value,
-    this.address,
-    this.decimal,
-  });
-
-  factory RawContract.fromJson(String source) =>
-      RawContract.fromMap(json.decode(source) as Map<String, dynamic>);
-
-  factory RawContract.fromMap(Map<String, dynamic> map) {
-    return RawContract(
-      value: map['value'] != null ? Uint256.fromHex(map['value']) : null,
-      address: map['address'] != null ? map['address'] as String : null,
-      decimal: map['decimal'] != null ? Uint256.fromHex(map['decimal']) : null,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'value': value?.toHex(),
-      'address': address,
-      'decimal': decimal?.toHex(),
-    };
-  }
-}
-
-/// uses alchemy transfer api
-/// if want to use another api, you have to DIY
-class Transfer {
-  final Uint256 blockNum;
-  final String uniqueId;
-  final String hash;
-  final String from;
-  final String to;
-  final num? value;
-  final Uint256? erc721TokenId;
-  final ERC1155Metadata? erc1155Metadata;
-  final Uint256? tokenId;
-  final String? asset;
-  final TransferCategory category;
-  final RawContract rawContract;
-  final DateTime? blockTimestamp;
-
-  Transfer({
-    required this.blockNum,
-    required this.uniqueId,
-    required this.hash,
-    required this.from,
-    required this.to,
-    this.value,
-    this.erc721TokenId,
-    this.erc1155Metadata,
-    this.tokenId,
-    this.asset,
-    required this.category,
-    required this.rawContract,
-    this.blockTimestamp,
-  });
-
-  factory Transfer.fromJson(String source, ResponseType responseType) =>
-      Transfer.fromMap(
-          json.decode(source) as Map<String, dynamic>, responseType);
-
-  factory Transfer.fromMap(
-      Map<String, dynamic> map, ResponseType responseType) {
-    return Transfer(
-      blockNum: Uint256.fromHex(map['blockNum']),
-      uniqueId: map['uniqueId'] as String,
-      hash: map['hash'] as String,
-      from: map['from'] as String,
-      to: map['to'] as String,
-      value: map['value'] != null ? map['value'] as num : null,
-      erc721TokenId: map['erc721TokenId'] != null
-          ? Uint256.fromHex(map['erc721TokenId'])
-          : null,
-      erc1155Metadata: map['erc1155Metadata'] != null
-          ? ERC1155Metadata.fromMap(
-              map['erc1155Metadata'] as Map<String, dynamic>)
-          : null,
-      tokenId: map['tokenId'] != null ? Uint256.fromHex(map['tokenId']) : null,
-      asset: map['asset'] != null ? map['asset'] as String : null,
-      category: TransferCategory.values.byName(map['category'] as String),
-      rawContract:
-          RawContract.fromMap(map['rawContract'] as Map<String, dynamic>),
-      blockTimestamp: responseType == ResponseType.withMetadata
-          ? DateTime.parse(map['metadata']['blockTimestamp'] as String)
-          : null,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'blockNum': blockNum.toHex(),
-      'uniqueId': uniqueId,
-      'hash': hash,
-      'from': from,
-      'to': to,
-      'value': value,
-      'erc721TokenId': erc721TokenId?.toHex(),
-      'erc1155Metadata': erc1155Metadata?.toMap(),
-      'tokenId': tokenId?.toHex(),
-      'asset': asset,
-      'category': category,
-      'rawContract': rawContract.toMap(),
-      'blockTimestamp': blockTimestamp,
-    };
-  }
-}
-
-class TransferResponse {
-  final List<Transfer> transfers;
-  final String? pageKey;
-  final ResponseType responseType;
-
-  TransferResponse({
-    required this.transfers,
-    this.pageKey,
-    required this.responseType,
-  });
-}
-
-class Transfers {
+class AlchemyTransferApi {
   final BaseProvider _provider;
 
-  Transfers(this._provider);
+  AlchemyTransferApi(this._provider);
 
   /// [getAssetTransfers] returns all transaction to or from [owner]
   /// {@template transfers}
@@ -306,4 +176,134 @@ class Transfers {
       responseType: responseType,
     );
   }
+}
+
+class RawContract {
+  final Uint256? value;
+  final String? address;
+  final Uint256? decimal;
+
+  RawContract({
+    this.value,
+    this.address,
+    this.decimal,
+  });
+
+  factory RawContract.fromJson(String source) =>
+      RawContract.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  factory RawContract.fromMap(Map<String, dynamic> map) {
+    return RawContract(
+      value: map['value'] != null ? Uint256.fromHex(map['value']) : null,
+      address: map['address'] != null ? map['address'] as String : null,
+      decimal: map['decimal'] != null ? Uint256.fromHex(map['decimal']) : null,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'value': value?.toHex(),
+      'address': address,
+      'decimal': decimal?.toHex(),
+    };
+  }
+}
+
+/// uses alchemy transfer api
+/// if want to use another api, you have to DIY
+class Transfer {
+  final Uint256 blockNum;
+  final String uniqueId;
+  final String hash;
+  final String from;
+  final String to;
+  final num? value;
+  final Uint256? erc721TokenId;
+  final ERC1155Metadata? erc1155Metadata;
+  final Uint256? tokenId;
+  final String? asset;
+  final TransferCategory category;
+  final RawContract rawContract;
+  final DateTime? blockTimestamp;
+
+  Transfer({
+    required this.blockNum,
+    required this.uniqueId,
+    required this.hash,
+    required this.from,
+    required this.to,
+    this.value,
+    this.erc721TokenId,
+    this.erc1155Metadata,
+    this.tokenId,
+    this.asset,
+    required this.category,
+    required this.rawContract,
+    this.blockTimestamp,
+  });
+
+  factory Transfer.fromJson(String source, ResponseType responseType) =>
+      Transfer.fromMap(
+          json.decode(source) as Map<String, dynamic>, responseType);
+
+  factory Transfer.fromMap(
+      Map<String, dynamic> map, ResponseType responseType) {
+    return Transfer(
+      blockNum: Uint256.fromHex(map['blockNum']),
+      uniqueId: map['uniqueId'] as String,
+      hash: map['hash'] as String,
+      from: map['from'] as String,
+      to: map['to'] as String,
+      value: map['value'] != null ? map['value'] as num : null,
+      erc721TokenId: map['erc721TokenId'] != null
+          ? Uint256.fromHex(map['erc721TokenId'])
+          : null,
+      erc1155Metadata: map['erc1155Metadata'] != null
+          ? ERC1155Metadata.fromMap(
+              map['erc1155Metadata'] as Map<String, dynamic>)
+          : null,
+      tokenId: map['tokenId'] != null ? Uint256.fromHex(map['tokenId']) : null,
+      asset: map['asset'] != null ? map['asset'] as String : null,
+      category: TransferCategory.values.byName(map['category'] as String),
+      rawContract:
+          RawContract.fromMap(map['rawContract'] as Map<String, dynamic>),
+      blockTimestamp: responseType == ResponseType.withMetadata
+          ? DateTime.parse(map['metadata']['blockTimestamp'] as String)
+          : null,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'blockNum': blockNum.toHex(),
+      'uniqueId': uniqueId,
+      'hash': hash,
+      'from': from,
+      'to': to,
+      'value': value,
+      'erc721TokenId': erc721TokenId?.toHex(),
+      'erc1155Metadata': erc1155Metadata?.toMap(),
+      'tokenId': tokenId?.toHex(),
+      'asset': asset,
+      'category': category,
+      'rawContract': rawContract.toMap(),
+      'blockTimestamp': blockTimestamp,
+    };
+  }
+}
+
+class TransferResponse {
+  final List<Transfer> transfers;
+  final String? pageKey;
+  final ResponseType responseType;
+
+  TransferResponse({
+    required this.transfers,
+    this.pageKey,
+    required this.responseType,
+  });
 }

@@ -3,11 +3,11 @@ library pks_4337_sdk;
 import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/modules/alchemy_api/alchemy_api.dart';
-import 'package:pks_4337_sdk/src/modules/base.dart';
 import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:pks_4337_sdk/src/abi/accountFactory.g.dart';
 import 'package:pks_4337_sdk/src/abi/entrypoint.g.dart';
+import 'package:pks_4337_sdk/src/modules/alchemy_api/alchemy_api.dart';
+import 'package:pks_4337_sdk/src/modules/base.dart';
 import 'package:pks_4337_sdk/src/signer/passkey_types.dart';
 import "package:web3dart/web3dart.dart";
 
@@ -131,6 +131,19 @@ class Wallet extends Signer with Modules {
     return baseProvider.estimateGas(walletChain.entrypoint, _initCode!);
   }
 
+  /// [initCode] is the init code for the [AccountFactory]
+  /// - @param required walletAddress is the address of the wallet
+  /// - @param required [name] is the name of the account factory
+  /// - @param required [params] is the params of the account factory
+  ///
+  /// returns the init code for the [AccountFactory]
+  Uint8List initData(AccountFactory factory, String name, List params) {
+    final data = factory.self.function(name).encodeCall(params);
+    final initCode =
+        abi.encode(['address', 'bytes'], [factory.self.address, data]);
+    return initCode;
+  }
+
   /// [send] transfers native tokens to another recipient
   /// - @param required [recipient] is the address of the user to send the transaction to
   /// - @param required [amount] is the amount to send
@@ -139,7 +152,7 @@ class Wallet extends Signer with Modules {
   Future<UserOperationResponse> send(
       EthereumAddress recipient, EtherAmount amount) async {
     return sendUserOperation(buildUserOperation(
-        execute(_walletAddress, to: recipient, amount: amount)));
+        Contract.execute(_walletAddress, to: recipient, amount: amount)));
   }
 
   /// [sendBatched] sends a batched transaction to the wallet
@@ -151,7 +164,7 @@ class Wallet extends Signer with Modules {
   Future<UserOperationResponse> sendBatchedTransaction(
       List<EthereumAddress> recipients, List<Uint8List> calls,
       {List<EtherAmount>? amounts}) async {
-    return sendUserOperation(buildUserOperation(executeBatch(
+    return sendUserOperation(buildUserOperation(Contract.executeBatch(
         walletAddress: _walletAddress,
         recipients: recipients,
         amounts: amounts,
@@ -167,7 +180,7 @@ class Wallet extends Signer with Modules {
   Future<UserOperationResponse> sendTransaction(
       EthereumAddress to, Uint8List encodedFunctionData,
       {EtherAmount? amount}) async {
-    return sendUserOperation(buildUserOperation(execute(_walletAddress,
+    return sendUserOperation(buildUserOperation(Contract.execute(_walletAddress,
         to: to, amount: amount, innerCallData: encodedFunctionData)));
   }
 
@@ -228,9 +241,9 @@ class Wallet extends Signer with Modules {
   /// - contract module
   /// - transfers module
   _initializeModules() {
-    setModule('erc721', ERC721(_baseProvider.rpcUrl));
-    setModule('erc20', ERC20(_baseProvider));
-    setModule('transfers', Transfers(_baseProvider));
+    setModule('nfts', AlchemyNftApi(_baseProvider.rpcUrl));
+    setModule('tokens', AlchemyTokenApi(_baseProvider));
+    setModule('transfers', AlchemyTransferApi(_baseProvider));
     setModule('contract', Contract(_baseProvider));
   }
 
@@ -281,60 +294,6 @@ class Wallet extends Signer with Modules {
     require(op.signature.length >= 64, "Signature too short, min 64 bytes");
   }
 
-  /// [execute] call data for user operation
-  /// - @param required walletAddress is the address of the wallet
-  /// - @param optional [to] is the address or contract to send the transaction to
-  /// - @param optional [amount] is the amount to send
-  /// - @param optional [innerCallData] is the calldata of the inner call
-  ///
-  /// returns the [Uint8List] of the call data
-  static Uint8List execute(EthereumAddress walletAddress,
-      {required EthereumAddress to,
-      EtherAmount? amount,
-      Uint8List? innerCallData}) {
-    final params = [
-      to,
-      amount ?? EtherAmount.zero().getInWei,
-    ];
-    if (innerCallData != null && innerCallData.isNotEmpty) {
-      params.add(innerCallData);
-    }
-    return Contract.encodeFunctionCall(
-      'execute',
-      walletAddress,
-      ContractAbis.get('execute'),
-      params,
-    );
-  }
-
-  /// [executeBatch] call data for user operation batched
-  /// - @param required walletAddress is the address of the wallet
-  /// - @param optional [recipients] is a list of addresses to send the transaction
-  /// - @param optional [amounts] is a list of amounts to send alongside
-  /// - @param optional [innerCalls] is a list of calldata of the inner calls
-  ///
-  /// returns the [Uint8List] of the call data
-  static Uint8List executeBatch(
-      {required EthereumAddress walletAddress,
-      required List<EthereumAddress> recipients,
-      List<EtherAmount>? amounts,
-      List<Uint8List>? innerCalls}) {
-    final params = [
-      recipients,
-      amounts ?? [],
-      innerCalls ?? [],
-    ];
-    if (innerCalls == null || innerCalls.isEmpty) {
-      require(amounts != null && amounts.isNotEmpty, "malformed batch request");
-    }
-    return Contract.encodeFunctionCall(
-      'executeBatch',
-      walletAddress,
-      ContractAbis.get('executeBatch'),
-      params,
-    );
-  }
-
   /// creates a [Wallet] instance, additionally initializes the [Entrypoint] contract
   /// use [Wallet.init] directly when you:
   /// - need to interact with the entrypoint.
@@ -359,19 +318,6 @@ class Wallet extends Signer with Modules {
         ),
         custom);
     return instance;
-  }
-
-  /// [initCode] is the init code for the [AccountFactory]
-  /// - @param required walletAddress is the address of the wallet
-  /// - @param required [name] is the name of the account factory
-  /// - @param required [params] is the params of the account factory
-  ///
-  /// returns the init code for the [AccountFactory]
-  static Uint8List initData(AccountFactory factory, String name, List params) {
-    final data = factory.self.function(name).encodeCall(params);
-    final initCode =
-        abi.encode(['address', 'bytes'], [factory.self.address, data]);
-    return initCode;
   }
 }
 

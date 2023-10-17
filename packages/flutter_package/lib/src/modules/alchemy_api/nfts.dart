@@ -1,26 +1,23 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:developer';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:pks_4337_sdk/src/dio_client.dart';
 import 'package:pks_4337_sdk/src/modules/alchemy_api/utils/enum.dart';
 import 'package:pks_4337_sdk/src/modules/alchemy_api/utils/metadatas.dart';
-import 'package:pks_4337_sdk/src/4337/wallet.dart' as sdk;
-import 'package:pks_4337_sdk/src/abi/abis.dart';
-import 'package:pks_4337_sdk/src/dio_client.dart';
 import 'package:web3dart/web3dart.dart';
 
-///[ERC721] module
+///[AlchemyNftApi] module
 ///
 /// uses alchemy nft api
 /// if want to use another api, you have to create a custom class
-class ERC721 {
+class AlchemyNftApi {
   final Uri _baseNftApiUrl;
 
   final _dioClient = DioClient();
 
-  ERC721(String rpcUrl)
-      : _baseNftApiUrl = Uri.parse(ERC721.getBaseNftApiUrl(rpcUrl));
+  AlchemyNftApi(String rpcUrl)
+      : _baseNftApiUrl = Uri.parse(AlchemyNftApi.getBaseNftApiUrl(rpcUrl));
 
   /// [getFloorPrice] returns the lowest listing price of an NFT
   /// - @param [contractAddress] is the address of the contract
@@ -130,30 +127,9 @@ class ERC721 {
         .toString();
 
     log("requestUrl: $requestUrl");
-    return await _dioClient.callNftApi<Map<String, dynamic>>(
+    return await _dioClient.callWeb3Api<Map<String, dynamic>>(
       requestUrl,
     );
-  }
-
-  /// [encodeERC721ApproveCall] returns the callData for ERC721
-  /// {@template approve}
-  /// - @param [contractAddress] is the address of the contract
-  /// - @param [to] is the address to approve
-  /// - @param [tokenId] is the tokenId to approve
-  /// {@endtemplate}
-  static Uint8List encodeERC721ApproveCall(
-      EthereumAddress contractAddress, EthereumAddress to, BigInt tokenId) {
-    return Contract.encodeFunctionCall("approve", contractAddress,
-        ContractAbis.get("ERC721"), [to.hex, tokenId]);
-  }
-
-  /// [encodeERC721SafeTransferCall] encodes the callData for ERC721
-  /// {@macro approve}
-  /// - @param [from] is the address to transfer from
-  static Uint8List encodeERC721SafeTransferCall(EthereumAddress contractAddress,
-      EthereumAddress from, EthereumAddress to, BigInt tokenId) {
-    return Contract.encodeFunctionCall("safeTransferFrom", contractAddress,
-        ContractAbis.get("ERC721"), [from.hex, to.hex, tokenId]);
   }
 
   /// gets NFT api url
@@ -197,14 +173,7 @@ class NFT {
   /// - @param [spender] is the address of the spender of the NFT
   Future<UserOperation> approveNFT(
       EthereumAddress owner, EthereumAddress spender) async {
-    final innerCallData = sdk.Wallet.execute(owner,
-        to: address,
-        innerCallData: ERC721.encodeERC721ApproveCall(
-          address,
-          spender,
-          tokenId,
-        ));
-    return UserOperation.partial(hexlify(innerCallData));
+    return Contract.nftApproveOperation(address, owner, spender, tokenId);
   }
 
   /// [transferNFT] returns a [UserOperation] to transfer an NFT
@@ -212,15 +181,7 @@ class NFT {
   /// - @param [spender] is the address of the spender of the NFT
   Future<UserOperation> transferNFT(
       EthereumAddress owner, EthereumAddress spender) async {
-    final innerCallData = sdk.Wallet.execute(owner,
-        to: address,
-        innerCallData: ERC721.encodeERC721SafeTransferCall(
-          address,
-          owner,
-          spender,
-          tokenId,
-        ));
-    return UserOperation.partial(hexlify(innerCallData));
+    return Contract.nftTransferOperation(address, owner, spender, tokenId);
   }
 
   String toJson() => json.encode(toMap());
