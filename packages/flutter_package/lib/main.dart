@@ -1,13 +1,7 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/4337/modules/alchemyApi/erc20.dart';
-import 'package:pks_4337_sdk/src/4337/modules/alchemyApi/erc721.dart';
-import 'package:pks_4337_sdk/src/4337/modules/alchemyApi/transfers.dart';
-import 'package:pks_4337_sdk/src/4337/modules/alchemyApi/utils/enum.dart';
-import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
-import 'package:pks_4337_sdk/src/abi/abis.dart';
-import 'package:web3dart/crypto.dart';
+import 'package:pks_4337_sdk/src/modules/alchemy_api/alchemy_api.dart';
 import 'package:web3dart/web3dart.dart';
 
 void main() {
@@ -102,7 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
           final erc721 = ERC721(provider.rpcUrl);
           final floorPrice = await erc721.isSpamContract(contractAddress);
-          log("floorPrice.toMap(): ${floorPrice}");
+          log("floorPrice.toMap(): $floorPrice");
         },
         tooltip: 'Increment',
         child: const Icon(Icons.add),

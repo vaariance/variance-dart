@@ -299,7 +299,7 @@ class MockENS implements Ens {
   }
 
   @override
-  Ens withName(String? _name) {
+  Ens withName(String? name) {
     // TODO: implement withName
     throw UnimplementedError();
   }

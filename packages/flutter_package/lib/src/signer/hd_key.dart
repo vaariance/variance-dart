@@ -3,7 +3,7 @@ library pks_4337_sdk;
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:bip32_bip44/dart_bip32_bip44.dart';
+import 'package:bip32_bip44/dart_bip32_bip44.dart' as bip44;
 import "package:bip39/bip39.dart" as bip39;
 import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -72,7 +72,7 @@ class HDKey implements HDkeyInterface {
   /// returns the address
   @override
   Future<String> getAddress(int index, {String? id}) async {
-    ExtendedPrivateKey hdKey = await _getHdKey(index, id: id);
+    bip44.ExtendedPrivateKey hdKey = await _getHdKey(index, id: id);
     final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
     return privKey.address.hexEip55;
   }
@@ -173,11 +173,11 @@ class HDKey implements HDkeyInterface {
   }
 
   ///[_deriveHdKey] Derives a hd wallet from the seed and index
-  ExtendedPrivateKey _deriveHdKey(String seed, int idx) {
+  bip44.ExtendedPrivateKey _deriveHdKey(String seed, int idx) {
     ///Ethereum derivation path
     final path = "m/44'/60'/0'/0/$idx";
-    final chain = Chain.seed(seed);
-    final hdKey = chain.forPath(path) as ExtendedPrivateKey;
+    final chain = bip44.Chain.seed(seed);
+    final hdKey = chain.forPath(path) as bip44.ExtendedPrivateKey;
     return hdKey;
   }
 
@@ -192,7 +192,7 @@ class HDKey implements HDkeyInterface {
   ///[_getHdKey] Internal function to get an hd key based on bip39 from an index and an optional id
   ///- @param optional [id] is the id of the account
   ///- @param required [index] is the index of the account
-  Future<ExtendedPrivateKey> _getHdKey(int index, {String? id}) async {
+  Future<bip44.ExtendedPrivateKey> _getHdKey(int index, {String? id}) async {
     String? seed = await _getSecret(id: id);
     if (seed == null) throw Exception("getHdKey: Not a Valid Wallet");
     final hd = _deriveHdKey(seed, index);
