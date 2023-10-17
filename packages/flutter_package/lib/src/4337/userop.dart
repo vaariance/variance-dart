@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
@@ -239,13 +238,7 @@ class UserOperationReceipt {
 
 class UserOperationResponse {
   final String userOpHash;
-  final Future<FilterEvent?> Function({int seconds}) wait;
+  final Future<FilterEvent?> Function({int millisecond}) wait;
 
   UserOperationResponse(this.userOpHash, this.wait);
-}
-
-class WaitIsolateMessage {
-  final int millisecond;
-  final SendPort sendPort;
-  WaitIsolateMessage({required this.millisecond, required this.sendPort});
 }

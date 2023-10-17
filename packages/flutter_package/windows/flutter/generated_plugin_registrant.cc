@@ -10,8 +10,8 @@
 #include <local_auth_windows/local_auth_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-    FlutterSecureStorageWindowsPluginRegisterWithRegistrar(
-        registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
-    LocalAuthPluginRegisterWithRegistrar(
-        registry->GetRegistrarForPlugin("LocalAuthPlugin"));
+  FlutterSecureStorageWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
+  LocalAuthPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("LocalAuthPlugin"));
 }

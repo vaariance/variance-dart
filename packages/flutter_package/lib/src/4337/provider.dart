@@ -189,26 +189,34 @@ class BundlerProvider {
 
   ///[wait] when called, runs in a separate [Isolate] and
   ///returns a [FilterEvent] based on an event emitted by the smart contract
-  Future<FilterEvent?> wait({int seconds = 0}) async {
-    if (seconds == 0) {
+  Future<FilterEvent?> wait({int millisecond = 0}) async {
+    if (millisecond == 0) {
       return null;
     }
-    final receivePort = ReceivePort();
-    final completer = Completer<FilterEvent?>();
+    require(entrypoint != null && custom != null,
+        "Entrypoint required! use Wallet.init");
+    final block = await custom!.getBlockNumber();
+    final end = DateTime.now().millisecondsSinceEpoch + millisecond;
 
-    await Isolate.spawn(
-        _wait,
-        WaitIsolateMessage(
-            millisecond: seconds * 1000, sendPort: receivePort.sendPort));
-
-    receivePort.listen((data) {
-      if (data is FilterEvent) {
-        completer.complete(data);
-      } else {
-        completer.complete(null);
+    return await Isolate.run(() async {
+      while (DateTime.now().millisecondsSinceEpoch < end) {
+        final filterEvent = await custom!
+            .events(
+              FilterOptions.events(
+                contract: entrypoint!.self,
+                event: entrypoint!.self.event('UserOperationEvent'),
+                fromBlock: BlockNum.exact(block - 100),
+              ),
+            )
+            .take(1)
+            .first;
+        if (filterEvent.transactionHash != null) {
+          return filterEvent;
+        }
+        await Future.delayed(Duration(milliseconds: millisecond));
       }
+      return null;
     });
-    return completer.future;
   }
 
   ///[_initializeBundlerProvider] checks that the bundler chainId matches expected chainId
@@ -221,36 +229,6 @@ class BundlerProvider {
         "bundler $_bundlerUrl is on chainId $chainId, but provider is on chainId $_chainId");
     log("provider initialized");
     _initialized = true;
-  }
-
-  /// [_wait] waits performs the userOperations in a separate [Isolate]
-  void _wait(WaitIsolateMessage message) async {
-    require(entrypoint != null && custom != null,
-        "Entrypoint required! use Wallet.init");
-    final block = await custom!.getBlockNumber();
-    final end = DateTime.now().millisecondsSinceEpoch + message.millisecond;
-
-    while (DateTime.now().millisecondsSinceEpoch < end) {
-      final filterEvent = await custom!
-          .events(
-            FilterOptions.events(
-              contract: entrypoint!.self,
-              event: entrypoint!.self.event('UserOperationEvent'),
-              fromBlock: BlockNum.exact(block - 100),
-            ),
-          )
-          .take(1)
-          .first;
-      if (filterEvent.transactionHash != null) {
-        Isolate.current.kill(priority: Isolate.immediate);
-        message.sendPort.send(filterEvent);
-        return;
-      }
-      await Future.delayed(Duration(milliseconds: message.millisecond));
-    }
-
-    Isolate.current.kill(priority: Isolate.immediate);
-    message.sendPort.send(null);
   }
 
   /// Checks that [method] is a valid bundler method
