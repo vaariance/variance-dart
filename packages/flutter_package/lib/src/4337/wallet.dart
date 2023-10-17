@@ -185,7 +185,6 @@ class Wallet extends Signer with Modules {
         op.toMap(), _walletChain.entrypoint);
   }
 
-
   /// [sendUserOperation] sends a user operation to the wallet
   /// - @param required [op] is the [UserOperation]
   /// - @param optional [id] is the id of the transaction

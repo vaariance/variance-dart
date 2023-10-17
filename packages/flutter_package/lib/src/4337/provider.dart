@@ -35,7 +35,7 @@ class BaseProvider extends JsonRPC {
     return hexToInt(amountHex);
   }
 
-  /// 
+  ///
   Future<int> getBlockNumber() {
     return _makeRPCCall<String>('eth_blockNumber')
         .then((s) => hexToInt(s).toInt());
@@ -55,6 +55,7 @@ class BaseProvider extends JsonRPC {
           EtherAmount.fromBigInt(EtherUnit.wei, maxPriorityFeePerGas.value)
     };
   }
+
   ///[getLegacyGasPrice] returns the legacy gas price in wei for a network
   Future<Map<String, EtherAmount>> getGasPrice() async {
     try {
@@ -186,7 +187,7 @@ class BundlerProvider {
     return List.castFrom(entrypointList);
   }
 
-  ///[wait] when called, runs in a separate [Isolate] and 
+  ///[wait] when called, runs in a separate [Isolate] and
   ///returns a [FilterEvent] based on an event emitted by the smart contract
   Future<FilterEvent?> wait({int seconds = 0}) async {
     if (seconds == 0) {

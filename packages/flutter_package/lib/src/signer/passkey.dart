@@ -15,7 +15,7 @@ import 'package:uuid/uuid.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:webauthn/webauthn.dart';
 
-/// Webauthn [PassKeys] 
+/// Webauthn [PassKeys]
 class PassKey implements PasskeyInterface {
   static const _makeCredentialJson = '''{
     "authenticatorExtensions": "",
