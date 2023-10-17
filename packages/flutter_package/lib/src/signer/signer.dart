@@ -20,7 +20,7 @@ class Signer {
       {this.passkey,
       this.hdkey,
       this.credential,
-      SignerType signer = SignerType.hdkey})
+      SignerType signer = SignerType.credential})
       : assert(passkey != null || hdkey != null || credential != null,
             "At least one signer is required"),
         defaultSigner = signer;

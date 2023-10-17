@@ -208,8 +208,10 @@ class Wallet extends Signer with Modules {
     Uint8List signature;
     if (defaultSigner == SignerType.passkey) {
       signature = (await sign<PassKeySignature>(opHash, id: id)).toHex();
-    } else {
+    } else if (defaultSigner == SignerType.hdkey) {
       signature = await sign<Uint8List>(opHash, index: 0, id: id);
+    } else {
+      signature = await sign<Uint8List>(opHash);
     }
     userOp.signature = hexlify(signature);
     await _validateFields(userOp);
@@ -253,16 +255,18 @@ class Wallet extends Signer with Modules {
   /// - @param required [op] is the [UserOperation]
   Future _updateUserOperation(UserOperation op) async {
     final map = op.toMap();
-    op = await _walletProvider
-        .estimateUserOperationGas(map, _walletChain.entrypoint)
-        .then((opGas) async => UserOperation.update(map, opGas,
-            sender: _walletAddress,
-            nonce: (await nonce).value,
-            initCode: !(await deployed) ? _initCode! : null));
-    await _baseProvider.getGasPrice().then((gasPrice) => {
-          op.maxFeePerGas = gasPrice["maxFeePerGas"] as BigInt,
-          op.maxPriorityFeePerGas = gasPrice["maxPriorityFeePerGas"] as BigInt,
-        });
+    List<dynamic> reponses = await Future.wait([
+      _walletProvider.estimateUserOperationGas(map, _walletChain.entrypoint),
+      _baseProvider.getGasPrice(),
+      nonce,
+      deployed
+    ]);
+    op = UserOperation.update(map, reponses[0],
+        sender: _walletAddress,
+        nonce: reponses[2].value,
+        initCode: !(reponses[3]) ? _initCode! : null);
+    op.maxFeePerGas = reponses[1]["maxFeePerGas"] as BigInt;
+    op.maxPriorityFeePerGas = reponses[1]["maxPriorityFeePerGas"] as BigInt;
   }
 
   /// [validateFields] validates the fields of the user operation
@@ -362,7 +366,7 @@ class Wallet extends Signer with Modules {
     return instance;
   }
 
-  /// [initCode] initializes the [AccountFactory]
+  /// [initCode] is the init code for the [AccountFactory]
   /// - @param required walletAddress is the address of the wallet
   /// - @param required [name] is the name of the account factory
   /// - @param required [params] is the params of the account factory
