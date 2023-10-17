@@ -4,7 +4,6 @@ import 'package:ens_dart/ens_dart.dart';
 import 'package:http/http.dart' as http;
 import 'package:web3dart/web3dart.dart';
 
-
 class Address extends EthereumAddress {
   String _ens = "";
   final String _baseRpc = 'https://rpc.ankr.com/eth';

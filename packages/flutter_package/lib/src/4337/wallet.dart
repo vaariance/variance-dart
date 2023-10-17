@@ -27,7 +27,6 @@ class Wallet extends Signer with Modules {
   EthereumAddress _walletAddress;
   String? _initCode;
 
-
   /// [Entrypoint] is not initialized
   /// to initialize with entrypoint, you have to call [Wallet.init] instead
   ///
@@ -301,9 +300,6 @@ class Wallet extends Signer with Modules {
     return instance;
   }
 }
-
-
-
 
 // Future userOptester() async {
 //   final uop = UserOperation(
