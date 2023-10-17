@@ -17,6 +17,11 @@ class abi {
   ///Not intended to be instantiated
   abi._();
 
+  /// [decode] decodes a list of types and values
+  /// - @param required types is a list of string types
+  /// - @param required values is a list of dynamic values
+  ///
+  /// returns a list of decoded value and types
   static List<T> decode<T>(List<String> types, Uint8List value) {
     List<AbiType> abiTypes = [];
     for (String type in types) {
@@ -27,15 +32,11 @@ class abi {
     return parsedData.data as List<T>;
   }
 
-  /// This method accepts a list of string types and a list of dynamic values,
-  /// and returns their ABI encoded representation as a Uint8List.
+  /// [encode] encodes a list of types and values
+  /// - @param required types is a list of string types
+  /// - @param required values is a list of dynamic values
   ///
-  ///`params:`
-  ///
-  ///   - `types` A list of strings representing the types to be encoded.
-  ///
-  ///   - `values` A list of dynamic objects representing the values to be encoded.
-  /// @return A Uint8List containing the ABI encoded types and values.
+  /// returns a [Uint8List] containing the ABI encoded types and values.
   static Uint8List encode(List<String> types, List<dynamic> values) {
     List<AbiType> abiTypes = [];
     LengthTrackingByteSink result = LengthTrackingByteSink();

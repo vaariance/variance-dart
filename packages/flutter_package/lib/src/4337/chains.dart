@@ -96,10 +96,14 @@ class IChain {
       required this.entrypoint,
       this.bundlerUrl});
 
+  /// [setChainId] sets the chainId for the chain
+  /// - @param [value] is the chainId
   void setBundlerUrl(String? value) {
     bundlerUrl = value;
   }
 
+  /// [setEntrypoint] sets the entrypoint for the chain
+  /// - @param [value] is the entrypoint
   void setEntrypoint(EthereumAddress value) {
     entrypoint = value;
   }

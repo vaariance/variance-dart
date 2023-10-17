@@ -5,14 +5,13 @@ libs = ['node_modules', 'lib']
 gas_reports = ["*"]
 optimizer = true
 optimizer_runs = 200
-solc_version = "0.8.19"
+solc_version = "0.8.20"
 
 remappings = [
+    "@~/=src/",
+    "@aa/=lib/account-abstraction/",
+    "@safe-protocol/contracts/=lib/safe-core-protocol/contracts/",
     "@chainlink/contracts/=node_modules/@chainlink/contracts/",
     "@chainlink/contracts-ccip/=node_modules/@chainlink/contracts-ccip/",
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/"
 ]
-
-[rpc_endpoints]
-ethereumSepolia = "${ETHEREUM_SEPOLIA_RPC_URL}"
-optimismGoerli = "${OPTIMISM_GOERLI_RPC_URL}"
