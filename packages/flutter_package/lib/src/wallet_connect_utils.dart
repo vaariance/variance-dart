@@ -1,4 +1,3 @@
-
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
 class WalletConnectOptions {
@@ -28,8 +27,7 @@ class WalletExpose {
   Future _createInstance() async {
     _web3Wallet = await Web3Wallet.createInstance(
       // The relay websocket URL, leave blank to use the default
-      relayUrl:
-          'wss://relay.walletconnect.com', 
+      relayUrl: 'wss://relay.walletconnect.com',
       projectId: _opts.projectId,
       metadata: PairingMetadata(
           name: _opts.name,

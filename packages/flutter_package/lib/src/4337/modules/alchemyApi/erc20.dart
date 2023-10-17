@@ -172,7 +172,7 @@ class Token {
 }
 
 /// [TokenMetadata] is the metadata for an ERC20 Token
-/// 
+///
 /// - @param [decimals] is the number of decimals
 /// - @param [logo] is the logo url
 /// - @param [name] is the name of the token
