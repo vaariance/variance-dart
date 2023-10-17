@@ -3,9 +3,8 @@ import 'dart:typed_data';
 import 'dart:developer';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
-import 'package:pks_4337_sdk/src/4337/modules/alchemyApi/utils/enum.dart';
-import 'package:pks_4337_sdk/src/4337/modules/alchemyApi/utils/metadatas.dart';
+import 'package:pks_4337_sdk/src/modules/alchemy_api/utils/enum.dart';
+import 'package:pks_4337_sdk/src/modules/alchemy_api/utils/metadatas.dart';
 import 'package:pks_4337_sdk/src/4337/wallet.dart' as sdk;
 import 'package:pks_4337_sdk/src/abi/abis.dart';
 import 'package:pks_4337_sdk/src/dio_client.dart';

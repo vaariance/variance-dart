@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/4337/modules/contract.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart'; // Import your project's dependencies
 

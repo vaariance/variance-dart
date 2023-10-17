@@ -50,7 +50,7 @@ class Contract {
     return isDeployed;
   }
 
-  /// [getBalance] returns the balance of an address
+  /// [getBalance] returns the amount of ether held by a contract
   /// - @param [address] is the address to get the balance of
   Future<EtherAmount> getBalance(EthereumAddress address) {
     return _provider
