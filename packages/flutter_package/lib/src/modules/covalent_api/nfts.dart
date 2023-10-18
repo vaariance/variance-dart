@@ -18,13 +18,14 @@ class CovalentNftApi extends BaseCovalentApi {
   }) {
     return fetchApiRequest(
       baseCovalentApiUri
-          .resolve('tokens/${contractAddress.hex}/${tokenId.toString()}')
+          .resolve('nft/${contractAddress.hex}/metadata/${tokenId.toString()}/')
           .path,
       {
-        'no-metadata': noMetadata,
-        if (withUncached) 'with-uncached': withUncached,
+        if (noMetadata) 'no-metadata': noMetadata.toString(),
+        if (withUncached) 'with-uncached': withUncached.toString(),
       },
-    ).then((response) => NFT.fromMap((response['items'] as List).first));
+    ).then(
+        (response) => NFT.fromMap((response['data']['items'] as List).first));
   }
 
   Future<List<NFT>> getNftsForOwner(
@@ -35,30 +36,31 @@ class CovalentNftApi extends BaseCovalentApi {
   }) async {
     final response = await fetchApiRequest(
         baseCovalentApiUri
-            .resolve('address/${walletAddress.hex}/balances_nft')
+            .resolve('address/${walletAddress.hex}/balances_nft/')
             .path,
         {
-          'no-spam': noSpam,
-          if (noNftAssetMetadata) 'no-nft-asset-metadata': noNftAssetMetadata,
-          if (withUncached) 'with-uncached': withUncached,
+          'no-spam': noSpam.toString(),
+          if (noNftAssetMetadata)
+            'no-nft-asset-metadata': noNftAssetMetadata.toString(),
+          if (withUncached) 'with-uncached': withUncached.toString(),
         });
 
     return List<NFT>.from(
-        (response['items'] as List).map((x) => NFT.fromMap(x)));
+        (response['data']['items'] as List).map((x) => NFT.fromMap(x)));
   }
 }
 
 class NFT {
-  final String contractName;
-  final String contractTickerSymbol;
+  final String? contractName;
+  final String? contractTickerSymbol;
   final EthereumAddress contractAddress;
-  final List<String> supportsErc;
+  final List<String>? supportsErc;
   final bool isSpam;
-  final int balance;
-  final int balance24H;
+  final BigInt? balance;
+  final BigInt? balance24H;
   final String type;
   final List<NFTData> nftData;
-  final DateTime lastTransferredAt;
+  final DateTime? lastTransferredAt;
 
   NFT({
     required this.contractName,
@@ -73,44 +75,48 @@ class NFT {
     required this.lastTransferredAt,
   });
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'contractName': contractName,
-      'contractTickerSymbol': contractTickerSymbol,
-      'contractAddress': contractAddress.hex,
-      'supportsErc': supportsErc,
-      'isSpam': isSpam,
-      'balance': balance,
-      'balance24H': balance24H,
-      'type': type,
-      'nftData': nftData.map((x) => x.toMap()).toList(),
-      'lastTransferredAt': lastTransferredAt.toIso8601String(),
-    };
-  }
+  factory NFT.fromJson(String source) =>
+      NFT.fromMap(json.decode(source) as Map<String, dynamic>);
 
   factory NFT.fromMap(Map<String, dynamic> map) {
     return NFT(
-      contractName: map['contractName'],
-      contractTickerSymbol: map['contractTickerSymbol'],
-      contractAddress: EthereumAddress.fromHex(map['contractAddress']),
-      supportsErc: List<String>.from(map['supportsErc']),
-      isSpam: map['isSpam'],
-      balance: map['balance'],
-      balance24H: map['balance24H'],
+      contractName: map['contract_name'],
+      contractTickerSymbol: map['contract_ticker_symbol'],
+      contractAddress: EthereumAddress.fromHex(map['contract_address']),
+      supportsErc: map['supports_erc'] != null
+          ? List<String>.from(map['supports_erc'])
+          : null,
+      isSpam: map['is_spam'],
+      balance: map['balance'] != null ? BigInt.parse(map['balance']) : null,
+      balance24H:
+          map['balance_24h'] != null ? BigInt.parse(map['balance_24h']) : null,
       type: map['type'],
-      nftData: List<NFTData>.from(
-        (map['nftData']).map<NFTData?>(
-          (x) => NFTData.fromMap(x),
-        ),
-      ),
-      lastTransferredAt: DateTime.parse(map['lastTransferredAt']),
+      nftData: map['nft_data'] is List
+          ? List<NFTData>.from(
+              (map['nft_data'] as List).map((x) => NFTData.fromMap(x)))
+          : [NFTData.fromMap(map['nft_data'])],
+      lastTransferredAt: map['last_transfered_at'] != null
+          ? DateTime.parse(map['last_transfered_at'])
+          : null,
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory NFT.fromJson(String source) =>
-      NFT.fromMap(json.decode(source) as Map<String, dynamic>);
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'contract_name': contractName,
+      'contract_ticker_symbol': contractTickerSymbol,
+      'contract_address': contractAddress.hex,
+      'supports_erc': supportsErc,
+      'is_spam': isSpam,
+      'balance': balance.toString(),
+      'balance_24h': balance24H.toString(),
+      'type': type,
+      'nft_data': nftData.map((x) => x.toMap()).toList(),
+      'last_transfered_at': lastTransferredAt?.toIso8601String(),
+    };
+  }
 }
 
 class NFTData {
@@ -143,77 +149,81 @@ class NFTData {
       this.assetCached,
       this.imageCached});
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'tokenId': tokenId.toString(),
-      'tokenBalance': tokenBalance,
-      'tokenUrl': tokenUrl,
-      'supportsErc': supportsErc,
-      'tokenPriceWei': tokenPriceWei,
-      'tokenQuoteRateEth': tokenQuoteRateEth,
-      'originalOwner': originalOwner?.hex,
-      'externalData': externalData?.toMap(),
-      'owner': owner,
-      'ownerAddress': ownerAddress?.hex,
-      'burned': burned,
-      'assetCached': assetCached,
-      'imageCached': imageCached,
-    };
-  }
+  factory NFTData.fromJson(String source) =>
+      NFTData.fromMap(json.decode(source) as Map<String, dynamic>);
 
   factory NFTData.fromMap(Map<String, dynamic> map) {
     return NFTData(
-      tokenId: BigInt.parse(map['tokenId']),
-      tokenBalance: map['tokenBalance'],
-      tokenUrl: map['tokenUrl'],
-      supportsErc: map['supportsErc'] != null
-          ? List<String>.from(map['supportsErc'])
+      tokenId: BigInt.parse(map['token_id']),
+      tokenBalance: map['token_balance'],
+      tokenUrl: map['token_url'],
+      supportsErc: map['supports_erc'] != null
+          ? List<String>.from(map['supports_erc'])
           : null,
-      tokenPriceWei: map['tokenPriceWei'] != null
-          ? BigInt.parse(map['tokenPriceWei'])
+      tokenPriceWei: map['token_price_wei'] != null
+          ? BigInt.parse(map['token_price_wei'])
           : null,
-      tokenQuoteRateEth: map['tokenQuoteRateEth'] != null
-          ? map['tokenQuoteRateEth'] as num
+      tokenQuoteRateEth: map['token_quote_rate_eth'],
+      originalOwner: map['original_owner'] != null
+          ? EthereumAddress.fromHex(map['original_owner'])
           : null,
-      originalOwner: map['originalOwner'] != null
-          ? EthereumAddress.fromHex(map['originalOwner'])
-          : null,
-      externalData: map['externalData'] != null
-          ? NFTMetadata.fromMap(map['externalData'])
+      externalData: map['external_data'] != null
+          ? NFTMetadata.fromMap(map['external_data'])
           : null,
       owner: map['owner'],
-      ownerAddress: map['ownerAddress'] != null
-          ? EthereumAddress.fromHex(map['ownerAddress'])
+      ownerAddress: map['owner_address'] != null
+          ? EthereumAddress.fromHex(map['owner_address'])
           : null,
-      burned: map['burned'] != null ? map['burned'] as bool : null,
-      assetCached:
-          map['assetCached'] != null ? map['assetCached'] as bool : null,
-      imageCached:
-          map['imageCached'] != null ? map['imageCached'] as bool : null,
+      burned: map['burned'],
+      assetCached: map['asset_cached'],
+      imageCached: map['image_cached'],
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory NFTData.fromJson(String source) =>
-      NFTData.fromMap(json.decode(source) as Map<String, dynamic>);
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'token_id': tokenId.toString(),
+      'token_balance': tokenBalance,
+      'token_url': tokenUrl,
+      'supports_erc': supportsErc,
+      'token_price_wei': tokenPriceWei,
+      'token_quote_rate_eth': tokenQuoteRateEth,
+      'original_owner': originalOwner?.hex,
+      'external_data': externalData?.toMap(),
+      'owner': owner,
+      'owner_address': ownerAddress?.hex,
+      'burned': burned,
+      'asset_cached': assetCached,
+      'image_cached': imageCached,
+    };
+  }
 }
 
 class NFTMetadata {
-  final String name;
-  final String description;
-  final String image;
-  final String image256;
-  final String image512;
-  final String image1024;
+  final String? name;
+  final String? description;
+  final String? assetUrl;
+  final String? assetFileExtension;
+  final String? assetMimeType;
+  final String? assetSizeBytes;
+  final String? image;
+  final String? image256;
+  final String? image512;
+  final String? image1024;
   final String? animationUrl;
-  final String externalUrl;
+  final String? externalUrl;
   final Object? attributes;
   final String? owner;
 
   NFTMetadata({
     required this.name,
     required this.description,
+    required this.assetUrl,
+    required this.assetFileExtension,
+    required this.assetMimeType,
+    required this.assetSizeBytes,
     required this.image,
     required this.image256,
     required this.image512,
@@ -224,31 +234,23 @@ class NFTMetadata {
     required this.owner,
   });
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'name': name,
-      'description': description,
-      'image': image,
-      'image256': image256,
-      'image512': image512,
-      'image1024': image1024,
-      'animationUrl': animationUrl,
-      'externalUrl': externalUrl,
-      'attributes': attributes,
-      'owner': owner,
-    };
-  }
+  factory NFTMetadata.fromJson(String source) =>
+      NFTMetadata.fromMap(json.decode(source) as Map<String, dynamic>);
 
   factory NFTMetadata.fromMap(Map<String, dynamic> map) {
     return NFTMetadata(
       name: map['name'],
       description: map['description'],
+      assetUrl: map['asset_url'],
+      assetFileExtension: map['asset_file_extension'],
+      assetMimeType: map['asset_mime_type'],
+      assetSizeBytes: map['asset_size_bytes'],
       image: map['image'],
-      image256: map['image256'],
-      image512: map['image512'],
-      image1024: map['image1024'],
-      animationUrl: map['animationUrl'],
-      externalUrl: map['externalUrl'],
+      image256: map['image_256'],
+      image512: map['image_512'],
+      image1024: map['image_1024'],
+      animationUrl: map['animation_url'],
+      externalUrl: map['external_url'],
       attributes: map['attributes'],
       owner: map['owner'],
     );
@@ -256,6 +258,22 @@ class NFTMetadata {
 
   String toJson() => json.encode(toMap());
 
-  factory NFTMetadata.fromJson(String source) =>
-      NFTMetadata.fromMap(json.decode(source) as Map<String, dynamic>);
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'name': name,
+      'description': description,
+      'asset_url': assetUrl,
+      'asset_file_extension': assetFileExtension,
+      'asset_mime_type': assetMimeType,
+      'asset_size_bytes': assetSizeBytes,
+      'image': image,
+      'image_256': image256,
+      'image_512': image512,
+      'image_1024': image1024,
+      'animation_url': animationUrl,
+      'external_url': externalUrl,
+      'attributes': attributes,
+      'owner': owner,
+    };
+  }
 }

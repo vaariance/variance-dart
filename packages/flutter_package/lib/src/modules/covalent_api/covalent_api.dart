@@ -25,7 +25,7 @@ class BaseCovalentApi {
         .replace(path: path)
         .replace(queryParameters: queryParams)
         .toString();
-
+    print(requestUrl);
     return await _dioClient.callCovalentApi<Map<String, dynamic>>(
         requestUrl, _apiKey);
   }
