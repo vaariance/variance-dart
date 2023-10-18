@@ -47,9 +47,9 @@ class DioClient {
   /// - @param [apiKey] is the covalent api key
   Future<T> callCovalentApi<T>(String apiUrl, String apiKey) async {
     _dio.options.headers = {
-      "Authorization": "Basic ${base64.encode(utf8.encode(apiKey))}"
+      "Authorization": "Basic ${base64Encode(utf8.encode("$apiKey:"))}",
+      'Content-Type': 'application/json'
     };
-    _dio.options.contentType = "application/json";
     try {
       final response = await _dio.get(apiUrl);
       return response.data as T;

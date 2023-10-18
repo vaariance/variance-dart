@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
 import 'package:pks_4337_sdk/src/modules/covalent_api/covalent_api.dart';
@@ -20,25 +19,123 @@ class CovalentTokenApi extends BaseCovalentApi {
   }) async {
     final response = await fetchApiRequest(
         baseCovalentApiUri
-            .resolve('address/${walletAddress.hex}/balances_v2')
+            .resolve('address/${walletAddress.hex}/balances_v2/')
             .path,
         {
           'quote-currency': quoteCurrency.name,
-          'nft': nft,
-          'no-nft-fetch': noNftFetch,
-          if (noSpam) 'no-spam': noSpam,
-          if (noNftAssetMetadata) 'no-nft-asset-metadata': noNftAssetMetadata,
+          'nft': nft.toString(),
+          'no-nft-fetch': noNftFetch.toString(),
+          if (noSpam) 'no-spam': noSpam.toString(),
+          if (noNftAssetMetadata)
+            'no-nft-asset-metadata': noNftAssetMetadata.toString(),
         });
     return List<Token>.from(
-        (response['items'] as List).map((x) => Token.fromMap(x)));
+        (response['data']['items'] as List).map((x) => Token.fromMap(x)));
   }
 
   Future<List<TokenApproval>> getTokenAllowance(
       EthereumAddress walletAddress) async {
     final response = await fetchApiRequest(
-        baseCovalentApiUri.resolve('approvals/${walletAddress.hex}').path, {});
-    return List<TokenApproval>.from(
-        (response['items'] as List).map((x) => TokenApproval.fromMap(x)));
+        baseCovalentApiUri.resolve('approvals/${walletAddress.hex}/').path, {});
+    return List<TokenApproval>.from((response['data']['items'] as List)
+        .map((x) => TokenApproval.fromMap(x)));
+  }
+}
+
+enum QuoteCurrency {
+  USD,
+  CAD,
+  EUR,
+  SGD,
+  INR,
+  JPY,
+  VND,
+  CNY,
+  KRW,
+  RUB,
+  TRY,
+  NGN,
+  ARS,
+  AUD,
+  CHF,
+  GBP
+}
+
+class Spender {
+  final int blockHeight;
+  final int txOffset;
+  final int logOffset;
+  final DateTime blockSignedAt;
+  final String txHash;
+  final EthereumAddress spenderAddress;
+  final String? spenderAddressLabel;
+  final String allowance;
+  final double? allowanceQuote;
+  final String? prettyAllowanceQuote;
+  final EtherAmount valueAtRisk;
+  final double? valueAtRiskQuote;
+  final String? prettyValueAtRiskQuote;
+  final String? riskFactor;
+
+  Spender({
+    required this.blockHeight,
+    required this.txOffset,
+    required this.logOffset,
+    required this.blockSignedAt,
+    required this.txHash,
+    required this.spenderAddress,
+    required this.spenderAddressLabel,
+    required this.allowance,
+    required this.allowanceQuote,
+    required this.prettyAllowanceQuote,
+    required this.valueAtRisk,
+    required this.valueAtRiskQuote,
+    required this.prettyValueAtRiskQuote,
+    required this.riskFactor,
+  });
+
+  factory Spender.fromJson(String source) =>
+      Spender.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  factory Spender.fromMap(Map<String, dynamic> map) {
+    return Spender(
+      blockHeight: map['block_height'],
+      txOffset: map['tx_offset'],
+      logOffset: map['log_offset'],
+      blockSignedAt: DateTime.parse(map['block_signed_at']),
+      txHash: map['tx_hash'],
+      spenderAddress: EthereumAddress.fromHex(map['spender_address']),
+      spenderAddressLabel: map['spender_address_label'],
+      allowance: map['allowance'] as String,
+      allowanceQuote: map['allowance_quote'],
+      prettyAllowanceQuote: map['pretty_allowance_quote'],
+      valueAtRisk:
+          EtherAmount.fromBase10String(EtherUnit.wei, map['value_at_risk']),
+      valueAtRiskQuote: map['value_at_risk_quote'],
+      prettyValueAtRiskQuote: map['pretty_value_at_risk_quote'],
+      riskFactor: map['risk_factor'],
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'block_height': blockHeight,
+      'tx_offset': txOffset,
+      'log_offset': logOffset,
+      'block_signed_at': blockSignedAt.toIso8601String(),
+      'tx_hash': txHash,
+      'spender_address': spenderAddress.hex,
+      'spender_address_label': spenderAddressLabel,
+      'allowance': allowance,
+      'allowance_quote': allowanceQuote,
+      'pretty_allowance_quote': prettyAllowanceQuote,
+      'value_at_risk': valueAtRisk.getInWei.toString(),
+      'value_at_risk_quote': valueAtRiskQuote,
+      'pretty_value_at_risk_quote': prettyValueAtRiskQuote,
+      'risk_factor': riskFactor,
+    };
   }
 }
 
@@ -85,56 +182,35 @@ class Token {
     required this.nftData,
   });
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'contractDecimals': contractDecimals,
-      'contractName': contractName,
-      'contractTickerSymbol': contractTickerSymbol,
-      'contractAddress': contractAddress.hex,
-      'supportsErc': supportsErc,
-      'logoUrl': logoUrl,
-      'lastTransferredAt': lastTransferredAt.toIso8601String(),
-      'nativeToken': nativeToken,
-      'type': type,
-      'isSpam': isSpam,
-      'balance': balance.getInWei.toString(),
-      'balance24H': balance24H.getInWei.toString(),
-      'quoteRate': quoteRate,
-      'quoteRate24H': quoteRate24H,
-      'quote': quote,
-      'prettyQuote': prettyQuote,
-      'quote24H': quote24H,
-      'prettyQuote24H': prettyQuote24H,
-      'nftData': nftData?.map((x) => x.toMap()).toList(),
-    };
-  }
+  factory Token.fromJson(String source) =>
+      Token.fromMap(json.decode(source) as Map<String, dynamic>);
 
   factory Token.fromMap(Map<String, dynamic> map) {
     return Token(
-      contractDecimals: map['contractDecimals'],
-      contractName: map['contractName'],
-      contractTickerSymbol: map['contractTickerSymbol'],
-      contractAddress: EthereumAddress.fromHex(map['contractAddress']),
-      supportsErc: map['supportsErc'] != null
-          ? List<String>.from(map['supportsErc'])
+      contractDecimals: map['contract_decimals'],
+      contractName: map['contract_name'],
+      contractTickerSymbol: map['contract_ticker_symbol'],
+      contractAddress: EthereumAddress.fromHex(map['contract_address']),
+      supportsErc: map['supports_erc'] != null
+          ? List<String>.from(map['supports_erc'])
           : null,
-      logoUrl: map['logoUrl'],
-      lastTransferredAt: DateTime.parse(map['lastTransferredAt']),
-      nativeToken: map['nativeToken'],
+      logoUrl: map['logo_url'],
+      lastTransferredAt: DateTime.parse(map['last_transferred_at']),
+      nativeToken: map['native_token'],
       type: map['type'],
-      isSpam: map['isSpam'],
+      isSpam: map['is_spam'],
       balance: EtherAmount.fromBase10String(EtherUnit.wei, map['balance']),
       balance24H:
-          EtherAmount.fromBase10String(EtherUnit.wei, map['balance24H']),
-      quoteRate: map['quoteRate'],
-      quoteRate24H: map['quoteRate24H'],
+          EtherAmount.fromBase10String(EtherUnit.wei, map['balance_24h']),
+      quoteRate: map['quote_rate'],
+      quoteRate24H: map['quote_rate_24h'],
       quote: map['quote'],
-      prettyQuote: map['prettyQuote'],
-      quote24H: map['quote24H'],
-      prettyQuote24H: map['prettyQuote24H'],
-      nftData: map['nftData'] != null
+      prettyQuote: map['pretty_quote'],
+      quote24H: map['quote_24h'],
+      prettyQuote24H: map['pretty_quote_24h'],
+      nftData: map['nft_data'] != null
           ? List<NFTData>.from(
-              (map['nftData']).map<NFTData?>(
+              (map['nft_data']).map<NFTData?>(
                 (x) => NFTData.fromMap(x as Map<String, dynamic>),
               ),
             )
@@ -144,42 +220,44 @@ class Token {
 
   String toJson() => json.encode(toMap());
 
-  factory Token.fromJson(String source) =>
-      Token.fromMap(json.decode(source) as Map<String, dynamic>);
-}
-
-enum QuoteCurrency {
-  USD,
-  CAD,
-  EUR,
-  SGD,
-  INR,
-  JPY,
-  VND,
-  CNY,
-  KRW,
-  RUB,
-  TRY,
-  NGN,
-  ARS,
-  AUD,
-  CHF,
-  GBP
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'contract_decimals': contractDecimals,
+      'contract_name': contractName,
+      'contract_ticker_symbol': contractTickerSymbol,
+      'contract_address': contractAddress.hex,
+      'supports_erc': supportsErc,
+      'logo_url': logoUrl,
+      'last_transferred_at': lastTransferredAt.toIso8601String(),
+      'native_token': nativeToken,
+      'type': type,
+      'is_spam': isSpam,
+      'balance': balance.getInWei.toString(),
+      'balance_24h': balance24H.getInWei.toString(),
+      'quote_rate': quoteRate,
+      'quote_rate_24h': quoteRate24H,
+      'quote': quote,
+      'pretty_quote': prettyQuote,
+      'quote_24h': quote24H,
+      'pretty_quote_24h': prettyQuote24H,
+      'nft_data': nftData?.map((x) => x.toMap()).toList(),
+    };
+  }
 }
 
 class TokenApproval {
   final EthereumAddress tokenAddress;
-  final String tokenAddressLabel;
-  final String tickerSymbol;
-  final int contractDecimals;
+  final String? tokenAddressLabel;
+  final String? tickerSymbol;
+  final int? contractDecimals;
   final String logoUrl;
-  final double quoteRate;
+  final double? quoteRate;
   final EtherAmount balance;
-  final double balanceQuote;
-  final String prettyBalanceQuote;
+  final double? balanceQuote;
+  final String? prettyBalanceQuote;
   final EtherAmount valueAtRisk;
-  final double valueAtRiskQuote;
-  final String prettyValueAtRiskQuote;
+  final double? valueAtRiskQuote;
+  final String? prettyValueAtRiskQuote;
   final List<Spender> spenders;
 
   TokenApproval({
@@ -198,39 +276,24 @@ class TokenApproval {
     required this.spenders,
   });
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'tokenAddress': tokenAddress.hex,
-      'tokenAddressLabel': tokenAddressLabel,
-      'tickerSymbol': tickerSymbol,
-      'contractDecimals': contractDecimals,
-      'logoUrl': logoUrl,
-      'quoteRate': quoteRate,
-      'balance': balance.getInWei.toString(),
-      'balanceQuote': balanceQuote,
-      'prettyBalanceQuote': prettyBalanceQuote,
-      'valueAtRisk': valueAtRisk.getInWei.toString(),
-      'valueAtRiskQuote': valueAtRiskQuote,
-      'prettyValueAtRiskQuote': prettyValueAtRiskQuote,
-      'spenders': spenders.map((x) => x.toMap()).toList(),
-    };
-  }
+  factory TokenApproval.fromJson(String source) =>
+      TokenApproval.fromMap(json.decode(source) as Map<String, dynamic>);
 
   factory TokenApproval.fromMap(Map<String, dynamic> map) {
     return TokenApproval(
-      tokenAddress: EthereumAddress.fromHex(map['tokenAddress']),
-      tokenAddressLabel: map['tokenAddressLabel'],
-      tickerSymbol: map['tickerSymbol'],
-      contractDecimals: map['contractDecimals'],
-      logoUrl: map['logoUrl'],
-      quoteRate: map['quoteRate'],
+      tokenAddress: EthereumAddress.fromHex(map['token_address']),
+      tokenAddressLabel: map['token_address_label'],
+      tickerSymbol: map['ticker_symbol'],
+      contractDecimals: map['contract_decimals'],
+      logoUrl: map['logo_url'],
+      quoteRate: map['quote_rate'],
       balance: EtherAmount.fromBase10String(EtherUnit.wei, map['balance']),
-      balanceQuote: map['balanceQuote'],
-      prettyBalanceQuote: map['prettyBalanceQuote'],
+      balanceQuote: map['balance_quote'],
+      prettyBalanceQuote: map['pretty_balance_quote'],
       valueAtRisk:
-          EtherAmount.fromBase10String(EtherUnit.wei, map['valueAtRisk']),
-      valueAtRiskQuote: map['valueAtRiskQuote'],
-      prettyValueAtRiskQuote: map['prettyValueAtRiskQuote'],
+          EtherAmount.fromBase10String(EtherUnit.wei, map['value_at_risk']),
+      valueAtRiskQuote: map['value_at_risk_quote'],
+      prettyValueAtRiskQuote: map['pretty_value_at_risk_quote'],
       spenders: List<Spender>.from(
         (map['spenders']).map<Spender>(
           (x) => Spender.fromMap(x),
@@ -241,84 +304,21 @@ class TokenApproval {
 
   String toJson() => json.encode(toMap());
 
-  factory TokenApproval.fromJson(String source) =>
-      TokenApproval.fromMap(json.decode(source) as Map<String, dynamic>);
-}
-
-class Spender {
-  final int blockHeight;
-  final int txOffset;
-  final int logOffset;
-  final DateTime blockSignedAt;
-  final String txHash;
-  final EthereumAddress spenderAddress;
-  final String? spenderAddressLabel;
-  final String allowance;
-  final double? allowanceQuote;
-  final String? prettyAllowanceQuote;
-  final EtherAmount valueAtRisk;
-  final double valueAtRiskQuote;
-  final String prettyValueAtRiskQuote;
-  final String riskFactor;
-
-  Spender({
-    required this.blockHeight,
-    required this.txOffset,
-    required this.logOffset,
-    required this.blockSignedAt,
-    required this.txHash,
-    required this.spenderAddress,
-    required this.spenderAddressLabel,
-    required this.allowance,
-    required this.allowanceQuote,
-    required this.prettyAllowanceQuote,
-    required this.valueAtRisk,
-    required this.valueAtRiskQuote,
-    required this.prettyValueAtRiskQuote,
-    required this.riskFactor,
-  });
-
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'blockHeight': blockHeight,
-      'txOffset': txOffset,
-      'logOffset': logOffset,
-      'blockSignedAt': blockSignedAt.toIso8601String(),
-      'txHash': txHash,
-      'spenderAddress': spenderAddress.hex,
-      'spenderAddressLabel': spenderAddressLabel,
-      'allowance': allowance,
-      'allowanceQuote': allowanceQuote,
-      'prettyAllowanceQuote': prettyAllowanceQuote,
-      'valueAtRisk': valueAtRisk.getInWei.toString(),
-      'valueAtRiskQuote': valueAtRiskQuote,
-      'prettyValueAtRiskQuote': prettyValueAtRiskQuote,
-      'riskFactor': riskFactor,
+      'token_address': tokenAddress.hex,
+      'token_address_label': tokenAddressLabel,
+      'ticker_symbol': tickerSymbol,
+      'contract_decimals': contractDecimals,
+      'logo_url': logoUrl,
+      'quote_rate': quoteRate,
+      'balance': balance.getInWei.toString(),
+      'balance_quote': balanceQuote,
+      'pretty_balance_quote': prettyBalanceQuote,
+      'value_at_risk': valueAtRisk.getInWei.toString(),
+      'value_at_risk_quote': valueAtRiskQuote,
+      'pretty_value_at_risk_quote': prettyValueAtRiskQuote,
+      'spenders': spenders.map((x) => x.toMap()).toList(),
     };
   }
-
-  factory Spender.fromMap(Map<String, dynamic> map) {
-    return Spender(
-      blockHeight: map['blockHeight'],
-      txOffset: map['txOffset'],
-      logOffset: map['logOffset'],
-      blockSignedAt: DateTime.parse(map['blockSignedAt']),
-      txHash: map['txHash'],
-      spenderAddress: EthereumAddress.fromHex(map['spenderAddress']),
-      spenderAddressLabel: map['spenderAddressLabel'],
-      allowance: map['allowance'] as String,
-      allowanceQuote: map['allowanceQuote'],
-      prettyAllowanceQuote: map['prettyAllowanceQuote'],
-      valueAtRisk:
-          EtherAmount.fromBase10String(EtherUnit.wei, map['valueAtRisk']),
-      valueAtRiskQuote: map['valueAtRiskQuote'],
-      prettyValueAtRiskQuote: map['prettyValueAtRiskQuote'],
-      riskFactor: map['riskFactor'],
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory Spender.fromJson(String source) =>
-      Spender.fromMap(json.decode(source) as Map<String, dynamic>);
 }
