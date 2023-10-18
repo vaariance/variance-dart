@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/dio_client.dart';
@@ -126,7 +125,6 @@ class AlchemyNftApi {
         .replace(queryParameters: queryParams)
         .toString();
 
-    log("requestUrl: $requestUrl");
     return await _dioClient.callWeb3Api<Map<String, dynamic>>(
       requestUrl,
     );

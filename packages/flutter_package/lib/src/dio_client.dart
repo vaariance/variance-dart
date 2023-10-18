@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
@@ -32,6 +33,23 @@ class DioClient {
 
   /// [callWeb3Api] calls the provided API url and returns the response.
   Future<T> callWeb3Api<T>(String apiUrl) async {
+    try {
+      final response = await _dio.get(apiUrl);
+      return response.data as T;
+    } on DioException catch (e) {
+      log(e.message!);
+      rethrow;
+    }
+  }
+
+  /// [callCovalentApi] calls a covalent endpoint and returns the response.
+  /// - @param [apiUrl] is the covalent endpoint url
+  /// - @param [apiKey] is the covalent api key
+  Future<T> callCovalentApi<T>(String apiUrl, String apiKey) async {
+    _dio.options.headers = {
+      "Authorization": "Basic ${base64.encode(utf8.encode(apiKey))}"
+    };
+    _dio.options.contentType = "application/json";
     try {
       final response = await _dio.get(apiUrl);
       return response.data as T;
