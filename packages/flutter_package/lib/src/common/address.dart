@@ -34,7 +34,7 @@ class Address extends EthereumAddress {
 
   /// [diceAvatar] returns the dice avatar of the address
   String diceAvatar() {
-    return 'https://avatars.dicebear.com/api/pixel-art/$hex.svg';
+    return "https://api.dicebear.com/7.x/pixel-art/svg";
   }
 
   /// [formattedAddress] formats the address
