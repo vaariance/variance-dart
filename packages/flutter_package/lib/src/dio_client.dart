@@ -26,7 +26,7 @@ class DioClient {
         data: data,
       );
     } on DioException catch (e) {
-      log(e.message!);
+      log("message: ${e.message}");
       rethrow;
     }
   }
@@ -37,7 +37,7 @@ class DioClient {
       final response = await _dio.get(apiUrl);
       return response.data as T;
     } on DioException catch (e) {
-      log(e.message!);
+      log("message: ${e.message}");
       rethrow;
     }
   }
@@ -54,7 +54,7 @@ class DioClient {
       final response = await _dio.get(apiUrl);
       return response.data as T;
     } on DioException catch (e) {
-      log(e.message!);
+      log("message: ${e.message}");
       rethrow;
     }
   }

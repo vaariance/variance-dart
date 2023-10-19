@@ -343,9 +343,9 @@ class Transfer {
   final String transferType;
   final BigInt delta;
   final EtherAmount? balance;
-  final double quoteRate;
-  final double deltaQuote;
-  final String prettyDeltaQuote;
+  final double? quoteRate;
+  final double? deltaQuote;
+  final String? prettyDeltaQuote;
   final double? balanceQuote;
   final Object? methodCalls;
 

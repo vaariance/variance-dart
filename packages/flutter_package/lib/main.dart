@@ -83,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
           final txs = CovalentTransactionsApi(apiKey, 'eth-mainnet');
           dev.log("first message");
-          print(
+          dev.log(
               "token: ${(await txs.getTokenTransfersByContract(vitalik, contractAddress: EthereumAddress.fromHex("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"))).transaction.first.toJson()}");
         },
         tooltip: 'Increment',
