@@ -1,5 +1,7 @@
 import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
+import 'package:pks_4337_sdk/pks_4337_sdk.dart' as wlt;
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/modules/covalent_api/covalent_api.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -33,8 +35,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  late final BaseProvider baseProvider;
+
+  wlt.Wallet wallet = wlt.Wallet(
+      signer: wlt.SignerType.credential,
+      chain: Chains.getChain(Chain.localhost)!);
+  String? rpcUrl;
   @override
   void initState() {
+    baseProvider = BaseProvider(rpcUrl!);
     super.initState();
   }
 
