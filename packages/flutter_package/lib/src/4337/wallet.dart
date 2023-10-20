@@ -13,7 +13,7 @@ import "package:web3dart/web3dart.dart";
 
 class Wallet extends Signer with Modules {
   // [PROVIDERS]
-  late final BaseProvider _client;
+  final BaseProvider _rpcProvider;
   final BundlerProvider _walletProvider;
   final IChain _walletChain;
 
@@ -35,6 +35,7 @@ class Wallet extends Signer with Modules {
       super.signer,
       EthereumAddress? address})
       : _walletChain = chain.validate(),
+        _rpcProvider = BaseProvider(chain.rpcUrl!),
         _walletProvider = BundlerProvider(chain),
         _walletAddress = address ?? Chains.zeroAddress {
     _initialize();
@@ -45,7 +46,7 @@ class Wallet extends Signer with Modules {
       ethRpc: _walletChain.rpcUrl, ens: true);
   Future<EtherAmount> get balance =>
       module("contract").getBalance(_walletAddress);
-  BaseProvider get baseProvider => _client;
+  BaseProvider get rpcProvider => _rpcProvider;
   Future<bool> get deployed => module("contract").deployed(_walletAddress);
   Future<Uint256> get nonce => _nonce();
   String get toHex => _walletAddress.hexEip55;
@@ -128,7 +129,7 @@ class Wallet extends Signer with Modules {
   ///[initCodeGas] is the gas required to deploy the wallet
   Future<BigInt> initCodeGas() {
     require(_initCode != null, "No init code");
-    return baseProvider.estimateGas(walletChain.entrypoint, _initCode!);
+    return rpcProvider.estimateGas(walletChain.entrypoint, _initCode!);
   }
 
   /// [initCode] is the init code for the [AccountFactory]
@@ -151,8 +152,8 @@ class Wallet extends Signer with Modules {
   /// - transfers module (default alchemyapi)
   void initializeDefaultModules() {
     setModule('nfts', AlchemyNftApi(_walletChain.rpcUrl!));
-    setModule('tokens', AlchemyTokenApi(_client));
-    setModule('transfers', AlchemyTransferApi(_client));
+    setModule('tokens', AlchemyTokenApi(_rpcProvider));
+    setModule('transfers', AlchemyTransferApi(_rpcProvider));
   }
 
   /// [send] transfers native tokens to another recipient
@@ -238,12 +239,11 @@ class Wallet extends Signer with Modules {
   }
 
   _initialize() {
-    _client = _walletProvider.client;
     _factory = AccountFactory(
         address: Chains.accountFactory,
-        client: Web3Client.custom(_walletProvider.client),
+        client: Web3Client.custom(_rpcProvider),
         chainId: _walletChain.chainId);
-    setModule('contract', Contract(_walletProvider.client));
+    setModule('contract', Contract(_rpcProvider));
   }
 
   /// [nonce] returns the nonce of the wallet
@@ -264,7 +264,7 @@ class Wallet extends Signer with Modules {
     final map = op.toMap();
     List<dynamic> reponses = await Future.wait([
       _walletProvider.estimateUserOperationGas(map, _walletChain.entrypoint),
-      _client.getGasPrice(),
+      _rpcProvider.getGasPrice(),
       nonce,
       deployed
     ]);
