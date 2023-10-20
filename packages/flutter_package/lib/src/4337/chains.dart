@@ -122,10 +122,10 @@ class Chains {
     // Localhost
     Chain.localhost: IChain(
         chainId: 1337,
-        explorer: "http://10.0.2.2:8545",
-        rpcUrl: "http://10.0.2.2:8545",
+        explorer: "http://localhost:8545",
+        rpcUrl: "http://localhost:8545",
         entrypoint: entrypoint,
-        bundlerUrl: "http://10.0.2.2:3000/rpc",
+        bundlerUrl: "http://localhost:3000/rpc",
         accountFactory: accountFactory)
   };
 

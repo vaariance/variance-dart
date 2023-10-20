@@ -119,8 +119,6 @@ class BundlerProvider {
     _initializeBundlerProvider();
   }
 
-  BaseProvider get client => _bundlerClient;
-
   ///[estimateUserOperationGas] estimates gas cost for user operation
   /// - @param [userOp] is the user operation
   /// - @param [entrypoint] is the entrypoint address operation should pass through
