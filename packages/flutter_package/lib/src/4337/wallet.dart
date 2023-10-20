@@ -13,7 +13,7 @@ import "package:web3dart/web3dart.dart";
 
 class Wallet extends Signer with Modules {
   // [PROVIDERS]
-  final BaseProvider _baseProvider;
+  late final BaseProvider _client;
   final BundlerProvider _walletProvider;
   final IChain _walletChain;
 
@@ -31,11 +31,11 @@ class Wallet extends Signer with Modules {
       {required IChain chain,
       super.hdkey,
       super.passkey,
+      super.credential,
       super.signer,
       EthereumAddress? address})
       : _walletChain = chain.validate(),
         _walletProvider = BundlerProvider(chain),
-        _baseProvider = BaseProvider(chain.rpcUrl!),
         _walletAddress = address ?? Chains.zeroAddress {
     _initialize();
   }
@@ -45,7 +45,7 @@ class Wallet extends Signer with Modules {
       ethRpc: _walletChain.rpcUrl, ens: true);
   Future<EtherAmount> get balance =>
       module("contract").getBalance(_walletAddress);
-  BaseProvider get baseProvider => _baseProvider;
+  BaseProvider get baseProvider => _client;
   Future<bool> get deployed => module("contract").deployed(_walletAddress);
   Future<Uint256> get nonce => _nonce();
   String get toHex => _walletAddress.hexEip55;
@@ -144,6 +144,17 @@ class Wallet extends Signer with Modules {
     return initCode;
   }
 
+  /// initializes the default [Wallet] modules
+  /// you can still call your custom method to set it.
+  /// - nft module (default alchemyapi)
+  /// - token module (default alchemyapi)
+  /// - transfers module (default alchemyapi)
+  void initializeDefaultModules() {
+    setModule('nfts', AlchemyNftApi(_walletChain.rpcUrl!));
+    setModule('tokens', AlchemyTokenApi(_client));
+    setModule('transfers', AlchemyTransferApi(_client));
+  }
+
   /// [send] transfers native tokens to another recipient
   /// - @param required [recipient] is the address of the user to send the transaction to
   /// - @param required [amount] is the amount to send
@@ -228,24 +239,12 @@ class Wallet extends Signer with Modules {
   }
 
   _initialize() {
-    _initializeModules();
+    _client = _walletProvider.client;
     _factory = AccountFactory(
         address: Chains.accountFactory,
-        client: Web3Client.custom(_baseProvider),
+        client: Web3Client.custom(_walletProvider.client),
         chainId: _walletChain.chainId);
-  }
-
-  /// initializes the [Wallet] modules
-  /// you can still override the default modules by setting yours.
-  /// - nft module
-  /// - token module
-  /// - contract module
-  /// - transfers module
-  _initializeModules() {
-    setModule('nfts', AlchemyNftApi(_baseProvider.rpcUrl));
-    setModule('tokens', AlchemyTokenApi(_baseProvider));
-    setModule('transfers', AlchemyTransferApi(_baseProvider));
-    setModule('contract', Contract(_baseProvider));
+    setModule('contract', Contract(_walletProvider.client));
   }
 
   /// [nonce] returns the nonce of the wallet
@@ -266,7 +265,7 @@ class Wallet extends Signer with Modules {
     final map = op.toMap();
     List<dynamic> reponses = await Future.wait([
       _walletProvider.estimateUserOperationGas(map, _walletChain.entrypoint),
-      _baseProvider.getGasPrice(),
+      _client.getGasPrice(),
       nonce,
       deployed
     ]);
@@ -311,13 +310,10 @@ class Wallet extends Signer with Modules {
         passkey: passkey,
         signer: signer,
         address: address);
-    final custom = Web3Client.custom(instance.baseProvider);
-    instance._walletProvider.initializeWithEntrypoint(
-        Entrypoint(
-          address: chain.entrypoint,
-          client: custom,
-        ),
-        custom);
+    instance._walletProvider.initializeWithEntrypoint(Entrypoint(
+      address: chain.entrypoint,
+      client: instance._factory.client,
+    ));
     return instance;
   }
 }

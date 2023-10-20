@@ -13,12 +13,7 @@ import 'package:web3dart/web3dart.dart';
 
 ///A JsonRPC wrapper for Bundler rpc.
 class BaseProvider extends JsonRPC {
-  final String _rpcUrl;
-  BaseProvider(String rpcUrl)
-      : _rpcUrl = rpcUrl,
-        super(rpcUrl, http.Client());
-
-  String get rpcUrl => _rpcUrl;
+  BaseProvider(String rpcUrl) : super(rpcUrl, http.Client());
 
   /// - @param [to] is the address or contract to send the transaction to
   /// - @param [calldata] is the calldata of the transaction
@@ -108,13 +103,13 @@ class BundlerProvider {
     'eth_getUserOperationReceipt',
     'eth_supportedEntryPoints',
   };
+
   final int _chainId;
   final String _bundlerUrl;
   final BaseProvider _bundlerClient;
 
   late final bool _initialized;
 
-  Web3Client? custom;
   Entrypoint? entrypoint;
 
   BundlerProvider(IChain chain)
@@ -123,6 +118,8 @@ class BundlerProvider {
         _bundlerClient = BaseProvider(chain.bundlerUrl!) {
     _initializeBundlerProvider();
   }
+
+  BaseProvider get client => _bundlerClient;
 
   ///[estimateUserOperationGas] estimates gas cost for user operation
   /// - @param [userOp] is the user operation
@@ -156,9 +153,8 @@ class BundlerProvider {
     return UserOperationReceipt.fromMap(opReceipt);
   }
 
-  initializeWithEntrypoint(Entrypoint ep, Web3Client bp) {
+  void initializeWithEntrypoint(Entrypoint ep) {
     entrypoint = ep;
-    custom = bp;
   }
 
   ///[sendUserOperation] sends a user operation to the given network
@@ -190,14 +186,13 @@ class BundlerProvider {
     if (millisecond == 0) {
       return null;
     }
-    require(entrypoint != null && custom != null,
-        "Entrypoint required! use Wallet.init");
-    final block = await custom!.getBlockNumber();
+    require(entrypoint != null, "Entrypoint required! use Wallet.init");
+    final block = await entrypoint!.client.getBlockNumber();
     final end = DateTime.now().millisecondsSinceEpoch + millisecond;
 
     return await Isolate.run(() async {
       while (DateTime.now().millisecondsSinceEpoch < end) {
-        final filterEvent = await custom!
+        final filterEvent = await entrypoint!.client
             .events(
               FilterOptions.events(
                 contract: entrypoint!.self,

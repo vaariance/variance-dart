@@ -31,7 +31,7 @@ class Chains {
   static EthereumAddress zeroAddress =
       EthereumAddress.fromHex("0x0000000000000000000000000000000000000000");
   static EthereumAddress accountFactory = EthereumAddress.fromHex(
-      "0x9406Cc6185a346906296840746125a0E44976454",
+      "0xCCaE5F64307D86346B83E55e7865f77906F9c7b4",
       enforceEip55: true);
 
   static Map<Chain, IChain> chains = {
@@ -131,8 +131,8 @@ class Chains {
 
   const Chains._();
 
-  static IChain? getChain(Chain entrypoint) {
-    return chains[entrypoint];
+  static IChain getChain(Chain network) {
+    return chains[network]!;
   }
 }
 
