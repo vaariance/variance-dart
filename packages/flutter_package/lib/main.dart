@@ -1,10 +1,10 @@
-import 'dart:developer' as dev;
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart' as wlt;
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/modules/covalent_api/covalent_api.dart';
 import 'package:pks_4337_sdk/src/signer/credential_key.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 void main() {
@@ -39,8 +39,12 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   //late final BaseProvider baseProvider;
   wlt.Wallet wallet = wlt.Wallet(
-      signer: wlt.SignerType.credential,
-      credential: CredentialKey.createRandom("12345678"),
+      signer: wlt.SignerType.passkey,
+      passkey: PassKey(
+        'https://example.com',
+        'Example',
+        'https://example.com',
+      ),
       chain: Chains.getChain(Chain.localhost));
 
   @override
@@ -92,7 +96,18 @@ class _MyHomePageState extends State<MyHomePage> {
           final tokenId = BigInt.from(44);
           const apiKey = 'cqt_rQxhPTkKmPYMYtYTYB9fCFTgrrY7';
 
-          log("address: ${wallet.toHex}, deployed: ${await wallet.deployed}, balance: ${(await wallet.balance).getInEther}, nonce: ${(await wallet.nonce).toInt()} rpc: ${wallet.walletChain.rpcUrl} bundlerUri: ${wallet.walletChain.bundlerUrl}");
+          log("address: ${wallet.toHex}");
+          log("deployed: ${await wallet.deployed}");
+          log("balance: ${(await wallet.balance).getInEther}");
+          log("nonce: ${(await wallet.nonce).toInt()} ");
+          log("rpc: ${wallet.walletChain.rpcUrl}");
+          log("bundlerUri: ${wallet.walletChain.bundlerUrl}");
+          await wallet.createPasskeyAccount(
+              hexToBytes(
+                  "0x11443c760977081fa9e927b08cab268f6e6783621f2a40102d8cc586e6dee3bc"),
+              Uint256.zero,
+              Uint256.zero,
+              Uint256.zero);
         },
         tooltip: 'Increment',
         child: const Icon(Icons.add),
