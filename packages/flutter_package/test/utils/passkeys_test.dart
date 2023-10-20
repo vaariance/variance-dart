@@ -143,11 +143,18 @@ void main() {
   });
 
   test('_get credential hex from base64 credential id', () {
+    final passkeyUtils = PassKey(
+      'https://example.com',
+      'Example',
+      'https://example.com',
+    );
+
     // Extract the credential ID from the authentication data.
     final List<int> credentialId =
         base64Url.decode("EUQ8dgl3CB-p6SewjKsmj25ng2IfKkAQLYzFhube47w=");
 
-    final credentialHash32 = PassKey.credentialIdToBytes32Hex(credentialId);
+    final credentialHash32 =
+        passkeyUtils.credentialIdToBytes32Hex(credentialId);
 
     expect(credentialHash32,
         "0x11443c760977081fa9e927b08cab268f6e6783621f2a40102d8cc586e6dee3bc");

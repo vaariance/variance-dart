@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/abi/abis.dart';
+import 'package:pks_4337_sdk/src/abis/abis.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -44,6 +44,9 @@ class Contract {
   ///[deployed] checks if a contract is deployed
   /// - @param [address] is the address of the contract
   Future<bool> deployed(EthereumAddress address) {
+    if (address.hex == Chains.zeroAddress.hex) {
+      return Future.value(false);
+    }
     final isDeployed = _provider
         .send<String>('eth_getCode', [address.hex])
         .then(hexToBytes)
@@ -54,6 +57,9 @@ class Contract {
   /// [getBalance] returns the amount of ether held by a contract
   /// - @param [address] is the address to get the balance of
   Future<EtherAmount> getBalance(EthereumAddress address) {
+    if (address.hex == Chains.zeroAddress.hex) {
+      return Future.value(EtherAmount.zero());
+    }
     return _provider
         .send<String>('eth_getBalance', [address.hex])
         .then(BigInt.parse)

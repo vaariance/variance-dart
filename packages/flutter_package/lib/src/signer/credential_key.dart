@@ -28,7 +28,8 @@ class CredentialKey implements CredentialKeyInterface {
     this._credential,
   );
 
-  String get address => _credential.privateKey.address.hexEip55;
+  @override
+  EthereumAddress get address => _credential.privateKey.address;
 
   Uint8List get publicKey => _credential.privateKey.encodedPublicKey;
 

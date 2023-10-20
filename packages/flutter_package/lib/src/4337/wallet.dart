@@ -3,12 +3,11 @@ library pks_4337_sdk;
 import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/abi/abis.dart';
-import 'package:pks_4337_sdk/src/abi/accountFactory.g.dart';
-import 'package:pks_4337_sdk/src/abi/entrypoint.g.dart';
+import 'package:pks_4337_sdk/src/abis/abis.dart';
+import 'package:pks_4337_sdk/src/abis/accountFactory.g.dart';
+import 'package:pks_4337_sdk/src/abis/entrypoint.g.dart';
 import 'package:pks_4337_sdk/src/modules/alchemy_api/alchemy_api.dart';
 import 'package:pks_4337_sdk/src/modules/base.dart';
-import 'package:pks_4337_sdk/src/signer/passkey_types.dart';
 import "package:web3dart/web3dart.dart";
 
 class Wallet extends Signer with Modules {
@@ -43,12 +42,13 @@ class Wallet extends Signer with Modules {
 
   // [GETTERS]
   Address get address => Address.fromEthAddress(_walletAddress,
-      ethRpc: _walletChain.rpcUrl, ens: true);
+      ethRpc: _walletChain.rpcUrl,
+      ens: _walletAddress == Chains.zeroAddress ? false : true);
   Future<EtherAmount> get balance =>
       module("contract").getBalance(_walletAddress);
-  BaseProvider get rpcProvider => _rpcProvider;
   Future<bool> get deployed => module("contract").deployed(_walletAddress);
   Future<Uint256> get nonce => _nonce();
+  BaseProvider get rpcProvider => _rpcProvider;
   String get toHex => _walletAddress.hexEip55;
   IChain get walletChain => _walletChain;
   BundlerProvider get walletProvider => _walletProvider;
@@ -93,12 +93,9 @@ class Wallet extends Signer with Modules {
   /// - @param optional [index] is the index of the wallet
   /// - @param optional [accountId] is the accountId of the wallet
   createAccount(Uint256 salt, {int? index, String? accountId}) async {
-    require(defaultSigner == SignerType.hdkey && hdkey != null,
-        "Create: HD Key instance is required!");
-    EthereumAddress owner = EthereumAddress.fromHex(
-        await hdkey!.getAddress(index ?? 0, id: accountId));
+    EthereumAddress owner = await _signerAddress(n: index, id: accountId);
     _initCode =
-        hexlify(initData(_factory, 'createAccount', [owner.hex, salt.value]));
+        hexlify(_initData(_factory, 'createAccount', [owner, salt.value]));
     _factory
         .getAddress(owner, salt.value)
         .then((value) => {_walletAddress = value});
@@ -117,7 +114,7 @@ class Wallet extends Signer with Modules {
       Uint8List credentialHex, Uint256 x, Uint256 y, Uint256 salt) async {
     require(defaultSigner == SignerType.passkey && passkey != null,
         "Create: PassKey instance is required!");
-    _initCode = hexlify(initData(_factory, 'createPasskeyAccount',
+    _initCode = hexlify(_initData(_factory, 'createPasskeyAccount',
         [credentialHex, x.value, y.value, salt.value]));
     _factory
         .getPasskeyAccountAddress(credentialHex, x.value, y.value, salt.value)
@@ -130,19 +127,6 @@ class Wallet extends Signer with Modules {
   Future<BigInt> initCodeGas() {
     require(_initCode != null, "No init code");
     return rpcProvider.estimateGas(walletChain.entrypoint, _initCode!);
-  }
-
-  /// [initCode] is the init code for the [AccountFactory]
-  /// - @param required walletAddress is the address of the wallet
-  /// - @param required [name] is the name of the account factory
-  /// - @param required [params] is the params of the account factory
-  ///
-  /// returns the init code for the [AccountFactory]
-  Uint8List initData(AccountFactory factory, String name, List params) {
-    final data = factory.self.function(name).encodeCall(params);
-    final initCode =
-        abi.encode(['address', 'bytes'], [factory.self.address, data]);
-    return initCode;
   }
 
   /// initializes the default [Wallet] modules
@@ -239,6 +223,18 @@ class Wallet extends Signer with Modules {
     return userOp;
   }
 
+  /// [_initData] is the init code for the [AccountFactory]
+  /// - @param required [name] is the name of the account factory
+  /// - @param required [params] is the params of the account factory
+  ///
+  /// returns the init code for the [AccountFactory]
+  Uint8List _initData(AccountFactory factory, String name, List params) {
+    final data = factory.self.function(name).encodeCall(params);
+    final initCode =
+        abi.encode(['address', 'bytes'], [factory.self.address, data]);
+    return initCode;
+  }
+
   _initialize() {
     _factory = AccountFactory(
         address: Chains.accountFactory,
@@ -249,13 +245,30 @@ class Wallet extends Signer with Modules {
 
   /// [nonce] returns the nonce of the wallet
   Future<Uint256> _nonce() async {
+    if (_walletAddress.hex == Chains.zeroAddress.hex) {
+      return Uint256.zero;
+    }
     try {
       return module("contract")
           .call<BigInt>(
               _walletAddress, ContractAbis.get('getNonce'), "getNonce")
           .then((value) => Uint256(value[0]));
     } catch (e) {
-      return Uint256(BigInt.zero);
+      return Uint256.zero;
+    }
+  }
+
+  Future<EthereumAddress> _signerAddress({int? n, String? id}) async {
+    switch (defaultSigner) {
+      case SignerType.hdkey:
+        require(hdkey != null, "Create: HD Key signer is required!");
+        return await hdkey!.getAddress(n ?? 0, id: id);
+      case SignerType.credential:
+        require(credential != null, "Create: Credential signer is required!");
+        return credential!.address;
+      default:
+        require(false, "Create: Unsupported Signer Type");
+        return Chains.zeroAddress;
     }
   }
 
@@ -317,24 +330,3 @@ class Wallet extends Signer with Modules {
     return instance;
   }
 }
-
-// Future userOptester() async {
-//   final uop = UserOperation(
-//     "0x3AcF7270a4e8D1d1b0656aA76E50C28a40446e77",
-//     BigInt.from(2),
-//     '0x',
-//     '0xb61d27f60000000000000000000000003acf7270a4e8d1d1b0656aa76e50c28a40446e77000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000004b0d691fe00000000000000000000000000000000000000000000000000000000',
-//     BigInt.from(55000),
-//     BigInt.from(80000),
-//     BigInt.from(51000),
-//     BigInt.zero,
-//     BigInt.zero,
-//     '0x065f98b3a6250d7a2ba16af1d9cd70e7399dfdd43a59b066fad919c0b0091d8a0ae13b9ee0dc11576f89fb86becac6febf1ea859cb5dad5f3aac3d024eb77f681c',
-//     '0x',
-//   ).toMap();
-
-//   final etp = await walletProvider.getUserOpReceipt(
-//       "0x968330a7d22692ee1214512ee474de65ff00d246440978de87e5740d09d2d354");
-//   log("etp: ${etp.toString()}");
-//   // walletProvider.sendUserOperation(et, entryPoint)
-// }
