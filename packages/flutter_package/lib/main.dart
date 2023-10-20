@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart' as wlt;
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/modules/covalent_api/covalent_api.dart';
+import 'package:pks_4337_sdk/src/signer/credential_key.dart';
 import 'package:web3dart/web3dart.dart';
 
 void main() {
@@ -35,15 +36,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late final BaseProvider baseProvider;
-
+  //late final BaseProvider baseProvider;
   wlt.Wallet wallet = wlt.Wallet(
       signer: wlt.SignerType.credential,
-      chain: Chains.getChain(Chain.localhost)!);
-  String? rpcUrl;
+      credential: CredentialKey.createRandom("12345678"),
+      chain: Chains.getChain(Chain.localhost));
+
   @override
   void initState() {
-    baseProvider = BaseProvider(rpcUrl!);
+    // baseProvider = BaseProvider(wallet.walletChain.rpcUrl!);
     super.initState();
   }
 
@@ -89,11 +90,6 @@ class _MyHomePageState extends State<MyHomePage> {
               "0xe785E82358879F061BC3dcAC6f0444462D4b5330");
           final tokenId = BigInt.from(44);
           const apiKey = 'cqt_rQxhPTkKmPYMYtYTYB9fCFTgrrY7';
-
-          final txs = CovalentTransactionsApi(apiKey, 'eth-mainnet');
-          dev.log("first message");
-          dev.log(
-              "token: ${(await txs.getTokenTransfersByContract(vitalik, contractAddress: EthereumAddress.fromHex("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"))).transaction.first.toJson()}");
         },
         tooltip: 'Increment',
         child: const Icon(Icons.add),
