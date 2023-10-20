@@ -10,10 +10,11 @@ import 'package:asn1lib/asn1lib.dart';
 import 'package:cbor/cbor.dart';
 import 'package:crypto/crypto.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/signer/passkey_types.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:webauthn/webauthn.dart';
+
+export 'passkey_types.dart';
 
 /// Webauthn [PassKeys]
 class PassKey implements PasskeyInterface {
@@ -86,6 +87,17 @@ class PassKey implements PasskeyInterface {
     /// Hashes client data using the sha256 hashing algorithm
     final sha256Hash = sha256.convert(dataBuffer);
     return Uint8List.fromList(sha256Hash.bytes);
+  }
+
+  /// converts the credentialId to an 32 bytes hex
+  /// - @param required [credentialId] is the credentialId
+  /// returns a 32 byte hex string
+  String credentialIdToBytes32Hex(List<int> credentialId) {
+    require(credentialId.length <= 32, "exception: credentialId too long");
+    while (credentialId.length < 32) {
+      credentialId.insert(0, 0);
+    }
+    return hexlify(credentialId);
   }
 
   ///The [getMessagingSignature] function takes in the [authResponseSignature] from passkeys auth
@@ -280,28 +292,17 @@ class PassKey implements PasskeyInterface {
 
   /// [credentialIdToBytes32Hex] converts a 32 byte credentialAddress hex to a base64 string
   /// - @param required [credentialId] is the credential hex
-  static String credentialHexToBase64(String credentialAddress) {
+  static String credentialHexToBase64(String credentialHex) {
     // Remove the "0x" prefix if present.
-    if (credentialAddress.startsWith("0x")) {
-      credentialAddress = credentialAddress.substring(2);
+    if (credentialHex.startsWith("0x")) {
+      credentialHex = credentialHex.substring(2);
     }
 
-    List<int> credentialId = hexToBytes(credentialAddress);
+    List<int> credentialId = hexToBytes(credentialHex);
 
     while (credentialId.isNotEmpty && credentialId[0] == 0) {
       credentialId.removeAt(0);
     }
     return base64Url.encode(credentialId);
-  }
-
-  /// converts the credentialId to an 32 bytes hex
-  /// - @param required [credentialId] is the credentialId
-  /// returns a 32 byte hex string
-  static String credentialIdToBytes32Hex(List<int> credentialId) {
-    require(credentialId.length <= 32, "exception: credentialId too long");
-    while (credentialId.length < 32) {
-      credentialId.insert(0, 0);
-    }
-    return hexlify(credentialId);
   }
 }

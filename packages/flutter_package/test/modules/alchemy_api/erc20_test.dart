@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:pks_4337_sdk/src/modules/alchemy_api/alchemy_api.dart';
 import 'package:pks_4337_sdk/src/common/uint256.dart';
 import 'package:web3dart/crypto.dart';
@@ -16,8 +17,8 @@ void main() {
       final expected = hexToBytes(
           "0x095ea7b3000000000000000000000000104edd9708ffeecd0b6baaa37387e155bce7d0600000000000000000000000000000000000000000000000000de0b6b3a7640000");
 
-      final calldata = AlchemyTokenApi.encodeERC20ApproveCall(
-          tokenContract, spender, amount);
+      final calldata =
+          Contract.encodeERC20ApproveCall(tokenContract, spender, amount);
 
       expect(calldata, expected);
     });
@@ -32,8 +33,8 @@ void main() {
       final expected = hexToBytes(
           "0xa9059cbb000000000000000000000000104edd9708ffeecd0b6baaa37387e155bce7d0600000000000000000000000000000000000000000000000000de0b6b3a7640000");
 
-      final calldata = AlchemyTokenApi.encodeERC20TransferCall(
-          tokenContract, spender, amount);
+      final calldata =
+          Contract.encodeERC20TransferCall(tokenContract, spender, amount);
 
       expect(calldata, expected);
     });

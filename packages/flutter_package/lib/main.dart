@@ -1,4 +1,5 @@
 import 'dart:developer' as dev;
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart' as wlt;
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
@@ -90,6 +91,8 @@ class _MyHomePageState extends State<MyHomePage> {
               "0xe785E82358879F061BC3dcAC6f0444462D4b5330");
           final tokenId = BigInt.from(44);
           const apiKey = 'cqt_rQxhPTkKmPYMYtYTYB9fCFTgrrY7';
+
+          log("address: ${wallet.toHex}, deployed: ${await wallet.deployed}, balance: ${(await wallet.balance).getInEther}, nonce: ${(await wallet.nonce).toInt()} rpc: ${wallet.walletChain.rpcUrl} bundlerUri: ${wallet.walletChain.bundlerUrl}");
         },
         tooltip: 'Increment',
         child: const Icon(Icons.add),
@@ -97,3 +100,23 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+// Future userOptester() async {
+//   final uop = UserOperation(
+//     "0x3AcF7270a4e8D1d1b0656aA76E50C28a40446e77",
+//     BigInt.from(2),
+//     '0x',
+//     '0xb61d27f60000000000000000000000003acf7270a4e8d1d1b0656aa76e50c28a40446e77000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000004b0d691fe00000000000000000000000000000000000000000000000000000000',
+//     BigInt.from(55000),
+//     BigInt.from(80000),
+//     BigInt.from(51000),
+//     BigInt.zero,
+//     BigInt.zero,
+//     '0x065f98b3a6250d7a2ba16af1d9cd70e7399dfdd43a59b066fad919c0b0091d8a0ae13b9ee0dc11576f89fb86becac6febf1ea859cb5dad5f3aac3d024eb77f681c',
+//     '0x',
+//   ).toMap();
+
+//   final etp = await walletProvider.getUserOpReceipt(
+//       "0x968330a7d22692ee1214512ee474de65ff00d246440978de87e5740d09d2d354");
+//   log("etp: ${etp.toString()}");
+//   // walletProvider.sendUserOperation(et, entryPoint)
+// }

@@ -6,7 +6,7 @@ import 'dart:isolate';
 
 import 'package:http/http.dart' as http;
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/abi/entrypoint.g.dart';
+import 'package:pks_4337_sdk/src/abis/entrypoint.g.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';

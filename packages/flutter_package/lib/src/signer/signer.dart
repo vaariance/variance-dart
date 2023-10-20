@@ -31,10 +31,10 @@ class Signer {
         require(
             id != null && id.isNotEmpty, "Passkey Credential ID is required");
         return await passkey!.sign(bytesToHex(hash), id!) as T;
-      case SignerType.credential:
-        return await credential!.sign(hash) as T;
-      default:
+      case SignerType.hdkey:
         return await hdkey!.sign(hash, index: index, id: id) as T;
+      default:
+        return await credential!.sign(hash) as T;
     }
   }
 }

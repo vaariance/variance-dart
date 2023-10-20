@@ -29,7 +29,7 @@ class HDKey implements HDkeyInterface {
   /// - @param [id] is the id of the account
   ///
   /// returns a new account
-  Future<String> addAccount(int index, {String? id}) async {
+  Future<EthereumAddress> addAccount(int index, {String? id}) async {
     await _authWrapper();
     final seed = await _getSecret(id: id);
     if (seed == null) throw Exception("addAccount: Not a Valid Wallet");
@@ -60,7 +60,7 @@ class HDKey implements HDkeyInterface {
   /// [generateAccount] generates a new account based on hd, stores the hdWallet on keystore
   /// - @param optional [id] is the id of the account
   ///returns an address
-  Future<String> generateAccount({String? id}) async {
+  Future<EthereumAddress> generateAccount({String? id}) async {
     final mnemonic = _generate();
     final seed = await _recover(mnemonic, id: id);
     return _add(seed, 0, id: id);
@@ -71,10 +71,10 @@ class HDKey implements HDkeyInterface {
   /// - @param optional [id] is the id of the account
   /// returns the address
   @override
-  Future<String> getAddress(int index, {String? id}) async {
+  Future<EthereumAddress> getAddress(int index, {String? id}) async {
     bip44.ExtendedPrivateKey hdKey = await _getHdKey(index, id: id);
     final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
-    return privKey.address.hexEip55;
+    return privKey.address;
   }
 
   /// [personalSign] signs a message with the private key
@@ -93,7 +93,7 @@ class HDKey implements HDkeyInterface {
   /// - @param optional [id] is the id of the account
   ///
   /// returns the address
-  Future<String> recoverAccount(String mnemonic, {String? id}) async {
+  Future<EthereumAddress> recoverAccount(String mnemonic, {String? id}) async {
     final seed = await _recover(mnemonic, id: id);
     return _add(seed, 0, id: id);
   }
@@ -136,10 +136,10 @@ class HDKey implements HDkeyInterface {
   ///- @param required [seed] is the seed
   /// - @param optional [index] is the index of the account
   /// - @param optional [id] is the id of the account
-  String _add(String seed, int index, {String? id}) {
+  EthereumAddress _add(String seed, int index, {String? id}) {
     final hdKey = _deriveHdKey(seed, index);
     final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
-    return privKey.address.hexEip55;
+    return privKey.address;
   }
 
   ///[_addSecret] Adds a seed to the client keystore using [flutter_secure_storage]
