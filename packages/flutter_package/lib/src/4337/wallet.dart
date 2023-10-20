@@ -92,7 +92,7 @@ class Wallet extends Signer with Modules {
   /// - @param required [salt] is the salt for the wallet
   /// - @param optional [index] is the index of the wallet
   /// - @param optional [accountId] is the accountId of the wallet
-  createAccount(Uint256 salt, {int? index, String? accountId}) async {
+  Future createAccount(Uint256 salt, {int? index, String? accountId}) async {
     EthereumAddress owner = await _signerAddress(n: index, id: accountId);
     _initCode =
         hexlify(_initData(_factory, 'createAccount', [owner, salt.value]));
@@ -110,7 +110,7 @@ class Wallet extends Signer with Modules {
   /// - @param required [x] is the x coordinate of the public key
   /// - @param required [y] is the y coordinate of the public key
   /// - @param required [salt] is the salt for create2
-  createPasskeyAccount(
+  Future createPasskeyAccount(
       Uint8List credentialHex, Uint256 x, Uint256 y, Uint256 salt) async {
     require(defaultSigner == SignerType.passkey && passkey != null,
         "Create: PassKey instance is required!");

@@ -48,7 +48,7 @@ class Contract {
       return Future.value(false);
     }
     final isDeployed = _provider
-        .send<String>('eth_getCode', [address.hex])
+        .send<String>('eth_getCode', [address.hex, 'latest'])
         .then(hexToBytes)
         .then((value) => value.isNotEmpty);
     return isDeployed;
@@ -61,7 +61,7 @@ class Contract {
       return Future.value(EtherAmount.zero());
     }
     return _provider
-        .send<String>('eth_getBalance', [address.hex])
+        .send<String>('eth_getBalance', [address.hex, 'latest'])
         .then(BigInt.parse)
         .then((value) => EtherAmount.fromBigInt(EtherUnit.wei, value));
   }
