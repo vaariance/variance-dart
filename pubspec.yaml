@@ -1,18 +1,11 @@
 name: pks_4337_sdk
 description: An Account Abstraction (4337) Development kit, for quickly building mobile web3 apps.
-
 version: 1.0.0+1
-homepage: https://github.com/peteruche21/Idw-poc.git
-
-publish_to: "none"
-
+homepage: https://github.com/infinit3-labs/4337-Dart.git
 environment:
     sdk: ">=3.0.6 <4.0.0"
 
 dependencies:
-    flutter:
-        sdk: flutter
-
     webauthn: ^0.2.0
     web3dart: ^2.6.1
     webcrypto: ^0.5.3
@@ -45,5 +38,3 @@ dev_dependencies:
     freezed: ^2.4.1
     json_serializable: ^6.7.1
 
-flutter:
-    uses-material-design: true
