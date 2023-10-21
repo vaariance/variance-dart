@@ -1,0 +1,23 @@
+{
+    "cSpell.words": [
+        "arbitrum",
+        "arrayify",
+        "cbor",
+        "hdkey",
+        "hdkeys",
+        "hexlify",
+        "keccak",
+        "passkeysafe",
+        "pointycastle",
+        "safelist",
+        "sepolia",
+        "specialnft",
+        "Spki",
+        "sublist",
+        "walletconnect",
+        "webcrypto"
+    ],
+    "conventionalCommits.scopes": [
+        "test common dart file"
+    ]
+}
