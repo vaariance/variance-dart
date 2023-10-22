@@ -7,7 +7,7 @@ environment:
 
 dependencies:
     webauthn: ^0.2.1
-    web3dart: ^2.6.1
+    web3dart: ^2.7.1
     webcrypto: ^0.5.3
     asn1lib: ^1.5.0
     uuid: ^3.0.7
@@ -15,7 +15,7 @@ dependencies:
     cbor: ^6.1.1
     flutter_secure_storage: ^9.0.0
     local_auth: ^2.1.7
-    http: ^0.13.5
+    http: ^0.13.6
     pointycastle: ^3.7.3
     walletconnect_flutter_v2: ^2.0.8
     bip39: ^1.0.6
@@ -38,3 +38,5 @@ dev_dependencies:
     json_serializable: ^6.7.1
     mockito: ^5.4.2
 
+dependency_overrides:
+  http: ^1.1.0
