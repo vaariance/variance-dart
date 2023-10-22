@@ -8,7 +8,6 @@ import 'dart:typed_data';
 import 'package:asn1lib/asn1lib.dart';
 // ignore: depend_on_referenced_packages
 import 'package:cbor/cbor.dart';
-import 'package:crypto/crypto.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web3dart/crypto.dart';
@@ -85,8 +84,8 @@ class PassKey implements PasskeyInterface {
     final dataBuffer = clientDataHash(options, challenge: challenge);
 
     /// Hashes client data using the sha256 hashing algorithm
-    final sha256Hash = sha256.convert(dataBuffer);
-    return Uint8List.fromList(sha256Hash.bytes);
+    final hash = sha256Hash(dataBuffer);
+    return Uint8List.fromList(hash.bytes);
   }
 
   /// converts the credentialId to an 32 bytes hex

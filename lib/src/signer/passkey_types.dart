@@ -14,7 +14,7 @@ class AuthData {
 class PassKeyPair {
   final Uint8List credentialHexBytes;
   final String credentialId;
-  final List<Uint256?> publicKey;
+  final List<Uint256> publicKey;
   final String name;
   final String aaGUID;
   final DateTime registrationTime;
