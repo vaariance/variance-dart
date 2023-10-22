@@ -181,10 +181,10 @@ packages:
     dependency: "direct main"
     description:
       name: cbor
-      sha256: a44a7e6e40d0b196b04af30282661ffc5d6b8b2bcb1d5200f422194c6e0f58fb
+      sha256: eccfcb3c16a46146517f6970d4d6df94bfd443e048d5825e85b9e23cc08d1132
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.2"
+    version: "6.1.1"
   characters:
     dependency: transitive
     description:
@@ -410,10 +410,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_secure_storage
-      sha256: "22dbf16f23a4bcf9d35e51be1c84ad5bb6f627750565edd70dab70f3ff5fff8f"
+      sha256: ffdbb60130e4665d2af814a0267c481bcf522c41ae2e43caf69fa0146876d685
       url: "https://pub.dev"
     source: hosted
-    version: "8.1.0"
+    version: "9.0.0"
   flutter_secure_storage_linux:
     dependency: transitive
     description:
@@ -450,10 +450,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_secure_storage_windows
-      sha256: "38f9501c7cb6f38961ef0e1eacacee2b2d4715c63cc83fe56449c4d3d0b47255"
+      sha256: "5809c66f9dd3b4b93b0a6e2e8561539405322ee767ac2f64d084e2ab5429d108"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.1"
+    version: "3.0.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -689,7 +689,7 @@ packages:
     source: hosted
     version: "1.0.4"
   mockito:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: mockito
       sha256: "7d5b53bcd556c1bc7ffbe4e4d5a19c3e112b7e925e9e172dd7c6ad0630812616"
@@ -1121,10 +1121,10 @@ packages:
     dependency: "direct main"
     description:
       name: webauthn
-      sha256: "438c6da1687f8d902221cca6017a60022208b60a0370a997efc15b4563cb9797"
+      sha256: "4aa5998e0405b625f19da8f992e190eb997aba5d70ee24715156a50ba840e5be"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.0"
+    version: "0.2.1"
   webcrypto:
     dependency: "direct main"
     description:
