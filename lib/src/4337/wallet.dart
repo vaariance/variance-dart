@@ -83,6 +83,11 @@ class Wallet extends Signer with Modules {
     );
   }
 
+  Future<EthereumAddress> getAccountAddress(
+      EthereumAddress owner, BigInt salt) async {
+    return await _factory.getAddress(owner, salt);
+  }
+
   /// [createAccount] creates a new wallet address.
   /// uses counterfactual deployment, so wallet may not actually be deployed
   /// given the same exact inputs, the same exact address will be generated.
@@ -96,9 +101,13 @@ class Wallet extends Signer with Modules {
     EthereumAddress owner = await _signerAddress(n: index, id: accountId);
     _initCode =
         hexlify(_initData(_factory, 'createAccount', [owner, salt.value]));
-    _factory
-        .getAddress(owner, salt.value)
-        .then((value) => {_walletAddress = value});
+    _walletAddress = await getAccountAddress(owner, salt.value);
+  }
+
+  Future<EthereumAddress> getPassKeyAccountAddress(
+      Uint8List credentialHex, Uint256 x, Uint256 y, Uint256 salt) async {
+    return await _factory.getPasskeyAccountAddress(
+        credentialHex, x.value, y.value, salt.value);
   }
 
   /// [createPasskeyAccount] creates a new Passkey wallet address.
@@ -116,11 +125,7 @@ class Wallet extends Signer with Modules {
         "Create: PassKey instance is required!");
     _initCode = hexlify(_initData(_factory, 'createPasskeyAccount',
         [credentialHex, x.value, y.value, salt.value]));
-    _factory
-        .getPasskeyAccountAddress(credentialHex, x.value, y.value, salt.value)
-        .then((value) => {
-              _walletAddress = value,
-            });
+    _walletAddress = await getPassKeyAccountAddress(credentialHex, x, y, salt);
   }
 
   ///[initCodeGas] is the gas required to deploy the wallet
