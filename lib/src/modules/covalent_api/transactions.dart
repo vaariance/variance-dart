@@ -85,12 +85,12 @@ class CovalentTransactionsApi extends BaseCovalentApi {
 }
 
 class GasMetadata {
-  final num contractDecimals;
-  final String contractName;
-  final String contractTickerSymbol;
-  final EthereumAddress contractAddress;
+  final num? contractDecimals;
+  final String? contractName;
+  final String? contractTickerSymbol;
+  final EthereumAddress? contractAddress;
   final List<String>? supportsErc;
-  final String logoUrl;
+  final String? logoUrl;
 
   GasMetadata({
     required this.contractDecimals,
@@ -124,7 +124,7 @@ class GasMetadata {
       'contract_decimals': contractDecimals,
       'contract_name': contractName,
       'contract_ticker_symbol': contractTickerSymbol,
-      'contract_address': contractAddress.hex,
+      'contract_address': contractAddress?.hex,
       'supports_erc': supportsErc,
       'logo_url': logoUrl,
     };
@@ -132,9 +132,9 @@ class GasMetadata {
 }
 
 class Pagination {
-  final bool hasMore;
-  final int pageNumber;
-  final int pageSize;
+  final bool? hasMore;
+  final int? pageNumber;
+  final int? pageSize;
   final int? totalCount;
 
   Pagination({
@@ -169,28 +169,28 @@ class Pagination {
 }
 
 class Transaction {
-  final DateTime blockSignedAt;
-  final int blockHeight;
+  final DateTime? blockSignedAt;
+  final int? blockHeight;
   final String? blockHash;
-  final String txHash;
-  final int txOffset;
-  final bool successful;
+  final String? txHash;
+  final int? txOffset;
+  final bool? successful;
   final EthereumAddress? minerAddress;
-  final EthereumAddress fromAddress;
+  final EthereumAddress? fromAddress;
   final String? fromAddressLabel;
-  final EthereumAddress toAddress;
+  final EthereumAddress? toAddress;
   final String? toAddressLabel;
-  final String value;
-  final double valueQuote;
-  final String prettyValueQuote;
+  final String? value;
+  final double? valueQuote;
+  final String? prettyValueQuote;
   final GasMetadata? gasMetadata;
-  final BigInt gasOffered;
-  final BigInt gasSpent;
-  final EtherAmount gasPrice;
-  final EtherAmount feesPaid;
-  final double gasQuote;
-  final String prettyGasQuote;
-  final double gasQuoteRate;
+  final BigInt? gasOffered;
+  final BigInt? gasSpent;
+  final EtherAmount? gasPrice;
+  final EtherAmount? feesPaid;
+  final double? gasQuote;
+  final String? prettyGasQuote;
+  final double? gasQuoteRate;
   final List<Transfer>? transfers;
   final List<Map<String, dynamic>>? logs;
 
@@ -267,16 +267,16 @@ class Transaction {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'block_signed_at': blockSignedAt.toIso8601String(),
+      'block_signed_at': blockSignedAt?.toIso8601String(),
       'block_height': blockHeight,
       'block_hash': blockHash,
       'tx_hash': txHash,
       'tx_offset': txOffset,
       'successful': successful,
       'miner_address': minerAddress?.hex,
-      'from_address': fromAddress.hex,
+      'from_address': fromAddress?.hex,
       'from_address_label': fromAddressLabel,
-      'to_address': toAddress.hex,
+      'to_address': toAddress?.hex,
       'to_address_label': toAddressLabel,
       'value': value,
       'value_quote': valueQuote,
@@ -284,8 +284,8 @@ class Transaction {
       'gas_metadata': gasMetadata?.toMap(),
       'gas_offered': gasOffered.toString(),
       'gas_spent': gasSpent.toString(),
-      'gas_price': gasPrice.getInWei.toString(),
-      'fees_paid': feesPaid.getInWei.toString(),
+      'gas_price': gasPrice?.getInWei.toString(),
+      'fees_paid': feesPaid?.getInWei.toString(),
       'gas_quote': gasQuote,
       'pretty_gas_quote': prettyGasQuote,
       'gas_quote_rate': gasQuoteRate,
@@ -296,8 +296,8 @@ class Transaction {
 }
 
 class TransactionRecord {
-  final Pagination pagination;
-  final List<Transaction> transaction;
+  final Pagination? pagination;
+  final List<Transaction>? transaction;
 
   TransactionRecord({
     required this.pagination,
@@ -322,26 +322,26 @@ class TransactionRecord {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'pagination': pagination.toMap(),
-      'transaction': transaction.map((x) => x.toMap()).toList(),
+      'pagination': pagination?.toMap(),
+      'transaction': transaction?.map((x) => x.toMap()).toList(),
     };
   }
 }
 
 class Transfer {
-  final DateTime blockSignedAt;
-  final String txHash;
-  final EthereumAddress fromAddress;
+  final DateTime? blockSignedAt;
+  final String? txHash;
+  final EthereumAddress? fromAddress;
   final String? fromAddressLabel;
-  final EthereumAddress toAddress;
+  final EthereumAddress? toAddress;
   final String? toAddressLabel;
-  final int contractDecimals;
-  final String contractName;
-  final String contractTickerSymbol;
-  final EthereumAddress contractAddress;
-  final String logoUrl;
-  final String transferType;
-  final BigInt delta;
+  final int? contractDecimals;
+  final String? contractName;
+  final String? contractTickerSymbol;
+  final EthereumAddress? contractAddress;
+  final String? logoUrl;
+  final String? transferType;
+  final BigInt? delta;
   final EtherAmount? balance;
   final double? quoteRate;
   final double? deltaQuote;
@@ -406,16 +406,16 @@ class Transfer {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'block_signed_at': blockSignedAt.toIso8601String(),
+      'block_signed_at': blockSignedAt?.toIso8601String(),
       'tx_hash': txHash,
-      'from_address': fromAddress.hex,
+      'from_address': fromAddress?.hex,
       'from_address_label': fromAddressLabel,
-      'to_address': toAddress.hex,
+      'to_address': toAddress?.hex,
       'to_address_label': toAddressLabel,
       'contract_decimals': contractDecimals,
       'contract_name': contractName,
       'contract_ticker_symbol': contractTickerSymbol,
-      'contract_address': contractAddress.hex,
+      'contract_address': contractAddress?.hex,
       'logo_url': logoUrl,
       'transfer_type': transferType,
       'delta': delta.toString(),

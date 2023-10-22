@@ -62,17 +62,17 @@ enum QuoteCurrency {
 }
 
 class Spender {
-  final int blockHeight;
-  final int txOffset;
-  final int logOffset;
-  final DateTime blockSignedAt;
-  final String txHash;
-  final EthereumAddress spenderAddress;
+  final int? blockHeight;
+  final int? txOffset;
+  final int? logOffset;
+  final DateTime? blockSignedAt;
+  final String? txHash;
+  final EthereumAddress? spenderAddress;
   final String? spenderAddressLabel;
-  final String allowance;
+  final String? allowance;
   final double? allowanceQuote;
   final String? prettyAllowanceQuote;
-  final EtherAmount valueAtRisk;
+  final EtherAmount? valueAtRisk;
   final double? valueAtRiskQuote;
   final String? prettyValueAtRiskQuote;
   final String? riskFactor;
@@ -124,14 +124,14 @@ class Spender {
       'block_height': blockHeight,
       'tx_offset': txOffset,
       'log_offset': logOffset,
-      'block_signed_at': blockSignedAt.toIso8601String(),
+      'block_signed_at': blockSignedAt?.toIso8601String(),
       'tx_hash': txHash,
-      'spender_address': spenderAddress.hex,
+      'spender_address': spenderAddress?.hex,
       'spender_address_label': spenderAddressLabel,
       'allowance': allowance,
       'allowance_quote': allowanceQuote,
       'pretty_allowance_quote': prettyAllowanceQuote,
-      'value_at_risk': valueAtRisk.getInWei.toString(),
+      'value_at_risk': valueAtRisk?.getInWei.toString(),
       'value_at_risk_quote': valueAtRiskQuote,
       'pretty_value_at_risk_quote': prettyValueAtRiskQuote,
       'risk_factor': riskFactor,
@@ -140,18 +140,18 @@ class Spender {
 }
 
 class Token {
-  final int contractDecimals;
+  final int? contractDecimals;
   final String? contractName;
   final String? contractTickerSymbol;
-  final EthereumAddress contractAddress;
+  final EthereumAddress? contractAddress;
   final List<String>? supportsErc;
-  final String logoUrl;
-  final DateTime lastTransferredAt;
-  final bool nativeToken;
-  final String type;
-  final bool isSpam;
-  final EtherAmount balance;
-  final EtherAmount balance24H;
+  final String? logoUrl;
+  final DateTime? lastTransferredAt;
+  final bool? nativeToken;
+  final String? type;
+  final bool? isSpam;
+  final EtherAmount? balance;
+  final EtherAmount? balance24H;
   final double? quoteRate;
   final double? quoteRate24H;
   final double? quote;
@@ -225,15 +225,15 @@ class Token {
       'contract_decimals': contractDecimals,
       'contract_name': contractName,
       'contract_ticker_symbol': contractTickerSymbol,
-      'contract_address': contractAddress.hex,
+      'contract_address': contractAddress?.hex,
       'supports_erc': supportsErc,
       'logo_url': logoUrl,
-      'last_transferred_at': lastTransferredAt.toIso8601String(),
+      'last_transferred_at': lastTransferredAt?.toIso8601String(),
       'native_token': nativeToken,
       'type': type,
       'is_spam': isSpam,
-      'balance': balance.getInWei.toString(),
-      'balance_24h': balance24H.getInWei.toString(),
+      'balance': balance?.getInWei.toString(),
+      'balance_24h': balance24H?.getInWei.toString(),
       'quote_rate': quoteRate,
       'quote_rate_24h': quoteRate24H,
       'quote': quote,
@@ -246,19 +246,19 @@ class Token {
 }
 
 class TokenApproval {
-  final EthereumAddress tokenAddress;
+  final EthereumAddress? tokenAddress;
   final String? tokenAddressLabel;
   final String? tickerSymbol;
   final int? contractDecimals;
   final String logoUrl;
   final double? quoteRate;
-  final EtherAmount balance;
+  final EtherAmount? balance;
   final double? balanceQuote;
   final String? prettyBalanceQuote;
-  final EtherAmount valueAtRisk;
+  final EtherAmount? valueAtRisk;
   final double? valueAtRiskQuote;
   final String? prettyValueAtRiskQuote;
-  final List<Spender> spenders;
+  final List<Spender>? spenders;
 
   TokenApproval({
     required this.tokenAddress,
@@ -306,19 +306,19 @@ class TokenApproval {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'token_address': tokenAddress.hex,
+      'token_address': tokenAddress?.hex,
       'token_address_label': tokenAddressLabel,
       'ticker_symbol': tickerSymbol,
       'contract_decimals': contractDecimals,
       'logo_url': logoUrl,
       'quote_rate': quoteRate,
-      'balance': balance.getInWei.toString(),
+      'balance': balance?.getInWei.toString(),
       'balance_quote': balanceQuote,
       'pretty_balance_quote': prettyBalanceQuote,
-      'value_at_risk': valueAtRisk.getInWei.toString(),
+      'value_at_risk': valueAtRisk?.getInWei.toString(),
       'value_at_risk_quote': valueAtRiskQuote,
       'pretty_value_at_risk_quote': prettyValueAtRiskQuote,
-      'spenders': spenders.map((x) => x.toMap()).toList(),
+      'spenders': spenders?.map((x) => x.toMap()).toList(),
     };
   }
 }
