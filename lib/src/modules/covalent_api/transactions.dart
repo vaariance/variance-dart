@@ -109,7 +109,9 @@ class GasMetadata {
       contractDecimals: map['contract_decimals'],
       contractName: map['contract_name'],
       contractTickerSymbol: map['contract_ticker_symbol'],
-      contractAddress: EthereumAddress.fromHex(map['contract_address']),
+      contractAddress: map['contract_address'] != null
+          ? EthereumAddress.fromHex(map['contract_address'])
+          : null,
       supportsErc: map['supports_erc'] != null
           ? List<String>.from((map['supports_erc'] as List<String>))
           : null,
@@ -225,7 +227,9 @@ class Transaction {
 
   factory Transaction.fromMap(Map<String, dynamic> map) {
     return Transaction(
-        blockSignedAt: DateTime.parse(map['block_signed_at']),
+        blockSignedAt: map['block_signed_at'] != null
+            ? DateTime.parse(map['block_signed_at'])
+            : null,
         blockHeight: map['block_height'],
         blockHash: map['block_hash'],
         txHash: map['tx_hash'],
@@ -234,9 +238,13 @@ class Transaction {
         minerAddress: map['miner_address'] != null
             ? EthereumAddress.fromHex(map['miner_address'])
             : null,
-        fromAddress: EthereumAddress.fromHex(map['from_address']),
+        fromAddress: map['from_address'] != null
+            ? EthereumAddress.fromHex(map['from_address'])
+            : null,
         fromAddressLabel: map['from_address_label'],
-        toAddress: EthereumAddress.fromHex(map['to_address']),
+        toAddress: map['to_address'] != null
+            ? EthereumAddress.fromHex(map['to_address'])
+            : null,
         toAddressLabel: map['to_address_label'],
         value: map['value'],
         valueQuote: map['value_quote'].toDouble(),
@@ -244,10 +252,16 @@ class Transaction {
         gasMetadata: map['gas_metadata'] != null
             ? GasMetadata.fromMap(map['gas_metadata'])
             : null,
-        gasOffered: BigInt.from(map['gas_offered']),
-        gasSpent: BigInt.from(map['gas_spent']),
-        gasPrice: EtherAmount.fromInt(EtherUnit.wei, map['gas_price']),
-        feesPaid: EtherAmount.fromBase10String(EtherUnit.wei, map['fees_paid']),
+        gasOffered:
+            map['gas_offered'] != null ? BigInt.from(map['gas_offered']) : null,
+        gasSpent:
+            map['gas_spent'] != null ? BigInt.from(map['gas_spent']) : null,
+        gasPrice: map['gas_price'] != null
+            ? EtherAmount.fromInt(EtherUnit.wei, map['gas_price'])
+            : null,
+        feesPaid: map['fees_paid'] != null
+            ? EtherAmount.fromBase10String(EtherUnit.wei, map['fees_paid'])
+            : null,
         gasQuote: map['gas_quote'],
         prettyGasQuote: map['pretty_gas_quote'],
         gasQuoteRate: map['gas_quote_rate'],
@@ -309,12 +323,16 @@ class TransactionRecord {
 
   factory TransactionRecord.fromMap(Map<String, dynamic> map) {
     return TransactionRecord(
-      pagination: Pagination.fromMap(map['pagination'] as Map<String, dynamic>),
-      transaction: List<Transaction>.from(
-        (map['items']).map<Transaction>(
-          (x) => Transaction.fromMap(x),
-        ),
-      ),
+      pagination: map['pagination'] != null
+          ? Pagination.fromMap(map['pagination'] as Map<String, dynamic>)
+          : null,
+      transaction: map['items'] != null
+          ? List<Transaction>.from(
+              (map['items']).map<Transaction>(
+                (x) => Transaction.fromMap(x),
+              ),
+            )
+          : null,
     );
   }
 
@@ -376,19 +394,27 @@ class Transfer {
 
   factory Transfer.fromMap(Map<String, dynamic> map) {
     return Transfer(
-      blockSignedAt: DateTime.parse(map['block_signed_at']),
+      blockSignedAt: map['block_signed_at'] != null
+          ? DateTime.parse(map['block_signed_at'])
+          : null,
       txHash: map['tx_hash'],
-      fromAddress: EthereumAddress.fromHex(map['from_address']),
+      fromAddress: map['from_address'] != null
+          ? EthereumAddress.fromHex(map['from_address'])
+          : null,
       fromAddressLabel: map['from_address_label'],
-      toAddress: EthereumAddress.fromHex(map['to_address']),
+      toAddress: map['to_address'] != null
+          ? EthereumAddress.fromHex(map['to_address'])
+          : null,
       toAddressLabel: map['to_address_label'],
       contractDecimals: map['contract_decimals'],
       contractName: map['contract_name'],
       contractTickerSymbol: map['contract_ticker_symbol'],
-      contractAddress: EthereumAddress.fromHex(map['contract_address']),
+      contractAddress: map['contract_address'] != null
+          ? EthereumAddress.fromHex(map['contract_address'])
+          : null,
       logoUrl: map['logo_url'],
       transferType: map['transfer_type'],
-      delta: BigInt.parse(map['delta']),
+      delta: map['delta'] != null ? BigInt.parse(map['delta']) : null,
       balance: map['balance'] != null
           ? EtherAmount.fromBase10String(EtherUnit.wei, map['balance'])
           : null,
