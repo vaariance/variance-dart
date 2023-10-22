@@ -5,7 +5,6 @@ import 'dart:typed_data';
 
 import 'package:bip32_bip44/dart_bip32_bip44.dart' as bip44;
 import "package:bip39/bip39.dart" as bip39;
-import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
@@ -149,7 +148,7 @@ class HDKey implements HDkeyInterface {
     if (id != null) {
       id = id + ksNamespace;
     }
-    final key = _sha256(id ?? ksNamespace);
+    final key = sha256Hash(utf8.encode(id ?? ksNamespace)).toString();
     await _keyStore.write(key: key, value: seed);
   }
 
@@ -237,13 +236,5 @@ class HDKey implements HDkeyInterface {
     final seed = bip39.mnemonicToSeedHex(mnemonic);
     await _addSecret(seed, id: id);
     return seed;
-  }
-
-  ///[_sha256] Internal function that returns the sha256 hash of an id
-  /// - @param required [id] is the id of the account
-  String _sha256(String id) {
-    final bytes = utf8.encode(id);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
   }
 }
