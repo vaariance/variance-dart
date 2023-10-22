@@ -102,15 +102,20 @@ class Spender {
       blockHeight: map['block_height'],
       txOffset: map['tx_offset'],
       logOffset: map['log_offset'],
-      blockSignedAt: DateTime.parse(map['block_signed_at']),
+      blockSignedAt: map['block_signed_at'] != null
+          ? DateTime.parse(map['block_signed_at'])
+          : null,
       txHash: map['tx_hash'],
-      spenderAddress: EthereumAddress.fromHex(map['spender_address']),
+      spenderAddress: map['spender_address'] != null
+          ? EthereumAddress.fromHex(map['spender_address'])
+          : null,
       spenderAddressLabel: map['spender_address_label'],
       allowance: map['allowance'] as String,
       allowanceQuote: map['allowance_quote'],
       prettyAllowanceQuote: map['pretty_allowance_quote'],
-      valueAtRisk:
-          EtherAmount.fromBase10String(EtherUnit.wei, map['value_at_risk']),
+      valueAtRisk: map['value_at_risk'] != null
+          ? EtherAmount.fromBase10String(EtherUnit.wei, map['value_at_risk'])
+          : null,
       valueAtRiskQuote: map['value_at_risk_quote'],
       prettyValueAtRiskQuote: map['pretty_value_at_risk_quote'],
       riskFactor: map['risk_factor'],
@@ -190,18 +195,25 @@ class Token {
       contractDecimals: map['contract_decimals'],
       contractName: map['contract_name'],
       contractTickerSymbol: map['contract_ticker_symbol'],
-      contractAddress: EthereumAddress.fromHex(map['contract_address']),
+      contractAddress: map['contract_address'] != null
+          ? EthereumAddress.fromHex(map['contract_address'])
+          : null,
       supportsErc: map['supports_erc'] != null
           ? List<String>.from(map['supports_erc'])
           : null,
       logoUrl: map['logo_url'],
-      lastTransferredAt: DateTime.parse(map['last_transferred_at']),
+      lastTransferredAt: map['last_transferred_at'] != null
+          ? DateTime.parse(map['last_transferred_at'])
+          : null,
       nativeToken: map['native_token'],
       type: map['type'],
       isSpam: map['is_spam'],
-      balance: EtherAmount.fromBase10String(EtherUnit.wei, map['balance']),
-      balance24H:
-          EtherAmount.fromBase10String(EtherUnit.wei, map['balance_24h']),
+      balance: map['balance'] != null
+          ? EtherAmount.fromBase10String(EtherUnit.wei, map['balance'])
+          : null,
+      balance24H: map['balance_24h'] != null
+          ? EtherAmount.fromBase10String(EtherUnit.wei, map['balance_24h'])
+          : null,
       quoteRate: map['quote_rate'],
       quoteRate24H: map['quote_rate_24h'],
       quote: map['quote'],
@@ -281,25 +293,31 @@ class TokenApproval {
 
   factory TokenApproval.fromMap(Map<String, dynamic> map) {
     return TokenApproval(
-      tokenAddress: EthereumAddress.fromHex(map['token_address']),
-      tokenAddressLabel: map['token_address_label'],
-      tickerSymbol: map['ticker_symbol'],
-      contractDecimals: map['contract_decimals'],
-      logoUrl: map['logo_url'],
-      quoteRate: map['quote_rate'],
-      balance: EtherAmount.fromBase10String(EtherUnit.wei, map['balance']),
-      balanceQuote: map['balance_quote'],
-      prettyBalanceQuote: map['pretty_balance_quote'],
-      valueAtRisk:
-          EtherAmount.fromBase10String(EtherUnit.wei, map['value_at_risk']),
-      valueAtRiskQuote: map['value_at_risk_quote'],
-      prettyValueAtRiskQuote: map['pretty_value_at_risk_quote'],
-      spenders: List<Spender>.from(
-        (map['spenders']).map<Spender>(
-          (x) => Spender.fromMap(x),
-        ),
-      ),
-    );
+        tokenAddress: map['token_address'] != null
+            ? EthereumAddress.fromHex(map['token_address'])
+            : null,
+        tokenAddressLabel: map['token_address_label'],
+        tickerSymbol: map['ticker_symbol'],
+        contractDecimals: map['contract_decimals'],
+        logoUrl: map['logo_url'],
+        quoteRate: map['quote_rate'],
+        balance: map['balance'] != null
+            ? EtherAmount.fromBase10String(EtherUnit.wei, map['balance'])
+            : null,
+        balanceQuote: map['balance_quote'],
+        prettyBalanceQuote: map['pretty_balance_quote'],
+        valueAtRisk: map['value_at_risk'] != null
+            ? EtherAmount.fromBase10String(EtherUnit.wei, map['value_at_risk'])
+            : null,
+        valueAtRiskQuote: map['value_at_risk_quote'],
+        prettyValueAtRiskQuote: map['pretty_value_at_risk_quote'],
+        spenders: map['spenders'] != null
+            ? List<Spender>.from(
+                (map['spenders']).map<Spender>(
+                  (x) => Spender.fromMap(x),
+                ),
+              )
+            : null);
   }
 
   String toJson() => json.encode(toMap());
