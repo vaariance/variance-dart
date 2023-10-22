@@ -2,8 +2,6 @@
 
 import 'dart:typed_data';
 
-// ignore: implementation_imports
-import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
 import 'package:web3dart/web3dart.dart';
 
 // ignore: camel_case_types

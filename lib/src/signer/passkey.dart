@@ -141,7 +141,7 @@ class PassKey implements PasskeyInterface {
       throw "Invalid public key";
     }
     return PassKeyPair(
-      authData.credentialHex,
+      hexToBytes(authData.credentialHex),
       authData.credentialId,
       [
         Uint256.fromHex(authData.publicKey[0]),
