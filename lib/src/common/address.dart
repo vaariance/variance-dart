@@ -4,7 +4,7 @@ import 'package:web3dart/web3dart.dart';
 
 ///[Address] extends EthereumAddress with ENS address resolution
 class Address extends EthereumAddress {
-  String _ens = "";
+  String? _ens;
   final String _baseRpc = 'https://rpc.ankr.com/eth';
 
   Address(super.addressBytes, {String? ethRpc, bool ens = false}) {
@@ -25,7 +25,7 @@ class Address extends EthereumAddress {
     });
   }
 
-  String get ens => _ens;
+  String? get ens => _ens;
 
   /// [avatarUrl] returns the avatar url of the address
   String avatarUrl() {
@@ -47,8 +47,8 @@ class Address extends EthereumAddress {
   /// [getEnsName] gets the name tied to an address
   /// - @param [ethRpc] is the base rpc url
   /// - returns the name as [String] additionally sets the [_ens]
-  Future<String> getEnsName({String? ethRpc}) async {
-    return _ens.isEmpty ? await _setEnsName(ethRpc ?? _baseRpc) : _ens;
+  Future<String?> getEnsName({String? ethRpc}) async {
+    return _ens ?? await _setEnsName(ethRpc ?? _baseRpc);
   }
 
   /// toEthAddress returns an [EthereumAddress]
