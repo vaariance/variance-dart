@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:web3dart/crypto.dart' as crypto;
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 /// [UserOperation] model for user operations
@@ -47,14 +47,14 @@ class UserOperation {
         ], [
           sender,
           nonce,
-          keccak256(crypto.hexToBytes(initCode)),
-          keccak256(crypto.hexToBytes(callData)),
+          keccak256(hexToBytes(initCode)),
+          keccak256(hexToBytes(callData)),
           callGasLimit,
           verificationGasLimit,
           preVerificationGas,
           maxFeePerGas,
           maxPriorityFeePerGas,
-          keccak256(crypto.hexToBytes(paymasterAndData)),
+          keccak256(hexToBytes(paymasterAndData)),
         ]));
 
   factory UserOperation.fromJson(String source) =>

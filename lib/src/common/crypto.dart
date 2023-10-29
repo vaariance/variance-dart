@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-// ignore: depend_on_referenced_packages
-import 'package:crypto/crypto.dart' as crypto;
-import 'package:pointycastle/export.dart';
+import 'package:crypto/crypto.dart';
 import 'package:webcrypto/webcrypto.dart';
 
 /// Converts [hexString] to its [Uint8List] representation that can be used in solidity
@@ -53,15 +51,8 @@ String hexlify(List<int> b) {
   return "0x${ss.join('')}";
 }
 
-///[keccak256] implements Solidity keccak256
-/// - @param required [input] is the Uint8List value
-Uint8List keccak256(Uint8List input) {
-  final digest = KeccakDigest(256);
-  return digest.process(input);
-}
-
-crypto.Digest sha256Hash(List<int> input) {
-  return crypto.sha256.convert(input);
+Digest sha256Hash(List<int> input) {
+  return sha256.convert(input);
 }
 
 /// Solidity style require for checking if a condition is met
