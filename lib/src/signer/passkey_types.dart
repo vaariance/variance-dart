@@ -1,3 +1,5 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
@@ -20,6 +22,37 @@ class PassKeyPair {
   final DateTime registrationTime;
   PassKeyPair(this.credentialHexBytes, this.credentialId, this.publicKey,
       this.name, this.aaGUID, this.registrationTime);
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'credentialHexBytes': credentialHexBytes.toList(),
+      'credentialId': credentialId,
+      'publicKey': publicKey.map((x) => x.toHex()).toList(),
+      'name': name,
+      'aaGUID': aaGUID,
+      'registrationTime': registrationTime.millisecondsSinceEpoch,
+    };
+  }
+
+  factory PassKeyPair.fromMap(Map<String, dynamic> map) {
+    return PassKeyPair(
+      Uint8List.fromList(map['credentialHexBytes']),
+      map['credentialId'],
+      List<Uint256>.from(
+        (map['publicKey'] as List<String>).map<Uint256>(
+          (x) => Uint256.fromHex(x),
+        ),
+      ),
+      map['name'],
+      map['aaGUID'],
+      DateTime.fromMillisecondsSinceEpoch(map['registrationTime']),
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory PassKeyPair.fromJson(String source) =>
+      PassKeyPair.fromMap(json.decode(source) as Map<String, dynamic>);
 }
 
 class PassKeySignature {
