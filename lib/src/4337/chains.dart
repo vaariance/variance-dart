@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:web3dart/credentials.dart';
 
@@ -23,7 +22,6 @@ enum Chain {
   localhost
 }
 
-@immutable
 class Chains {
   static EthereumAddress entrypoint = EthereumAddress.fromHex(
       "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
