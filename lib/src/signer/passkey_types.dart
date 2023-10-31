@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 
-
 class AuthData {
   final String credentialHex; // 32 bytes hex
   final String credentialId; // base64Url

@@ -48,6 +48,7 @@ class BaseProvider extends JsonRPC {
           EtherAmount.fromBigInt(EtherUnit.wei, maxPriorityFeePerGas.value)
     };
   }
+ 
   ///[getLegacyGasPrice] returns the legacy gas price in wei for a network
   Future<Map<String, EtherAmount>> getGasPrice() async {
     try {

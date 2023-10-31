@@ -68,7 +68,6 @@ class ERC1155Metadata {
   }
 }
 
-
 class Metadata {
   final String? name;
   final String? image;
@@ -218,7 +217,6 @@ class OpenSeaMetadata {
     };
   }
 }
-
 
 class RawMetadata {
   final String? tokenUri;

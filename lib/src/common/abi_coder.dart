@@ -18,7 +18,7 @@ class abi {
   /// [decode] decodes a list of types and values
   /// - @param required types is a list of string types
   /// - @param required values is a list of dynamic values
-  /// 
+  ///
   /// returns a list of decoded value and types
   static List<T> decode<T>(List<String> types, Uint8List value) {
     List<AbiType> abiTypes = [];
@@ -33,7 +33,7 @@ class abi {
   /// [encode] encodes a list of types and values
   /// - @param required types is a list of string types
   /// - @param required values is a list of dynamic values
-  /// 
+  ///
   /// returns a [Uint8List] containing the ABI encoded types and values.
   static Uint8List encode(List<String> types, List<dynamic> values) {
     List<AbiType> abiTypes = [];
