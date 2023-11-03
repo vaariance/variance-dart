@@ -7,7 +7,7 @@ import 'package:bip32_bip44/dart_bip32_bip44.dart' as bip44;
 import "package:bip39/bip39.dart" as bip39;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:vaariance_dart/vaariance.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 

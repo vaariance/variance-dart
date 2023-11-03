@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:pks_4337_sdk/src/common/uint256.dart';
+import 'package:vaariance_dart/vaariance.dart';
+
 
 class Collection {
   String name;

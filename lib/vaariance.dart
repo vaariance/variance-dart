@@ -1,4 +1,4 @@
-library pks_4337_sdk;
+library vaariance_dart;
 
 export '/src/4337/wallet.dart';
 export 'src/4337/provider.dart';

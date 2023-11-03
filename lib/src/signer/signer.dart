@@ -2,7 +2,8 @@ library pks_4337_sdk;
 
 import 'dart:typed_data';
 
-import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+
+import 'package:vaariance_dart/vaariance.dart';
 import 'package:web3dart/crypto.dart';
 
 export 'hd_key.dart';

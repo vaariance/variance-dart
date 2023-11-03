@@ -1,13 +1,12 @@
-library pks_4337_sdk;
+library vaariance_dart;
 
 import 'dart:typed_data';
-
-import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/abis/abis.dart';
-import 'package:pks_4337_sdk/src/abis/accountFactory.g.dart';
-import 'package:pks_4337_sdk/src/abis/entrypoint.g.dart';
-import 'package:pks_4337_sdk/src/modules/alchemy_api/alchemy_api.dart';
-import 'package:pks_4337_sdk/src/modules/base.dart';
+import 'package:vaariance_dart/src/abis/abis.dart';
+import 'package:vaariance_dart/src/abis/accountFactory.g.dart';
+import 'package:vaariance_dart/src/abis/entrypoint.g.dart';
+import 'package:vaariance_dart/src/modules/alchemy_api/alchemy_api.dart';
+import 'package:vaariance_dart/src/modules/base.dart';
+import 'package:vaariance_dart/vaariance.dart';
 import "package:web3dart/web3dart.dart";
 
 class Wallet extends Signer with Modules {
@@ -194,7 +193,6 @@ class Wallet extends Signer with Modules {
     return _walletProvider.sendUserOperation(
         op.toMap(), _walletChain.entrypoint);
   }
-
 
   /// [sendUserOperation] sends a user operation to the wallet
   /// - @param required [op] is the [UserOperation]

@@ -1,9 +1,9 @@
 import 'dart:typed_data';
-
-import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/abis/abis.dart';
+import 'package:vaariance_dart/vaariance.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
+
+import '../abis/abis.dart';
 
 /// A Wrapper for the Contract Object
 /// for interacting with deployed contracts.
