@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:vaariance_dart/vaariance.dart';
+import 'package:variance_dart/variance.dart';
 
 
 

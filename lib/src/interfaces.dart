@@ -1,5 +1,6 @@
 import 'dart:typed_data';
-import 'package:vaariance_dart/vaariance.dart';
+
+import '../variance.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 

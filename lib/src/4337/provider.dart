@@ -5,8 +5,8 @@ import 'dart:developer';
 import 'dart:isolate';
 
 import 'package:http/http.dart' as http;
-import 'package:vaariance_dart/src/abis/entrypoint.g.dart';
-import 'package:vaariance_dart/vaariance.dart';
+import 'package:variance_dart/src/abis/entrypoint.g.dart';
+import 'package:variance_dart/variance.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
@@ -28,7 +28,7 @@ class BaseProvider extends JsonRPC {
     return hexToInt(amountHex);
   }
 
-  /// 
+  ///
   Future<int> getBlockNumber() {
     return _makeRPCCall<String>('eth_blockNumber')
         .then((s) => hexToInt(s).toInt());
@@ -48,6 +48,7 @@ class BaseProvider extends JsonRPC {
           EtherAmount.fromBigInt(EtherUnit.wei, maxPriorityFeePerGas.value)
     };
   }
+
   ///[getLegacyGasPrice] returns the legacy gas price in wei for a network
   Future<Map<String, EtherAmount>> getGasPrice() async {
     try {
@@ -178,7 +179,7 @@ class BundlerProvider {
     return List.castFrom(entrypointList);
   }
 
-  ///[wait] when called, runs in a separate [Isolate] and 
+  ///[wait] when called, runs in a separate [Isolate] and
   ///returns a [FilterEvent] based on an event emitted by the smart contract
   Future<FilterEvent?> wait({int millisecond = 0}) async {
     if (millisecond == 0) {

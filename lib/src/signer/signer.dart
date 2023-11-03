@@ -1,9 +1,8 @@
-library pks_4337_sdk;
+library variance_dart;
 
 import 'dart:typed_data';
 
-
-import 'package:vaariance_dart/vaariance.dart';
+import 'package:variance_dart/variance.dart';
 import 'package:web3dart/crypto.dart';
 
 export 'hd_key.dart';

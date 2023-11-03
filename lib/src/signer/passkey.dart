@@ -9,7 +9,7 @@ import 'package:asn1lib/asn1lib.dart';
 // ignore: depend_on_referenced_packages
 import 'package:cbor/cbor.dart';
 import 'package:uuid/uuid.dart';
-import 'package:vaariance_dart/vaariance.dart';
+import 'package:variance_dart/variance.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:webauthn/webauthn.dart';
 

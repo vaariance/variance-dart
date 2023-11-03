@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:vaariance_dart/src/dio_client.dart';
-import 'package:vaariance_dart/vaariance.dart';
+
+import 'package:variance_dart/src/dio_client.dart';
+import 'package:variance_dart/variance.dart';
 import 'package:web3dart/web3dart.dart';
 
 import 'utils/enum.dart';

@@ -1,5 +1,5 @@
 
-import 'package:vaariance_dart/vaariance.dart';
+import 'package:variance_dart/variance.dart';
 import 'package:web3dart/credentials.dart';
 
 enum Chain {

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:vaariance_dart/src/interfaces.dart';
+
+import 'package:variance_dart/src/interfaces.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
