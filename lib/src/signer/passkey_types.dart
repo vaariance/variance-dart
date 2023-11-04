@@ -2,7 +2,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:pks_4337_sdk/pks_4337_sdk.dart';
+import 'package:variance_dart/variance.dart';
+
+
 
 
 class AuthData {

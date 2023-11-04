@@ -1,7 +1,8 @@
-name: pks_4337_sdk
+name: variance_dart
 description: An Account Abstraction (4337) Development kit, for quickly building mobile web3 apps.
 version: 1.0.0+1
-homepage: https://github.com/infinit3-labs/4337-Dart.git
+publish_to: none
+homepage: https://github.com/vaariance/vaariance-dart.git
 environment:
   sdk: ">=3.0.6 <4.0.0"
 

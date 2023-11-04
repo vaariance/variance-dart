@@ -1,10 +1,11 @@
 import 'dart:convert';
 
-import 'package:pks_4337_sdk/pks_4337_sdk.dart';
-import 'package:pks_4337_sdk/src/dio_client.dart';
-import 'package:pks_4337_sdk/src/modules/alchemy_api/utils/enum.dart';
-import 'package:pks_4337_sdk/src/modules/alchemy_api/utils/metadatas.dart';
+import 'package:variance_dart/src/dio_client.dart';
+import 'package:variance_dart/variance.dart';
 import 'package:web3dart/web3dart.dart';
+
+import 'utils/enum.dart';
+import 'utils/metadatas.dart';
 
 ///[AlchemyNftApi] module
 ///

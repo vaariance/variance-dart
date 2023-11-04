@@ -8,8 +8,8 @@ import 'dart:typed_data';
 import 'package:asn1lib/asn1lib.dart';
 // ignore: depend_on_referenced_packages
 import 'package:cbor/cbor.dart';
-import 'package:pks_4337_sdk/pks_4337_sdk.dart';
 import 'package:uuid/uuid.dart';
+import 'package:variance_dart/variance.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:webauthn/webauthn.dart';
 
