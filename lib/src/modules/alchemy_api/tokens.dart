@@ -1,3 +1,5 @@
+library variance_dart;
+
 import 'dart:convert';
 
 import 'package:variance_dart/variance.dart';
