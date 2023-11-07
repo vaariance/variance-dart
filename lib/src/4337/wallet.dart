@@ -84,8 +84,8 @@ class Wallet extends Signer with Modules {
   }
 
   Future<EthereumAddress> getAccountAddress(
-      EthereumAddress owner, BigInt salt) async {
-    return await _factory.getAddress(owner, salt);
+      EthereumAddress owner, Uint256 salt) async {
+    return await _factory.getAddress(owner, salt.value);
   }
 
   /// [createAccount] creates a new wallet address.
@@ -101,7 +101,7 @@ class Wallet extends Signer with Modules {
     EthereumAddress owner = await _signerAddress(n: index, id: accountId);
     _initCode =
         hexlify(_initData(_factory, 'createAccount', [owner, salt.value]));
-    _walletAddress = await getAccountAddress(owner, salt.value);
+    getAccountAddress(owner, salt).then((value) => {_walletAddress = value});
   }
 
   Future<EthereumAddress> getPassKeyAccountAddress(
@@ -125,7 +125,8 @@ class Wallet extends Signer with Modules {
         "Create: PassKey instance is required!");
     _initCode = hexlify(_initData(_factory, 'createPasskeyAccount',
         [credentialHex, x.value, y.value, salt.value]));
-    _walletAddress = await getPassKeyAccountAddress(credentialHex, x, y, salt);
+    getPassKeyAccountAddress(credentialHex, x, y, salt)
+        .then((value) => {_walletAddress = value});
   }
 
   ///[initCodeGas] is the gas required to deploy the wallet
@@ -241,7 +242,7 @@ class Wallet extends Signer with Modules {
 
   _initialize() {
     _factory = AccountFactory(
-        address: Chains.accountFactory,
+        address: _walletChain.accountFactory,
         client: Web3Client.custom(_rpcProvider),
         chainId: _walletChain.chainId);
     setModule('contract', Contract(_rpcProvider));
