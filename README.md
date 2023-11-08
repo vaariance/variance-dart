@@ -8,5 +8,5 @@ supports:
     - - [x] passkeys (secp256r1)
     - - [x] default (secp256k1)
     - - [x] DIY (custom schemes)
-- [x] safe core protocol
+- [] safe core protocol
 - [x] SDK plugins
