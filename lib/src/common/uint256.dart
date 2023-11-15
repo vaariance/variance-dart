@@ -1,14 +1,10 @@
-import 'package:web3dart/crypto.dart';
-import 'package:web3dart/web3dart.dart';
+part of 'common.dart';
 
-/// 64 bit length big number, same as in solidity
-/// always 64 bit in length, zero padded if necessary
-class Uint256 {
+class Uint256 implements Uint256Base {
   final BigInt _value;
 
   Uint256(this._value);
 
-  ///create and return a Uint256 value from hex values
   factory Uint256.fromHex(String hex) {
     return Uint256(hexToInt(hex));
   }
@@ -17,33 +13,38 @@ class Uint256 {
     return Uint256(inWei.getInWei);
   }
 
+  @override
   BigInt get value => _value;
 
   static Uint256 get zero => Uint256(BigInt.zero);
 
+  @override
   Uint256 operator *(Uint256 other) {
     return Uint256(_value * other._value);
   }
 
+  @override
   Uint256 operator +(Uint256 other) {
     return Uint256(_value + other._value);
   }
 
+  @override
   Uint256 operator -(Uint256 other) {
     return Uint256(_value - other._value);
   }
 
+  @override
   Uint256 operator /(Uint256 other) {
     return Uint256(BigInt.from(_value / other._value));
   }
 
-  /// convert to hex
+  @override
   String toHex() {
     final hexString = _value.toRadixString(16);
-    return '0x${hexString.padLeft(64, '0')}'; // Ensure it's 256 bits
+    return '0x${hexString.padLeft(64, '0')}';
   }
 
-  /// convert to int
+  @override
   int toInt() {
     return _value.toInt();
   }
@@ -53,7 +54,7 @@ class Uint256 {
     return toHex();
   }
 
-  /// convert to EtherAmount in wei
+  @override
   EtherAmount toWei() {
     return EtherAmount.fromBigInt(EtherUnit.wei, _value);
   }

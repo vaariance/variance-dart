@@ -1,23 +1,83 @@
-library pks_4337_sdk;
+part of 'package:variance_dart/variance.dart';
 
-import 'dart:async';
-import 'dart:convert';
-import 'dart:developer';
-import 'dart:typed_data';
+class AuthData {
+  final String credentialHex;
+  final String credentialId;
+  final List<String> publicKey;
+  final String aaGUID;
+  AuthData(this.credentialHex, this.credentialId, this.publicKey, this.aaGUID);
+}
 
-import 'package:asn1lib/asn1lib.dart';
-// ignore: depend_on_referenced_packages
-import 'package:cbor/cbor.dart';
-import 'package:uuid/uuid.dart';
-import 'package:variance_dart/variance.dart';
-import 'package:web3dart/crypto.dart';
-import 'package:webauthn/webauthn.dart';
+class PassKeyPair {
+  final Uint8List credentialHexBytes;
+  final String credentialId;
+  final List<Uint256> publicKey;
+  final String name;
+  final String aaGUID;
+  final DateTime registrationTime;
+  PassKeyPair(this.credentialHexBytes, this.credentialId, this.publicKey,
+      this.name, this.aaGUID, this.registrationTime);
 
-export 'passkey_types.dart';
+  factory PassKeyPair.fromJson(String source) =>
+      PassKeyPair.fromMap(json.decode(source) as Map<String, dynamic>);
 
-/// Webauthn [PassKeys] 
-class PassKey implements PasskeyInterface {
-  static const _makeCredentialJson = '''{
+  factory PassKeyPair.fromMap(Map<String, dynamic> map) {
+    return PassKeyPair(
+      Uint8List.fromList(map['credentialHexBytes']),
+      map['credentialId'],
+      List<Uint256>.from(
+        (map['publicKey'] as List<String>).map<Uint256>(
+          (x) => Uint256.fromHex(x),
+        ),
+      ),
+      map['name'],
+      map['aaGUID'],
+      DateTime.fromMillisecondsSinceEpoch(map['registrationTime']),
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'credentialHexBytes': credentialHexBytes.toList(),
+      'credentialId': credentialId,
+      'publicKey': publicKey.map((x) => x.toHex()).toList(),
+      'name': name,
+      'aaGUID': aaGUID,
+      'registrationTime': registrationTime.millisecondsSinceEpoch,
+    };
+  }
+}
+
+class PassKeySignature {
+  final String credentialId;
+  final List<Uint256> rs;
+  final Uint8List authData;
+  final String clientDataPrefix;
+  final String clientDataSuffix;
+  PassKeySignature(this.credentialId, this.rs, this.authData,
+      this.clientDataPrefix, this.clientDataSuffix);
+
+  Uint8List toList() {
+    return abi.encode([
+      'uint256',
+      'uint256',
+      'bytes',
+      'string',
+      'string'
+    ], [
+      rs[0].value,
+      rs[1].value,
+      authData,
+      clientDataPrefix,
+      clientDataSuffix
+    ]);
+  }
+}
+
+class PassKeySigner implements PasskeyInterface {
+  final _makeCredentialJson = '''{
     "authenticatorExtensions": "",
     "clientDataHash": "",
     "credTypesAndPubKeyAlgs": [
@@ -37,7 +97,8 @@ class PassKey implements PasskeyInterface {
         "id": ""
     }
   }''';
-  static const getAssertionJson = '''{
+
+  final _getAssertionJson = '''{
     "allowCredentialDescriptorList": [],
     "authenticatorExtensions": "",
     "clientDataHash": "",
@@ -50,7 +111,10 @@ class PassKey implements PasskeyInterface {
 
   final Authenticator _auth;
 
-  PassKey(String namespace, String name, String origin, {bool? crossOrigin})
+  String? _defaultId;
+
+  PassKeySigner(String namespace, String name, String origin,
+      {bool? crossOrigin})
       : _opts = PassKeysOptions(
           namespace: namespace,
           name: name,
@@ -59,12 +123,13 @@ class PassKey implements PasskeyInterface {
         ),
         _auth = Authenticator(true, true);
 
+  @override
   PassKeysOptions get opts => _opts;
 
-  /// [clientDataHash] creates a client data hash
-  /// - @param [options] is the options object
-  /// -@param [challenge] is a random challenge
-  /// returns a [Uint8List]
+  @override
+  String? get defaultId => _defaultId;
+
+  @override
   Uint8List clientDataHash(PassKeysOptions options, {String? challenge}) {
     options.challenge = challenge ?? _randomChallenge(options);
     final clientDataJson = jsonEncode({
@@ -76,21 +141,14 @@ class PassKey implements PasskeyInterface {
     return Uint8List.fromList(utf8.encode(clientDataJson));
   }
 
-  ///[clientDataHash32] must return a 32 bytes value
-  /// - @param [options] is the options object
-  /// -@param [challenge] is a random challenge
-  /// returns hash
+  @override
   Uint8List clientDataHash32(PassKeysOptions options, {String? challenge}) {
     final dataBuffer = clientDataHash(options, challenge: challenge);
-
-    /// Hashes client data using the sha256 hashing algorithm
     final hash = sha256Hash(dataBuffer);
     return Uint8List.fromList(hash.bytes);
   }
 
-  /// converts the credentialId to an 32 bytes hex
-  /// - @param required [credentialId] is the credentialId
-  /// returns a 32 byte hex string
+  @override
   String credentialIdToBytes32Hex(List<int> credentialId) {
     require(credentialId.length <= 32, "exception: credentialId too long");
     while (credentialId.length < 32) {
@@ -99,14 +157,12 @@ class PassKey implements PasskeyInterface {
     return hexlify(credentialId);
   }
 
-  ///The [getMessagingSignature] function takes in the [authResponseSignature] from passkeys auth
-  ///It uses the [ASN1Parser] to parse the signature decoded from base64
-  ///and checks for objects in the List using the [nextObject] stream from the [ASN1Parser]
-  ///we then check for the elements by index
-  ///Remove leading zeros using [shouldRemoveLeadingZero]
-  ///and convert to hex using [hexlify]
-  ///and return a list of [String] [r] and [s]
-  /// - @param required [signatureBytes] is the base64 encoded signature
+  @override
+  String getAddress({int index = 0, bytes}) {
+    return credentialIdToBytes32Hex(bytes);
+  }
+
+  @override
   Future<List<String>> getMessagingSignature(Uint8List signatureBytes) async {
     ASN1Parser parser = ASN1Parser(signatureBytes);
     ASN1Sequence parsedSignature = parser.nextObject() as ASN1Sequence;
@@ -127,11 +183,15 @@ class PassKey implements PasskeyInterface {
     return [r, s];
   }
 
-  /// Call the [register] function in your flutter app
-  /// to register a user and return a [PassKeyPair] key pair
-  /// - @param required [name] is the user name
-  /// - @param required [requiresUserVerification] is true if user verification is required
-  /// returns a [PassKeyPair]
+  @override
+  Future<Uint8List> personalSign(Uint8List hash,
+      {int? index, String? id}) async {
+    require(id != null, "credential id expected");
+    final signature = await signToPasskeySignature(hash, id!);
+    return signature.toList();
+  }
+
+  @override
   Future<PassKeyPair> register(
       String name, bool requiresUserVerification) async {
     final attestation = await _register(name, requiresUserVerification);
@@ -139,6 +199,7 @@ class PassKey implements PasskeyInterface {
     if (authData.publicKey.length != 2) {
       throw "Invalid public key";
     }
+    _defaultId = authData.credentialId;
     return PassKeyPair(
       hexToBytes(authData.credentialHex),
       authData.credentialId,
@@ -152,28 +213,41 @@ class PassKey implements PasskeyInterface {
     );
   }
 
-  /// [sign] Signs the intended request and returns the signedMessage
-  /// - @param required [hash] is the hash of the intended request
-  /// - @param required [credentialId] is the credential id
-  /// returns a [PassKeySignature]
   @override
-  Future<PassKeySignature> sign(String hash, String credentialId) async {
-    final options = _opts;
-    options.type = "webauthn.get";
-    final hash32 = hash.length == 64 ? hash : hash.substring(2);
+  Future<MsgSignature> signToEc(Uint8List hash,
+      {int? index, String? id}) async {
+    require(id != null, "credential id expected");
+    final signature = await signToPasskeySignature(hash, id!);
+    return MsgSignature(signature.rs[0].value, signature.rs[1].value, 0);
+  }
+
+  @override
+  Future<PassKeySignature> signToPasskeySignature(
+      Uint8List hash, String credentialId) async {
+    final webAuthnOptions = _opts;
+    webAuthnOptions.type = "webauthn.get";
+
+    // Prepare hash
     final hashBase64 = base64Url
-        .encode(arrayify(hash32))
+        .encode(hash)
         .replaceAll(RegExp(r'=', multiLine: true, caseSensitive: false), '');
-    final challenge32 = clientDataHash32(options, challenge: hashBase64);
+
+    // Prepare challenge
+    final challenge32 =
+        clientDataHash32(webAuthnOptions, challenge: hashBase64);
+
+    // Authenticate
     final assertion = await _authenticate([credentialId], challenge32, true);
     final sig = await getMessagingSignature(assertion.signature);
-    log("{signature: $assertion.signature}");
-    final challenge = clientDataHash(options, challenge: hashBase64);
+
+    // Prepare challenge for response
+    final challenge = clientDataHash(webAuthnOptions, challenge: hashBase64);
     final clientDataJSON = utf8.decode(challenge);
     int challengePos = clientDataJSON.indexOf(hashBase64);
     String challengePrefix = clientDataJSON.substring(0, challengePos);
     String challengeSuffix =
         clientDataJSON.substring(challengePos + hashBase64.length);
+
     return PassKeySignature(
       base64Url.encode(assertion.selectedCredentialId),
       [
@@ -186,15 +260,9 @@ class PassKey implements PasskeyInterface {
     );
   }
 
-  ///[_authenticate] authenticates a user and returns an [Assertion]
-  ///- @param required [credentialIds] is the credential ids
-  ///- @param required [challenge] is a random challenge as part of the auth process
-  ///- @param required [requiresUserVerification] is true if user verification is required
-  /// returns an [Assertion]
   Future<Assertion> _authenticate(List<String> credentialIds,
       Uint8List challenge, bool requiresUserVerification) async {
-    final entity = GetAssertionOptions.fromJson(jsonDecode(getAssertionJson));
-    log("credentialIds: $credentialIds");
+    final entity = GetAssertionOptions.fromJson(jsonDecode(_getAssertionJson));
     entity.allowCredentialDescriptorList = credentialIds
         .map((credentialId) => PublicKeyCredentialDescriptor(
             type: PublicKeyCredentialType.publicKey,
@@ -210,9 +278,6 @@ class PassKey implements PasskeyInterface {
     return await _auth.getAssertion(entity);
   }
 
-  /// [_decode] Decodes the raw authentication data to extract relevant authentication details
-  /// - @param required [authData] is the raw authentication data received from the authentication process.
-  /// returns an AuthData object containing decoded authentication details
   AuthData _decode(dynamic authData) {
     // Extract the length of the public key from the authentication data.
     final l = (authData[53] << 8) + authData[54];
@@ -243,32 +308,21 @@ class PassKey implements PasskeyInterface {
         credentialHex, base64Url.encode(credentialId), [x, y], aaGUID);
   }
 
-  ///[_decodeAttestation] Decodes the attestation certificate data to extract relevant authentication details.
-  /// - @param required [attestation] is the attestation certificate
-  /// returns an [AuthData] object
   AuthData _decodeAttestation(Attestation attestation) {
     final attestationAsCbor = attestation.asCBOR();
     final decodedAttestationAsCbor =
         cbor.decode(attestationAsCbor).toObject() as Map;
     final authData = decodedAttestationAsCbor["authData"];
     final decode = _decode(authData);
-    log("decoded: $decode");
     return decode;
   }
 
-  ///Creates random values with [Uuid] to generate a challenge
-  /// - @param required [options] is the options object
-  /// returns a [String]
   String _randomChallenge(PassKeysOptions options) {
     final uuid = const Uuid()
         .v5buffer(Uuid.NAMESPACE_URL, options.name, List<int>.filled(32, 0));
     return base64Url.encode(uuid);
   }
 
-  ///[_register] Internal function to register a user
-  ///- @param required [name] is the user name
-  ///- @param required [requiresUserVerification] is true if user verification is required
-  /// returns a [Attestation]
   Future<Attestation> _register(
       String name, bool requiresUserVerification) async {
     final options = _opts;
@@ -290,7 +344,6 @@ class PassKey implements PasskeyInterface {
   }
 
   /// [credentialIdToBytes32Hex] converts a 32 byte credentialAddress hex to a base64 string
-  /// - @param required [credentialId] is the credential hex
   static String credentialHexToBase64(String credentialHex) {
     // Remove the "0x" prefix if present.
     if (credentialHex.startsWith("0x")) {
@@ -304,4 +357,20 @@ class PassKey implements PasskeyInterface {
     }
     return base64Url.encode(credentialId);
   }
+}
+
+class PassKeysOptions {
+  final String namespace;
+  final String name;
+  final String origin;
+  bool? crossOrigin;
+  String? challenge;
+  String? type;
+  PassKeysOptions(
+      {required this.namespace,
+      required this.name,
+      required this.origin,
+      this.crossOrigin,
+      this.challenge,
+      this.type});
 }
