@@ -68,15 +68,15 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   Address? get address => _walletAddress;
 
   @override
-  Future<EtherAmount> get balance =>
-      plugin<Contract>("contract").getBalance(_walletAddress);
+  Future<EtherAmount> get balance async =>
+      await plugin<Contract>("contract").getBalance(_walletAddress);
 
   @override
-  Future<bool> get deployed =>
-      plugin<Contract>("contract").deployed(_walletAddress);
+  Future<bool> get deployed async =>
+      await plugin<Contract>("contract").deployed(_walletAddress);
 
   @override
-  Future<Uint256> get nonce => _getNonce();
+  Future<Uint256> get nonce async => await _getNonce();
 
   @override
   String? get toHex => _walletAddress?.hexEip55;
