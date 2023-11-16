@@ -1,75 +1,89 @@
-import 'dart:typed_data';
-import 'package:variance_dart/variance.dart';
-import 'package:web3dart/crypto.dart';
-import 'package:web3dart/web3dart.dart';
+part of 'common.dart';
 
-import '../abis/abis.dart';
-
-/// A Wrapper for the Contract Object
-/// for interacting with deployed contracts.
+/// A wrapper for interacting with deployed Ethereum contracts through RPCProviderBase.
+///
+/// The Contract class provides methods to perform various operations on Ethereum smart contracts,
+/// including making static calls, checking deployment status, getting contract balance,
+/// and encoding data for common operations like ERC20 approvals and transfers.
 class Contract {
-  BaseProvider _provider;
+  RPCProviderBase _provider;
+
   Contract(
     this._provider,
   );
 
-  BaseProvider get provider => _provider;
+  RPCProviderBase get provider => _provider;
 
-  set setProvider(BaseProvider provider) {
+  set setProvider(RPCProviderBase provider) {
     _provider = provider;
   }
 
-  /// [call] performs a [StaticCall] to a contract
-  /// - @param [contractAddress] is the address of the contract
-  /// - @param [abi] is the ABI of the contract
-  /// - @param [methodName] is the name of the method in the contract
-  /// - @param optional [params] additional parameters for the method
-  /// - @param optional [sender] additional sender for the transaction
+  /// Performs a static call to a contract method.
+  ///
+  /// - [contractAddress]: The address of the contract.
+  /// - [abi]: The ABI (Application Binary Interface) of the contract.
+  /// - [methodName]: The name of the method in the contract.
+  /// - [params]: Additional parameters for the method.
+  /// - [sender]: Additional sender for the transaction.
+  ///
+  /// Returns a list of dynamic values representing the result of the static call.
   Future<List<dynamic>> call(
       EthereumAddress contractAddress, ContractAbi abi, String methodName,
       {List<dynamic>? params, EthereumAddress? sender}) {
-    final func = getContractFunction(methodName, contractAddress, abi);
-    final call = {
+    final function = getContractFunction(methodName, contractAddress, abi);
+    final calldata = {
       'to': contractAddress.hex,
       'data': params != null
-          ? bytesToHex(func.encodeCall(params),
+          ? bytesToHex(function.encodeCall(params),
               include0x: true, padToEvenLength: true)
           : "0x",
       if (sender != null) 'from': sender.hex,
     };
-    return _provider.send<String>(
-        'eth_call', [call]).then((value) => func.decodeReturnValues(value));
+    return _provider.send<String>('eth_call', [calldata]).then(
+        (value) => function.decodeReturnValues(value));
   }
 
-  ///[deployed] checks if a contract is deployed
-  /// - @param [address] is the address of the contract
-  Future<bool> deployed(EthereumAddress address) {
-    if (address.hex == Chains.zeroAddress.hex) {
+  /// Checks if a contract is deployed.
+  ///
+  /// - [address]: The address of the contract.
+  /// - optional [atBlock]: The block number to check. defaults to the current block
+  ///
+  /// Returns a Future<bool> indicating whether the contract is deployed or not.
+  Future<bool> deployed(EthereumAddress? address,
+      {BlockNum atBlock = const BlockNum.current()}) {
+    if (address == null) {
       return Future.value(false);
     }
     final isDeployed = _provider
-        .send<String>('eth_getCode', [address.hex, 'latest'])
+        .send<String>('eth_getCode', [address.hex, atBlock.toBlockParam()])
         .then(hexToBytes)
         .then((value) => value.isNotEmpty);
     return isDeployed;
   }
 
-  /// [getBalance] returns the amount of ether held by a contract
-  /// - @param [address] is the address to get the balance of
-  Future<EtherAmount> getBalance(EthereumAddress address) {
-    if (address.hex == Chains.zeroAddress.hex) {
+  /// Gets the amount of Ether held by a contract.
+  ///
+  /// - [address]: The address to get the balance of.
+  ///
+  /// Returns a Future<EtherAmount> representing the balance.
+  Future<EtherAmount> getBalance(EthereumAddress? address,
+      {BlockNum atBlock = const BlockNum.current()}) {
+    if (address == null) {
       return Future.value(EtherAmount.zero());
     }
     return _provider
-        .send<String>('eth_getBalance', [address.hex, 'latest'])
+        .send<String>('eth_getBalance', [address.hex, atBlock.toBlockParam()])
         .then(BigInt.parse)
         .then((value) => EtherAmount.fromBigInt(EtherUnit.wei, value));
   }
 
-  /// [encodeERC20ApproveCall] returns the calldata for ERC20 approval
-  /// - @param [address] is the 4337 wallet address
-  /// - @param [spender] is the address of the approved spender
-  /// - @param [amount] is the amount to approve for the spender
+  /// Encodes the calldata for ERC20 approval.
+  ///
+  /// - [address]: The 4337 wallet address.
+  /// - [spender]: The address of the approved spender.
+  /// - [amount]: The amount to approve for the spender.
+  ///
+  /// Returns a Uint8List representing the calldata.
   static Uint8List encodeERC20ApproveCall(
     EthereumAddress address,
     EthereumAddress spender,
@@ -83,10 +97,13 @@ class Contract {
     );
   }
 
-  /// [encodeERC20TransferCall] returns the calldata for ERC20 transfer
-  /// - @param [address] is the 4337 wallet address
-  /// - @param [recipient] is the address of the recipient
-  /// - @param [amount] is the amount to transfer
+  /// Encodes the calldata for ERC20 transfer.
+  ///
+  /// - [address]: The 4337 wallet address.
+  /// - [recipient]: The address of the recipient.
+  /// - [amount]: The amount to transfer.
+  ///
+  /// Returns a Uint8List representing the calldata.
   static Uint8List encodeERC20TransferCall(
     EthereumAddress address,
     EthereumAddress recipient,
@@ -100,45 +117,53 @@ class Contract {
     );
   }
 
-  /// [encodeERC721ApproveCall] returns the callData for ERC721
-  /// {@template approve}
-  /// - @param [contractAddress] is the address of the contract
-  /// - @param [to] is the address to approve
-  /// - @param [tokenId] is the tokenId to approve
-  /// {@endtemplate}
+  /// Encodes the calldata for ERC721 approval.
+  ///
+  /// - [contractAddress]: The address of the contract.
+  /// - [to]: The address to approve.
+  /// - [tokenId]: The tokenId to approve.
+  ///
+  /// Returns a Uint8List representing the calldata.
   static Uint8List encodeERC721ApproveCall(
       EthereumAddress contractAddress, EthereumAddress to, BigInt tokenId) {
     return encodeFunctionCall("approve", contractAddress,
         ContractAbis.get("ERC721"), [to.hex, tokenId]);
   }
 
-  /// [encodeERC721SafeTransferCall] encodes the callData for ERC721
-  /// {@macro approve}
-  /// - @param [from] is the address to transfer from
+  /// Encodes the calldata for ERC721 safe transfer.
+  ///
+  /// - [contractAddress]: The address of the contract.
+  /// - [from]: The address to transfer from.
+  ///
+  /// Returns a Uint8List representing the calldata.
   static Uint8List encodeERC721SafeTransferCall(EthereumAddress contractAddress,
       EthereumAddress from, EthereumAddress to, BigInt tokenId) {
     return encodeFunctionCall("safeTransferFrom", contractAddress,
         ContractAbis.get("ERC721"), [from.hex, to.hex, tokenId]);
   }
 
-  /// [encodeFunctionCall] encodes the data for a function call to be sent to a contract
-  /// - @param [methodName] is the name of the method in the contract
-  /// - @param [contractAddress] is the address of the contract
-  /// - @param [abi] is the ABI of the contract
-  /// returns the calldata as [Uint8List]
+  /// Encodes the calldata for a function call.
+  ///
+  /// - [methodName]: The name of the method in the contract.
+  /// - [contractAddress]: The address of the contract.
+  /// - [abi]: The ABI of the contract.
+  /// - [params]: The parameters for the method.
+  ///
+  /// Returns a Uint8List representing the calldata.
   static Uint8List encodeFunctionCall(String methodName,
       EthereumAddress contractAddress, ContractAbi abi, List<dynamic> params) {
     final func = getContractFunction(methodName, contractAddress, abi);
     return func.encodeCall(params);
   }
 
-  /// [execute] call data for user operation
-  /// - @param required walletAddress is the address of the wallet
-  /// - @param optional [to] is the address or contract to send the transaction to
-  /// - @param optional [amount] is the amount to send
-  /// - @param optional [innerCallData] is the calldata of the inner call
+  /// Generates the calldata for a user operation.
   ///
-  /// returns the [Uint8List] of the call data
+  /// - [walletAddress]: The address of the wallet.
+  /// - [to]: The address or contract to send the transaction to.
+  /// - [amount]: The amount to send.
+  /// - [innerCallData]: The calldata of the inner call.
+  ///
+  /// Returns the Uint8List of the calldata.
   static Uint8List execute(EthereumAddress walletAddress,
       {required EthereumAddress to,
       EtherAmount? amount,
@@ -158,13 +183,14 @@ class Contract {
     );
   }
 
-  /// [executeBatch] call data for user operation batched
-  /// - @param required walletAddress is the address of the wallet
-  /// - @param optional [recipients] is a list of addresses to send the transaction
-  /// - @param optional [amounts] is a list of amounts to send alongside
-  /// - @param optional [innerCalls] is a list of calldata of the inner calls
+  /// Generates the calldata for a batched user operation.
   ///
-  /// returns the [Uint8List] of the call data
+  /// - [walletAddress]: The address of the wallet.
+  /// - [recipients]: A list of addresses to send the transaction.
+  /// - [amounts]: A list of amounts to send alongside.
+  /// - [innerCalls]: A list of calldata of the inner calls.
+  ///
+  /// Returns the Uint8List of the calldata.
   static Uint8List executeBatch(
       {required EthereumAddress walletAddress,
       required List<EthereumAddress> recipients,
@@ -186,20 +212,24 @@ class Contract {
     );
   }
 
-  /// [getContractFunction] gets a contract function instance for a given method
-  /// - @param [methodName] is the name of the method in the contract
-  /// - @param [contractAddress] is the address of the contract
-  /// - @param [abi] is the ABI of the contract
-  /// returns a [ContractFunction]
+  /// Returns a ContractFunction instance for a given method.
+  ///
+  /// - [methodName]: The name of the method in the contract.
+  /// - [contractAddress]: The address of the contract.
+  /// - [abi]: The ABI of the contract.
+  ///
+  /// Returns a ContractFunction.
   static ContractFunction getContractFunction(
       String methodName, EthereumAddress contractAddress, ContractAbi abi) {
     final instance = DeployedContract(abi, contractAddress);
     return instance.function(methodName);
   }
 
-  /// [nftApproveOperation] returns a [UserOperation] to approve the spender of the NFT
-  /// - @param [owner] is the address of the owner of the NFT
-  /// - @param [spender] is the address of the spender of the NFT
+  /// Returns a UserOperation to approve the spender of the NFT.
+  ///
+  /// - [contractAddress]: The address of the contract.
+  /// - [owner]: The address of the owner of the NFT.
+  /// - [spender]: The address of the spender of the NFT.
   static UserOperation nftApproveOperation(EthereumAddress contractAddress,
       EthereumAddress owner, EthereumAddress spender, BigInt tokenId) {
     final innerCallData = execute(owner,
@@ -212,27 +242,32 @@ class Contract {
     return UserOperation.partial(hexlify(innerCallData));
   }
 
-  /// [nftTransferOperation] returns a [UserOperation] to transfer an NFT
-  /// - @param [owner] is the address of the owner of the NFT
-  /// - @param [spender] is the address of the spender of the NFT
+  /// Returns a UserOperation to transfer an NFT.
+  ///
+  /// - [contractAddress]: The address of the contract.
+  /// - [owner]: The address of the owner of the NFT.
+  /// - [recipient]: The address of the recipient of the NFT.
   static UserOperation nftTransferOperation(EthereumAddress contractAddress,
-      EthereumAddress owner, EthereumAddress spender, BigInt tokenId) {
+      EthereumAddress owner, EthereumAddress recipient, BigInt tokenId) {
     final innerCallData = execute(owner,
         to: contractAddress,
         innerCallData: encodeERC721SafeTransferCall(
           contractAddress,
           owner,
-          spender,
+          recipient,
           tokenId,
         ));
     return UserOperation.partial(hexlify(innerCallData));
   }
 
-  /// [tokenApproveOperation] returns the userOperation for an ERC20 approval
-  /// - @param [owner] is the 4337 wallet address
-  /// - @param [spender] is the address of the approved spender
-  /// - @param [amount] is the amount to approve for the spender
-  /// returns the userOperation
+  /// Returns the UserOperation for an ERC20 approval.
+  ///
+  /// - [contractAddress]: The 4337 wallet address.
+  /// - [owner]: The address of the approved owner.
+  /// - [spender]: The address of the approved spender.
+  /// - [amount]: The amount to approve for the spender.
+  ///
+  /// Returns the UserOperation.
   static UserOperation tokenApproveOperation(
     EthereumAddress contractAddress,
     EthereumAddress owner,
@@ -246,11 +281,14 @@ class Contract {
     return UserOperation.partial(hexlify(callData));
   }
 
-  /// [tokenTransferOperation] returns the userOperation for an ERC20 transfer
-  /// - @param [owner] is the 4337 wallet address
-  /// - @param [recipient] is the address of the recipient
-  /// - @param [amount] is the amount to transfer
-  /// returns the userOperation
+  /// Returns the UserOperation for an ERC20 transfer.
+  ///
+  /// - [contractAddress]: The 4337 wallet address.
+  /// - [owner]: The address of the sender.
+  /// - [recipient]: The address of the recipient.
+  /// - [amount]: The amount to transfer.
+  ///
+  /// Returns the UserOperation.
   static UserOperation tokenTransferOperation(EthereumAddress contractAddress,
       EthereumAddress owner, EthereumAddress recipient, EtherAmount amount) {
     final callData = execute(owner,

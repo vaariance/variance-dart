@@ -1,8 +1,8 @@
 name: variance_dart
 description: An Account Abstraction (4337) Development kit, for quickly building mobile web3 apps.
-version: 1.0.0+1
+version: 1.1.0+1
 publish_to: none
-homepage: https://github.com/vaariance/vaariance-dart.git
+homepage: https://github.com/vaariance/variance-dart.git
 environment:
   sdk: ">=3.0.6 <4.0.0"
 
@@ -14,7 +14,6 @@ dependencies:
   uuid: ^4.1.0
   crypto: ^3.0.3
   cbor: ^6.1.1
-  flutter_secure_storage: ^9.0.0
   local_auth: ^2.1.7
   http: ^1.1.0
   bip39: ^1.0.6

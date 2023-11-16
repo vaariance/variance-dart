@@ -1,22 +1,37 @@
-import 'dart:convert';
-import 'dart:typed_data';
+part of 'package:variance_dart/variance.dart';
 
-import 'package:variance_dart/variance.dart';
-import 'package:web3dart/crypto.dart';
-import 'package:web3dart/web3dart.dart';
-
-/// [UserOperation] model for user operations
-class UserOperation {
+class UserOperation implements UserOperationBase {
+  @override
   final EthereumAddress sender;
+
+  @override
   final BigInt nonce;
+
+  @override
   final String initCode;
+
+  @override
   final String callData;
+
+  @override
   final BigInt callGasLimit;
+
+  @override
   final BigInt verificationGasLimit;
+
+  @override
   final BigInt preVerificationGas;
+
+  @override
   BigInt maxFeePerGas;
+
+  @override
   BigInt maxPriorityFeePerGas;
+
+  @override
   String signature;
+
+  @override
   String paymasterAndData;
 
   Uint8List _hash;
@@ -88,7 +103,7 @@ class UserOperation {
     BigInt? maxPriorityFeePerGas,
   }) =>
       UserOperation(
-        sender: sender ?? Chains.zeroAddress,
+        sender: sender ?? Constants.zeroAddress,
         nonce: nonce ?? BigInt.zero,
         initCode: initCode ?? "0x",
         callData: callData,
@@ -119,12 +134,15 @@ class UserOperation {
     return UserOperation.fromMap(map);
   }
 
-  Uint8List hash(IChain chain) => keccak256(abi.encode(
+  @override
+  Uint8List hash(Chain chain) => keccak256(abi.encode(
       ['bytes32', 'address', 'uint256'],
       [keccak256(_hash), chain.entrypoint, chain.chainId]));
 
+  @override
   String toJson() => json.encode(toMap());
 
+  @override
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'sender': sender.hexEip55,
@@ -142,7 +160,6 @@ class UserOperation {
   }
 }
 
-/// [UserOperationByHash] model for user operations hash
 class UserOperationByHash {
   UserOperation userOperation;
   final String entryPoint;

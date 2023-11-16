@@ -1,67 +1,87 @@
-library vaariance_dart;
+part of 'package:variance_dart/variance.dart';
 
-import 'dart:typed_data';
+class SmartWallet with _PluginManager implements SmartWalletBase {
+  final Chain _chain;
 
-import 'package:variance_dart/src/abis/abis.dart';
-import 'package:variance_dart/src/abis/accountFactory.g.dart';
-import 'package:variance_dart/src/abis/entrypoint.g.dart';
-import 'package:variance_dart/src/modules/alchemy_api/alchemy_api.dart';
-import 'package:variance_dart/src/modules/base.dart';
-import 'package:variance_dart/variance.dart';
-import "package:web3dart/web3dart.dart";
-
-class Wallet extends Signer with Modules {
-  // [PROVIDERS]
-  final BaseProvider _rpcProvider;
-  final BundlerProvider _walletProvider;
-  final IChain _walletChain;
-
-  late final AccountFactory _factory;
-
-  // [WALLET_ADDRESS]
-  EthereumAddress _walletAddress;
+  Address? _walletAddress;
   String? _initCode;
 
   /// [Entrypoint] is not initialized
-  /// to initialize with entrypoint, you have to call [Wallet.init] instead
+  /// to initialize with entrypoint, you have to call [SmartWallet.initialize] instead
   ///
-  /// Creates an instance of [Wallet]
-  Wallet(
-      {required IChain chain,
-      super.hdkey,
-      super.passkey,
-      super.credential,
-      super.signer,
-      EthereumAddress? address})
-      : _walletChain = chain.validate(),
-        _rpcProvider = BaseProvider(chain.rpcUrl!),
-        _walletProvider = BundlerProvider(chain),
-        _walletAddress = address ?? Chains.zeroAddress {
-    _initialize();
+  /// - [bundler]: us the bundler provider e.g voltaire, alto, stackup ...
+  /// - [ethRpc]: The Ethereum RPC endpoint URL. e.g infura, alchemy, quicknode
+  ///
+  /// Creates an instance of [SmartWallet]
+  SmartWallet(
+      {required Chain chain,
+      required MultiSignerInterface signer,
+      required BundlerProviderBase bundler,
+      required RPCProviderBase ethRpc,
+      Address? address})
+      : _chain = chain.validate(),
+        _walletAddress = address {
+    addPlugin<MultiSignerInterface>('signer', signer);
+    addPlugin<BundlerProviderBase>('bundler', bundler);
+    addPlugin<RPCProviderBase>('ethRpc', ethRpc);
+    addPlugin<Contract>('contract', Contract(ethRpc));
+    addPlugin<AccountFactoryBase>(
+        'factory',
+        _AccountFactory(
+            address: chain.accountFactory,
+            chainId: chain.chainId,
+            rpc: ethRpc));
   }
 
-  // [GETTERS]
-  Address get address => Address.fromEthAddress(_walletAddress,
-      ethRpc: _walletChain.rpcUrl,
-      ens: _walletAddress == Chains.zeroAddress ? false : true);
-  Future<EtherAmount> get balance =>
-      module("contract").getBalance(_walletAddress);
-  Future<bool> get deployed => module("contract").deployed(_walletAddress);
-  Future<Uint256> get nonce => _nonce();
-  BaseProvider get rpcProvider => _rpcProvider;
-  String get toHex => _walletAddress.hexEip55;
-  IChain get walletChain => _walletChain;
-  BundlerProvider get walletProvider => _walletProvider;
+  /// Initializes the [SmartWallet] instance and the associated [Entrypoint] contract.
+  ///
+  /// Use this method directly when you need to interact with the entrypoint,
+  /// wait for user Operation Events, or recovering an account.
+  ///
+  /// - [chain]: The blockchain chain.
+  /// - [signer]: required multi-signer interface
+  /// - [bundler]: The bundler provider.
+  /// - [ethRpc]: The Ethereum RPC endpoint URL.
+  /// - [address]: The Ethereum address (optional).
+  factory SmartWallet.init(
+      {required Chain chain,
+      required MultiSignerInterface signer,
+      required BundlerProviderBase bundler,
+      required RPCProviderBase ethRpc,
+      Address? address}) {
+    final instance = SmartWallet(
+        chain: chain,
+        signer: signer,
+        bundler: bundler,
+        ethRpc: ethRpc,
+        address: address);
+    instance
+        .plugin<BundlerProviderBase>('bundler')
+        .initializeWithEntrypoint(Entrypoint(
+          address: chain.entrypoint,
+          client: instance.plugin<_AccountFactory>('factory').client,
+        ));
+    return instance;
+  }
 
-  /// [buildUserOperation] builds a [UserOperation]
-  /// - @param required [callData] is the [Uint8List] calldata
-  /// - @param optional [customNonce] is a custom nonce
-  /// - @param optional [callGasLimit] is the call gas limit
-  /// - @param optional [verificationGasLimit] is the verification gas limit
-  /// - @param optional [preVerificationGas] is the pre verification gas
-  /// - @param optional [maxFeePerGas] is the max fee per gas
-  /// - @param optional [maxPriorityFeePerGas] is the max priority fee per gas
-  /// returns a [UserOperation]
+  @override
+  Address? get address => _walletAddress;
+
+  @override
+  Future<EtherAmount> get balance async =>
+      await plugin<Contract>("contract").getBalance(_walletAddress);
+
+  @override
+  Future<bool> get deployed async =>
+      await plugin<Contract>("contract").deployed(_walletAddress);
+
+  @override
+  Future<Uint256> get nonce async => await _getNonce();
+
+  @override
+  String? get toHex => _walletAddress?.hexEip55;
+
+  @override
   UserOperation buildUserOperation(
     Uint8List callData, {
     BigInt? customNonce,
@@ -83,207 +103,133 @@ class Wallet extends Signer with Modules {
     );
   }
 
-  Future<EthereumAddress> getAccountAddress(
-      EthereumAddress owner, Uint256 salt) async {
-    return await _factory.getAddress(owner, salt.value);
-  }
-
-  /// [createAccount] creates a new wallet address.
-  /// uses counterfactual deployment, so wallet may not actually be deployed
-  /// given the same exact inputs, the same exact address will be generated.
-  /// use [deployed] to check if wallet is deployed.
-  /// an `initCode` will be attached on the first transaction.
-  ///
-  /// - @param required [salt] is the salt for the wallet
-  /// - @param optional [index] is the index of the wallet
-  /// - @param optional [accountId] is the accountId of the wallet
-  Future createAccount(Uint256 salt, {int? index, String? accountId}) async {
-    EthereumAddress owner = await _signerAddress(n: index, id: accountId);
-    _initCode =
-        hexlify(_initData(_factory, 'createAccount', [owner, salt.value]));
-    getAccountAddress(owner, salt).then((value) => {_walletAddress = value});
-  }
-
-  Future<EthereumAddress> getPassKeyAccountAddress(
-      Uint8List credentialHex, Uint256 x, Uint256 y, Uint256 salt) async {
-    return await _factory.getPasskeyAccountAddress(
-        credentialHex, x.value, y.value, salt.value);
-  }
-
-  /// [createPasskeyAccount] creates a new Passkey wallet address.
-  /// uses counterfactual deployment, so wallet may not actually be deployed
-  /// given the same exact inputs, the same exact address will be generated.
-  /// use [deployed] to check if wallet is deployed.
-  /// an `initCode` will be attached on the first transaction.
-  /// - @param required [credentialHex] is the [Uint8List] hex of the credentialId
-  /// - @param required [x] is the x coordinate of the public key
-  /// - @param required [y] is the y coordinate of the public key
-  /// - @param required [salt] is the salt for create2
-  Future createPasskeyAccount(
-      Uint8List credentialHex, Uint256 x, Uint256 y, Uint256 salt) async {
-    require(defaultSigner == SignerType.passkey && passkey != null,
-        "Create: PassKey instance is required!");
-    _initCode = hexlify(_initData(_factory, 'createPasskeyAccount',
-        [credentialHex, x.value, y.value, salt.value]));
-    getPassKeyAccountAddress(credentialHex, x, y, salt)
+  @override
+  Future createSimpleAccount(Uint256 salt, {int? index}) async {
+    EthereumAddress signer = EthereumAddress.fromHex(
+        plugin<MultiSignerInterface>('signer').getAddress());
+    _initCode = hexlify(_getInitCode('createAccount', [signer, salt.value]));
+    getSimpleAccountAddress(signer, salt)
         .then((value) => {_walletAddress = value});
   }
 
-  ///[initCodeGas] is the gas required to deploy the wallet
-  Future<BigInt> initCodeGas() {
-    require(_initCode != null, "No init code");
-    return rpcProvider.estimateGas(walletChain.entrypoint, _initCode!);
+  @override
+  Future createSimplePasskeyAccount(PassKeyPair pkp, Uint256 salt) async {
+    _initCode = hexlify(_getInitCode('createPasskeyAccount', [
+      pkp.credentialHexBytes,
+      pkp.publicKey[0].value,
+      pkp.publicKey[1].value,
+      salt.value
+    ]));
+    getSimplePassKeyAccountAddress(pkp, salt)
+        .then((addr) => {_walletAddress = addr});
   }
 
-  /// initializes the default [Wallet] modules
-  /// you can still call your custom method to set it.
-  /// - nft module (default alchemyapi)
-  /// - token module (default alchemyapi)
-  /// - transfers module (default alchemyapi)
-  void initializeDefaultModules() {
-    setModule('nfts', AlchemyNftApi(_walletChain.rpcUrl!));
-    setModule('tokens', AlchemyTokenApi(_rpcProvider));
-    setModule('transfers', AlchemyTransferApi(_rpcProvider));
+  @override
+  Future<Address> getSimpleAccountAddress(
+      EthereumAddress signer, Uint256 salt) async {
+    final EthereumAddress address =
+        await plugin<_AccountFactory>('factory').getAddress(signer, salt.value);
+    return Address.fromEthAddress(address);
   }
 
-  /// [send] transfers native tokens to another recipient
-  /// - @param required [recipient] is the address of the user to send the transaction to
-  /// - @param required [amount] is the amount to send
-  ///
-  /// returns the [UserOperationResponse] of the transaction
+  @override
+  Future<Address> getSimplePassKeyAccountAddress(
+      PassKeyPair pkp, Uint256 salt) async {
+    final EthereumAddress address = await plugin<_AccountFactory>('factory')
+        .getPasskeyAccountAddress(pkp.credentialHexBytes,
+            pkp.publicKey[0].value, pkp.publicKey[1].value, salt.value);
+    return Address.fromEthAddress(address);
+  }
+
+  @override
   Future<UserOperationResponse> send(
       EthereumAddress recipient, EtherAmount amount) async {
+    require(_walletAddress != null, 'Wallet not deployed');
     return sendUserOperation(buildUserOperation(
-        Contract.execute(_walletAddress, to: recipient, amount: amount)));
+        Contract.execute(_walletAddress!, to: recipient, amount: amount)));
   }
 
-  /// [sendBatched] sends a batched transaction to the wallet
-  /// - @param required [recipients] is the address of the user to send the transaction to
-  /// - @param required [calls] is the calldata to send
-  /// - @param required [amounts] is the amounts to send
-  ///
-  /// returns the [UserOperationResponse] of the transaction
+  @override
   Future<UserOperationResponse> sendBatchedTransaction(
       List<EthereumAddress> recipients, List<Uint8List> calls,
       {List<EtherAmount>? amounts}) async {
+    require(_walletAddress != null, 'Wallet not deployed');
     return sendUserOperation(buildUserOperation(Contract.executeBatch(
-        walletAddress: _walletAddress,
+        walletAddress: _walletAddress!,
         recipients: recipients,
         amounts: amounts,
         innerCalls: calls)));
   }
 
-  /// [sendTransaction] sends a transaction to the wallet
-  /// - @param required [to] is the address of the user to send the transaction to
-  /// - @param required [encodedFunctionData] is the calldata to send
-  /// - @param optional [amount] is the amount to send
-  ///
-  /// returns the [UserOperationResponse] of the transaction
+  @override
+  Future<UserOperationResponse> sendSignedUserOperation(
+      UserOperation op) async {
+    return plugin<BundlerProviderBase>('bundler')
+        .sendUserOperation(op.toMap(), _chain.entrypoint);
+  }
+
+  @override
   Future<UserOperationResponse> sendTransaction(
       EthereumAddress to, Uint8List encodedFunctionData,
       {EtherAmount? amount}) async {
-    return sendUserOperation(buildUserOperation(Contract.execute(_walletAddress,
-        to: to, amount: amount, innerCallData: encodedFunctionData)));
+    require(_walletAddress != null, 'Wallet not deployed');
+    return sendUserOperation(buildUserOperation(Contract.execute(
+        _walletAddress!,
+        to: to,
+        amount: amount,
+        innerCallData: encodedFunctionData)));
   }
 
-  /// [sendSignedUserOperation] sends a signed transaction to the wallet
-  /// - @param required [op] is the [UserOperation]
-  ///
-  /// returns the [UserOperationResponse] of the transaction
-  Future<UserOperationResponse> sendSignedUserOperation(
-      UserOperation op) async {
-    return _walletProvider.sendUserOperation(
-        op.toMap(), _walletChain.entrypoint);
-  }
-
-  /// [sendUserOperation] sends a user operation to the wallet
-  /// - @param required [op] is the [UserOperation]
-  /// - @param optional [id] is the id of the transaction
-  /// returns [signUserOperation] of [UserOperationResponse] and sends a signed transaction when the future completes
+  @override
   Future<UserOperationResponse> sendUserOperation(UserOperation op,
-      {String id = ""}) async {
+      {String? id}) async {
     return signUserOperation(op, id: id).then(sendSignedUserOperation);
   }
 
-  /// [signUserOperation] signs a user operation using the provided key
-  /// - @param required [userOp] is the [UserOperation]
-  /// - @param optional [id] is the id of the transaction
-  /// - @param optional [update] is true if you want to update the user operation
-  ///
-  /// returns a signed [UserOperation]
+  @override
   Future<UserOperation> signUserOperation(UserOperation userOp,
-      {bool update = true, String? id}) async {
+      {bool update = true, String? id, int? index}) async {
     if (update) await _updateUserOperation(userOp);
-    final opHash = userOp.hash(_walletChain);
-    Uint8List signature;
-    if (defaultSigner == SignerType.passkey) {
-      signature = (await sign<PassKeySignature>(opHash, id: id)).toHex();
-    } else if (defaultSigner == SignerType.hdkey) {
-      signature = await sign<Uint8List>(opHash, index: 0, id: id);
-    } else {
-      signature = await sign<Uint8List>(opHash);
-    }
+    final opHash = userOp.hash(_chain);
+    Uint8List signature = await plugin<MultiSignerInterface>('signer')
+        .personalSign(opHash,
+            index: index,
+            id: id ?? plugin<PasskeyInterface>('signer').defaultId);
     userOp.signature = hexlify(signature);
-    await _validateFields(userOp);
+    await _validateUserOperation(userOp);
     return userOp;
   }
 
-  /// [_initData] is the init code for the [AccountFactory]
-  /// - @param required [name] is the name of the account factory
-  /// - @param required [params] is the params of the account factory
-  ///
-  /// returns the init code for the [AccountFactory]
-  Uint8List _initData(AccountFactory factory, String name, List params) {
-    final data = factory.self.function(name).encodeCall(params);
+  Uint8List _getInitCode(String functionName, List params) {
+    final factory = plugin<_AccountFactory>('factory');
+    final data = factory.self.function(functionName).encodeCall(params);
     final initCode =
         abi.encode(['address', 'bytes'], [factory.self.address, data]);
     return initCode;
   }
 
-  _initialize() {
-    _factory = AccountFactory(
-        address: _walletChain.accountFactory,
-        client: Web3Client.custom(_rpcProvider),
-        chainId: _walletChain.chainId);
-    setModule('contract', Contract(_rpcProvider));
+  Future<BigInt> _getInitCodeGas() {
+    require(_initCode != null, "No init code");
+    return plugin<RPCProviderBase>('ethRpc')
+        .estimateGas(_chain.entrypoint, _initCode!);
   }
 
-  /// [nonce] returns the nonce of the wallet
-  Future<Uint256> _nonce() async {
-    if (_walletAddress.hex == Chains.zeroAddress.hex) {
+  Future<Uint256> _getNonce() async {
+    if (_walletAddress == null) {
       return Uint256.zero;
     }
-    try {
-      return module("contract")
-          .call<BigInt>(
-              _walletAddress, ContractAbis.get('getNonce'), "getNonce")
-          .then((value) => Uint256(value[0]));
-    } catch (e) {
-      return Uint256.zero;
-    }
+    return plugin<Contract>("contract")
+        .call(_walletAddress!, ContractAbis.get('getNonce'), "getNonce")
+        .then((value) => Uint256(value[0]))
+        .catchError((e) => Uint256.zero);
   }
 
-  Future<EthereumAddress> _signerAddress({int? n, String? id}) async {
-    switch (defaultSigner) {
-      case SignerType.hdkey:
-        require(hdkey != null, "Create: HD Key signer is required!");
-        return await hdkey!.getAddress(n ?? 0, id: id);
-      case SignerType.credential:
-        require(credential != null, "Create: Credential signer is required!");
-        return credential!.address;
-      default:
-        require(false, "Create: Unsupported Signer Type");
-        return Chains.zeroAddress;
-    }
-  }
-
-  /// [updateUserOperation] updates the user operation
-  /// - @param required [op] is the [UserOperation]
   Future _updateUserOperation(UserOperation op) async {
     final map = op.toMap();
     List<dynamic> reponses = await Future.wait([
-      _walletProvider.estimateUserOperationGas(map, _walletChain.entrypoint),
-      _rpcProvider.getGasPrice(),
+      plugin<BundlerProviderBase>('bundler')
+          .estimateUserOperationGas(map, _chain.entrypoint),
+      plugin<RPCProviderBase>('ethRpc').getGasPrice(),
       nonce,
       deployed
     ]);
@@ -295,43 +241,18 @@ class Wallet extends Signer with Modules {
     op.maxPriorityFeePerGas = reponses[1]["maxPriorityFeePerGas"] as BigInt;
   }
 
-  /// [validateFields] validates the fields of the user operation
-  /// - @param required [op] is the [UserOperation]
-  _validateFields(UserOperation op) async {
-    require(op.sender == _walletAddress && op.sender != Chains.zeroAddress,
+  Future<void> _validateUserOperation(UserOperation op) async {
+    require(op.sender.hex == _walletAddress?.hex && _walletAddress != null,
         "Operation sender error. ${op.sender} provided.");
     require(op.initCode == ((await deployed) ? "0x" : _initCode!),
         "Init code mismatch");
     require(op.callGasLimit >= BigInt.from(35000),
-        "Call gas limit too small expected 35000+");
+        "Call gas limit too small expected value greater than 35000");
     require(op.verificationGasLimit >= BigInt.from(70000),
-        "Verification gas limit too small expected 70000+");
+        "Verification gas limit too small expected value greater than 70000");
     require(op.preVerificationGas >= BigInt.from(21000),
-        "Pre verification gas too small expected 21000+");
-    require(op.callData.length >= 4, "Call data too short, min 4 bytes");
-    require(op.signature.length >= 64, "Signature too short, min 64 bytes");
-  }
-
-  /// creates a [Wallet] instance, additionally initializes the [Entrypoint] contract
-  /// use [Wallet.init] directly when you:
-  /// - need to interact with the entrypoint.
-  /// - want to [wait] for user Operation Events.
-  /// - recovering account.
-  static Wallet init(IChain chain,
-      {HDkeyInterface? hdkey,
-      PasskeyInterface? passkey,
-      SignerType signer = SignerType.hdkey,
-      EthereumAddress? address}) {
-    final instance = Wallet(
-        chain: chain,
-        hdkey: hdkey,
-        passkey: passkey,
-        signer: signer,
-        address: address);
-    instance._walletProvider.initializeWithEntrypoint(Entrypoint(
-      address: chain.entrypoint,
-      client: instance._factory.client,
-    ));
-    return instance;
+        "Pre verification gas too small expected value greater than 21000");
+    require(op.callData.length >= 4, "Call data too short, min is 4 bytes");
+    require(op.signature.length >= 64, "Signature too short, min is 32 bytes");
   }
 }
