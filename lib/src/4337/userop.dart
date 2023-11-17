@@ -91,8 +91,8 @@ class UserOperation implements UserOperationBase {
     );
   }
 
-  factory UserOperation.partial(
-    String callData, {
+  factory UserOperation.partial({
+    required String callData,
     EthereumAddress? sender,
     BigInt? nonce,
     String? initCode,

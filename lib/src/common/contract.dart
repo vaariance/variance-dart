@@ -239,7 +239,7 @@ class Contract {
           spender,
           tokenId,
         ));
-    return UserOperation.partial(hexlify(innerCallData));
+    return UserOperation.partial(callData: hexlify(innerCallData));
   }
 
   /// Returns a UserOperation to transfer an NFT.
@@ -257,7 +257,7 @@ class Contract {
           recipient,
           tokenId,
         ));
-    return UserOperation.partial(hexlify(innerCallData));
+    return UserOperation.partial(callData: hexlify(innerCallData));
   }
 
   /// Returns the UserOperation for an ERC20 approval.
@@ -278,7 +278,7 @@ class Contract {
         to: contractAddress,
         innerCallData:
             encodeERC20ApproveCall(contractAddress, spender, amount));
-    return UserOperation.partial(hexlify(callData));
+    return UserOperation.partial(callData: hexlify(callData));
   }
 
   /// Returns the UserOperation for an ERC20 transfer.
@@ -295,6 +295,6 @@ class Contract {
         to: contractAddress,
         innerCallData:
             encodeERC20TransferCall(contractAddress, recipient, amount));
-    return UserOperation.partial(hexlify(callData));
+    return UserOperation.partial(callData: hexlify(callData));
   }
 }
