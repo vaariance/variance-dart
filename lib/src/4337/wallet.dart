@@ -7,30 +7,29 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   String? _initCode;
 
   /// [Entrypoint] is not initialized
-  /// to initialize with entrypoint, you have to call [SmartWallet.initialize] instead
+  /// to initialize with entrypoint, you have to call [SmartWallet.init] instead
   ///
-  /// - [bundler]: us the bundler provider e.g voltaire, alto, stackup ...
-  /// - [ethRpc]: The Ethereum RPC endpoint URL. e.g infura, alchemy, quicknode
+  /// - [bundler]: Is the bundler provider e.g voltaire, alto, stackup ...
+  /// - [jsonRpcProvider]: (optional) The Ethereum JSON RPC provider. e.g infura, alchemy, quicknode
   ///
   /// Creates an instance of [SmartWallet]
   SmartWallet(
       {required Chain chain,
       required MultiSignerInterface signer,
       required BundlerProviderBase bundler,
-      required RPCProviderBase ethRpc,
+      RPCProviderBase? jsonRpcProvider,
       Address? address})
       : _chain = chain.validate(),
         _walletAddress = address {
+    final rpc = jsonRpcProvider ?? RPCProvider(chain.ethRpcUrl!);
     addPlugin<MultiSignerInterface>('signer', signer);
     addPlugin<BundlerProviderBase>('bundler', bundler);
-    addPlugin<RPCProviderBase>('ethRpc', ethRpc);
-    addPlugin<Contract>('contract', Contract(ethRpc));
+    addPlugin<RPCProviderBase>('ethRpc', rpc);
+    addPlugin<Contract>('contract', Contract(rpc));
     addPlugin<AccountFactoryBase>(
         'factory',
         _AccountFactory(
-            address: chain.accountFactory,
-            chainId: chain.chainId,
-            rpc: ethRpc));
+            address: chain.accountFactory, chainId: chain.chainId, rpc: rpc));
   }
 
   /// Initializes the [SmartWallet] instance and the associated [Entrypoint] contract.
@@ -41,26 +40,31 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   /// - [chain]: The blockchain chain.
   /// - [signer]: required multi-signer interface
   /// - [bundler]: The bundler provider.
-  /// - [ethRpc]: The Ethereum RPC endpoint URL.
+  /// - [jsonRpcProvider]: The Ethereum JSON RPC provider (optional).
   /// - [address]: The Ethereum address (optional).
+  /// - [initCode]: The init code (optional).
   factory SmartWallet.init(
       {required Chain chain,
       required MultiSignerInterface signer,
       required BundlerProviderBase bundler,
-      required RPCProviderBase ethRpc,
-      Address? address}) {
+      RPCProviderBase? jsonRpcProvider,
+      Address? address,
+      String? initCode}) {
     final instance = SmartWallet(
         chain: chain,
         signer: signer,
         bundler: bundler,
-        ethRpc: ethRpc,
+        jsonRpcProvider: jsonRpcProvider,
         address: address);
+
     instance
-        .plugin<BundlerProviderBase>('bundler')
-        .initializeWithEntrypoint(Entrypoint(
-          address: chain.entrypoint,
-          client: instance.plugin<_AccountFactory>('factory').client,
-        ));
+      ..dangerouslySetInitCode(initCode)
+      ..plugin<BundlerProviderBase>('bundler')
+          .initializeWithEntrypoint(Entrypoint(
+        address: chain.entrypoint,
+        client: instance.plugin<_AccountFactory>('factory').client,
+      ));
+
     return instance;
   }
 
@@ -76,14 +80,21 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
       await plugin<Contract>("contract").deployed(_walletAddress);
 
   @override
+  String? get initCode => _initCode;
+
+  @override
+  Future<BigInt> get initCodeGas async =>
+      await _getInitCodeGas().then((value) => value);
+
+  @override
   Future<Uint256> get nonce async => await _getNonce();
 
   @override
   String? get toHex => _walletAddress?.hexEip55;
 
   @override
-  UserOperation buildUserOperation(
-    Uint8List callData, {
+  UserOperation buildUserOperation({
+    required Uint8List callData,
     BigInt? customNonce,
     BigInt? callGasLimit,
     BigInt? verificationGasLimit,
@@ -92,7 +103,7 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
     BigInt? maxPriorityFeePerGas,
   }) {
     return UserOperation.partial(
-      hexlify(callData),
+      callData: hexlify(callData),
       sender: _walletAddress,
       nonce: customNonce,
       callGasLimit: callGasLimit,
@@ -101,6 +112,11 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
       maxFeePerGas: maxFeePerGas,
       maxPriorityFeePerGas: maxPriorityFeePerGas,
     );
+  }
+
+  @override
+  void dangerouslySetInitCode(String? code) {
+    _initCode = code;
   }
 
   @override
@@ -146,26 +162,8 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
       EthereumAddress recipient, EtherAmount amount) async {
     require(_walletAddress != null, 'Wallet not deployed');
     return sendUserOperation(buildUserOperation(
-        Contract.execute(_walletAddress!, to: recipient, amount: amount)));
-  }
-
-  @override
-  Future<UserOperationResponse> sendBatchedTransaction(
-      List<EthereumAddress> recipients, List<Uint8List> calls,
-      {List<EtherAmount>? amounts}) async {
-    require(_walletAddress != null, 'Wallet not deployed');
-    return sendUserOperation(buildUserOperation(Contract.executeBatch(
-        walletAddress: _walletAddress!,
-        recipients: recipients,
-        amounts: amounts,
-        innerCalls: calls)));
-  }
-
-  @override
-  Future<UserOperationResponse> sendSignedUserOperation(
-      UserOperation op) async {
-    return plugin<BundlerProviderBase>('bundler')
-        .sendUserOperation(op.toMap(), _chain.entrypoint);
+        callData:
+            Contract.execute(_walletAddress!, to: recipient, amount: amount)));
   }
 
   @override
@@ -173,11 +171,29 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
       EthereumAddress to, Uint8List encodedFunctionData,
       {EtherAmount? amount}) async {
     require(_walletAddress != null, 'Wallet not deployed');
-    return sendUserOperation(buildUserOperation(Contract.execute(
-        _walletAddress!,
-        to: to,
-        amount: amount,
-        innerCallData: encodedFunctionData)));
+    return sendUserOperation(buildUserOperation(
+        callData: Contract.execute(_walletAddress!,
+            to: to, amount: amount, innerCallData: encodedFunctionData)));
+  }
+
+  @override
+  Future<UserOperationResponse> sendBatchedTransaction(
+      List<EthereumAddress> recipients, List<Uint8List> calls,
+      {List<EtherAmount>? amounts}) async {
+    require(_walletAddress != null, 'Wallet not deployed');
+    return sendUserOperation(buildUserOperation(
+        callData: Contract.executeBatch(
+            walletAddress: _walletAddress!,
+            recipients: recipients,
+            amounts: amounts,
+            innerCalls: calls)));
+  }
+
+  @override
+  Future<UserOperationResponse> sendSignedUserOperation(
+      UserOperation op) async {
+    return plugin<BundlerProviderBase>('bundler')
+        .sendUserOperation(op.toMap(), _chain.entrypoint);
   }
 
   @override

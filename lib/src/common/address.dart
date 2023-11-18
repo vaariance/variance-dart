@@ -7,9 +7,9 @@ class Address extends ENSResolver {
     return Address(ethAddress.addressBytes);
   }
 
-  static Future<Address> fromEns(String name, {String? ethRpc}) {
-    return ENSResolver.fromEns(name, ethRpc: ethRpc)
-        .then((value) => Address(value.addressBytes));
+  static Future<Address?>? fromEns(String name, {ChainBaseApiBase? client}) {
+    return ENSResolver.fromEns(name, client: client)
+        ?.then((value) => value == null ? null : Address(value.addressBytes));
   }
 }
 
@@ -42,31 +42,36 @@ class AddressFormatter extends EthereumAddress {
 class ENSResolver extends AddressFormatter implements ENSResolverBase {
   String? _ens;
 
-  final String _defaultRpc = 'https://rpc.ankr.com/eth';
-  ENSResolver(super.addressBytes, {bool ens = false}) {
-    _setEnsName(_defaultRpc);
+  ChainBaseApiBase? client;
+
+  ENSResolver(super.addressBytes, {bool ens = false, this.client}) {
+    _setEnsName();
   }
-  
+
   @override
   String? get ens => _ens;
 
   @override
-  Future<String> getEnsName({String? ethRpc}) async {
-    return _ens ?? await _getEnsName(hexEip55, ethRpc: ethRpc);
+  ENSResolverBase withClient(ChainBaseApiBase client) {
+    return ENSResolver(addressBytes, client: client);
   }
 
   @override
-  Future<String> getEnsNameForAddress(String address, {String? ethRpc}) {
-    return _getEnsName(address, ethRpc: ethRpc);
+  Future<String?>? getEnsName() async {
+    return _ens ?? await _getEnsName(this);
   }
 
-  Future<String> _getEnsName(String address, {String? ethRpc}) {
-    final ens = Ens(client: Web3Client(ethRpc ?? _defaultRpc, http.Client()));
-    return ens.withAddress(address).getName();
+  @override
+  Future<String?>? getEnsNameForAddress(EthereumAddress address) {
+    return _getEnsName(address);
   }
 
-  Future<void> _setEnsName(String ethRpc) async {
-    _getEnsName(hexEip55).then((name) {
+  Future<String?>? _getEnsName(EthereumAddress address) {
+    return client?.reverseENSAddress(address).then((value) => value.data?.name);
+  }
+
+  Future<void> _setEnsName() async {
+    _getEnsName(this)?.then((name) {
       _ens = name;
     }).catchError((err) {
       _ens = null;
@@ -76,16 +81,15 @@ class ENSResolver extends AddressFormatter implements ENSResolverBase {
   /// Creates an instance of ENSResolver from an ENS name.
   ///
   /// - [name]: The ENS name.
-  /// - [ethRpc]: The Ethereum RPC endpoint URL (optional).
   ///
   /// Returns a [Future] that completes with an instance of ENSResolver.
-  static Future<ENSResolver> fromEns(String name, {String? ethRpc}) {
-    final ens = Ens(
-        client:
-            Web3Client(ethRpc ?? 'https://rpc.ankr.com/eth', http.Client()));
-    return ens
-        .withName(name)
-        .getAddress()
-        .then((address) => ENSResolver(address.addressBytes));
+  static Future<ENSResolver?>? fromEns(String name,
+      {ChainBaseApiBase? client}) {
+    return client
+        ?.resolveENSName(name)
+        .then((value) => value.data?.address)
+        .then((address) => address == null
+            ? null
+            : ENSResolver(EthereumAddress.fromHex(address).addressBytes));
   }
 }

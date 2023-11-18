@@ -5,9 +5,6 @@ part of 'package:variance_dart/interfaces.dart';
 /// Implementations of this class are expected to provide functionality for interacting specifically
 /// with bundlers and provides methods for sending user operations to an entrypoint.
 abstract class BundlerProviderBase {
-  /// The RPC provider associated with the bundler.
-  RPCProviderBase get bundlerRpc;
-
   /// Estimates the gas cost for a user operation.
   ///
   /// - [userOp]: The user operation.

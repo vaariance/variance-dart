@@ -18,15 +18,12 @@ class BundlerProvider implements BundlerProviderBase {
 
   Entrypoint? entrypoint;
 
-  BundlerProvider(Chain chain, RPCProviderBase provider)
+  BundlerProvider(Chain chain, RPCProviderBase bundlerRpc)
       : _chainId = chain.chainId,
         _bundlerUrl = chain.bundlerUrl!,
-        _bundlerRpc = provider {
+        _bundlerRpc = bundlerRpc {
     _initializeBundlerProvider();
   }
-
-  @override
-  RPCProviderBase get bundlerRpc => _bundlerRpc;
 
   @override
   Future<UserOperationGas> estimateUserOperationGas(

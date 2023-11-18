@@ -16,6 +16,12 @@ abstract class SmartWalletBase {
   /// Checks if the Smart Wallet has been deployed on the blockchain.
   Future<bool> get deployed;
 
+  /// Retrieves the init code of the Smart Wallet.
+  String? get initCode;
+
+  /// Retrieves the gas required to deploy the Smart Wallet.
+  Future<BigInt> get initCodeGas;
+
   /// Retrieves the nonce of the Smart Wallet.
   Future<Uint256> get nonce;
 
@@ -26,8 +32,8 @@ abstract class SmartWalletBase {
   ///
   /// This method creates a [UserOperation] with the given call data and optional parameters.
   /// The resulting [UserOperation] can be used for various operations on the Smart Wallet.
-  UserOperation buildUserOperation(
-    Uint8List callData, {
+  UserOperation buildUserOperation({
+    required Uint8List callData,
     BigInt? customNonce,
     BigInt? callGasLimit,
     BigInt? verificationGasLimit,
@@ -35,6 +41,9 @@ abstract class SmartWalletBase {
     BigInt? maxFeePerGas,
     BigInt? maxPriorityFeePerGas,
   });
+
+  /// manually Sets the init code of the Smart Wallet and overrides the default.
+  void dangerouslySetInitCode(String? code);
 
   /// Creates a new wallet address using counterfactual deployment.
   ///
