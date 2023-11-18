@@ -2,8 +2,6 @@ library common;
 
 import 'dart:typed_data';
 
-import 'package:ens_dart/ens_dart.dart';
-import 'package:http/http.dart' as http;
 import 'package:variance_dart/interfaces.dart';
 import 'package:variance_dart/variance.dart';
 import 'package:variance_dart/utils.dart';

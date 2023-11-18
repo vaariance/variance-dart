@@ -9,16 +9,16 @@ abstract class ENSResolverBase {
 
   /// Gets the ENS name associated with the current address.
   ///
-  /// - [ethRpc]: The Ethereum RPC endpoint URL (optional).
-  ///
   /// Returns a [Future] that completes with the ENS name.
-  Future<String> getEnsName({String? ethRpc});
+  Future<String?>? getEnsName();
 
   /// Converts an Ethereum address to its corresponding ENS name.
   ///
   /// - [address]: The Ethereum address to convert to an ENS name.
-  /// - [ethRpc]: The Ethereum RPC endpoint URL (optional).
   ///
   /// Returns a [Future] that completes with the ENS name.
-  Future<String> getEnsNameForAddress(String address, {String? ethRpc});
+  Future<String?>? getEnsNameForAddress(EthereumAddress address);
+
+  /// Returns a new [ENSResolver] instance with the specified [client].
+  ENSResolverBase withClient(ChainBaseApiBase client);
 }

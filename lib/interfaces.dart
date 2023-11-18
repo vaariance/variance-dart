@@ -2,6 +2,7 @@ library interfaces;
 
 import 'dart:typed_data';
 
+import 'package:variance_dart/utils.dart' show ChainBaseApiBase;
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/json_rpc.dart' show RpcService;
 import 'package:web3dart/web3dart.dart';
