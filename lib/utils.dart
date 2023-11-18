@@ -18,6 +18,15 @@ import 'src/utils/models/token.dart';
 import 'src/utils/models/transaction.dart';
 import 'src/utils/models/transfer.dart';
 
+export 'package:dio/dio.dart' show BaseOptions;
+
+export 'src/utils/models/ens.dart';
+export 'src/utils/models/nft.dart';
+export 'src/utils/models/price.dart';
+export 'src/utils/models/token.dart';
+export 'src/utils/models/transaction.dart';
+export 'src/utils/models/transfer.dart';
+
 part 'src/utils/chainbase_api.dart';
 part 'src/utils/crypto.dart';
 part 'src/utils/dio_client.dart';
