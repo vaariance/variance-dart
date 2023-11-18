@@ -66,10 +66,12 @@ abstract class SmartWalletBase {
   Future createSimplePasskeyAccount(PassKeyPair pkp, Uint256 salt);
 
   /// Retrieves the counterfactual address of a wallet created with [createAccount].
-  Future<Address> getSimpleAccountAddress(EthereumAddress signer, Uint256 salt);
+  Future<EthereumAddress> getSimpleAccountAddress(
+      EthereumAddress signer, Uint256 salt);
 
   /// Retrieves the counterfactual address of a Passkey wallet created with [createSimplePasskeyAccount].
-  Future<Address> getSimplePassKeyAccountAddress(PassKeyPair pkp, Uint256 salt);
+  Future<EthereumAddress> getSimplePassKeyAccountAddress(
+      PassKeyPair pkp, Uint256 salt);
 
   /// Transfers native tokens to another recipient.
   ///
