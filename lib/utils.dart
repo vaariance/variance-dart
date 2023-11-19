@@ -12,6 +12,7 @@ import 'package:web3dart/web3dart.dart' show BlockNum, EthereumAddress;
 import 'package:webcrypto/webcrypto.dart';
 
 import 'src/utils/models/ens.dart';
+import 'src/utils/models/metadata.dart';
 import 'src/utils/models/nft.dart';
 import 'src/utils/models/price.dart';
 import 'src/utils/models/token.dart';
@@ -21,6 +22,7 @@ import 'src/utils/models/transfer.dart';
 export 'package:dio/dio.dart' show BaseOptions;
 
 export 'src/utils/models/ens.dart';
+export 'src/utils/models/metadata.dart';
 export 'src/utils/models/nft.dart';
 export 'src/utils/models/price.dart';
 export 'src/utils/models/token.dart';

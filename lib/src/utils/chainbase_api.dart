@@ -52,6 +52,17 @@ class ChainBaseApi implements ChainBaseApiBase {
   }
 
   @override
+  Future<TokenMetadataResponse> getTokenMetadata(
+    EthereumAddress tokenAddress,
+  ) async {
+    return TokenMetadataResponse.fromJson(await _restClient
+        .get<Map<String, dynamic>>('/token/metadata', queryParameters: {
+      'contract_address': tokenAddress.hex,
+      'chain_id': _chain.chainId,
+    }));
+  }
+
+  @override
   Future<TokenTransfersResponse> getTokenTransfersForAddress(
     EthereumAddress address, {
     EthereumAddress? tokenAddress,
@@ -161,6 +172,14 @@ abstract class ChainBaseApiBase {
       {EthereumAddress? tokenAddress,
       int page = 1,
       int pageSize = 20});
+
+  /// Retrieves token metadata for a specific address.
+  ///
+  /// Given the [tokenAddress], this method returns a [TokenMetadataResponse]
+  /// with information about the token metadata.
+  Future<TokenMetadataResponse> getTokenMetadata(
+    EthereumAddress tokenAddress,
+  );
 
   /// Retrieves token transfers for a specific address and token.
   ///
@@ -289,6 +308,28 @@ class TokenBalancesResponse extends ChainBaseResponse {
       data: json['data'] != null
           ? List<Token>.from(json['data'].map((x) => Token.fromJson(x)))
           : null,
+      nextPageNumber: json['next_page'],
+      count: json['count'],
+    );
+  }
+}
+
+class TokenMetadataResponse extends ChainBaseResponse {
+  final TokenMetadata? data;
+
+  TokenMetadataResponse({
+    required super.code,
+    required super.message,
+    this.data,
+    super.nextPageNumber,
+    super.count,
+  });
+
+  factory TokenMetadataResponse.fromJson(Map<String, dynamic> json) {
+    return TokenMetadataResponse(
+      code: json['code'],
+      message: json['message'],
+      data: json['data'] != null ? TokenMetadata.fromJson(json['data']) : null,
       nextPageNumber: json['next_page'],
       count: json['count'],
     );
