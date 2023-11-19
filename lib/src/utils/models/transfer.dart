@@ -26,4 +26,5 @@ class TokenTransfer with _$TokenTransfer {
       _$TokenTransferFromJson(json);
 }
 
+// ignore: constant_identifier_names
 enum TxType { RECEIVE, SEND }
