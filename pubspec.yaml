@@ -31,3 +31,9 @@ dev_dependencies:
   freezed: ^2.4.5
   json_serializable: ^6.7.1
   mockito: ^5.4.2
+
+flutter:
+  plugin:
+    platforms:
+      android: 
+      ios: 
