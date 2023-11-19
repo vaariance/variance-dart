@@ -37,8 +37,7 @@ class CredentialSigner implements CredentialInterface {
   @override
   Future<Uint8List> personalSign(Uint8List hash,
       {int? index, String? id}) async {
-    return Future.value(
-        _credential.privateKey.signPersonalMessageToUint8List(hash));
+    return _credential.privateKey.signPersonalMessageToUint8List(hash);
   }
 
   @override

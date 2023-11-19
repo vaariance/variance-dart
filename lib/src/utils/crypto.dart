@@ -20,7 +20,7 @@ Uint8List arrayify(String hexString) {
 ///
 /// - [publicKeyBytes]: The bytes of the public key.
 ///
-/// Returns a [Future] that completes with a list of Uint8List representing the JSON Web Key [x] and [y].
+/// Returns a [Future] that completes with a list of Uint8List representing the JSON Web Key x and y.
 /// Throws an exception if the public key is invalid.
 Future<List<String>?> getPublicKeyFromBytes(Uint8List publicKeyBytes) async {
   final pKey =

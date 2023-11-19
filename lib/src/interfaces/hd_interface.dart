@@ -11,19 +11,19 @@ abstract class HDInterface extends MultiSignerInterface {
   /// - [index]: The index of the account.
   ///
   /// Returns the Ethereum address of the new account.
-  Future<EthereumAddress> addAccount(int index);
+  EthereumAddress addAccount(int index);
 
   /// Exports the mnemonic phrase associated with the HD wallet.
   ///
   /// Returns the mnemonic phrase as a [String].
-  Future<String?> exportMnemonic();
+  String? exportMnemonic();
 
   /// Exports the private key of an account from the HD wallet.
   ///
   /// - [index]: The index of the account.
   ///
   /// Returns the private key as a [String].
-  Future<String> exportPrivateKey(int index);
+  String exportPrivateKey(int index);
 
   /// Retrieves the Ethereum address of an account from the HD wallet.
   ///

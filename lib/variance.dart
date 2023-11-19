@@ -11,7 +11,6 @@ import 'package:bip32_bip44/dart_bip32_bip44.dart' as bip44;
 import "package:bip39/bip39.dart" as bip39;
 import 'package:cbor/cbor.dart';
 import 'package:http/http.dart' as http;
-import 'package:local_auth/local_auth.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/json_rpc.dart';

@@ -1,13 +1,25 @@
 name: variance_dart
-description: An Account Abstraction (4337) Development kit, for quickly building mobile web3 apps.
+description: An Account Abstraction (4337) Development kit, for quickly building mobile web3 apps and smart wallets.
 version: 0.0.2
 documentation: https://docs.variance.space
 homepage: https://variance.space
-repository: https://github.com/vaariance/variance-dart.git
+repository: https://github.com/vaariance/variance-dart
+issue_tracker: https://github.com/vaariance/variance-dart/issues
+
 environment:
   sdk: ">=3.0.6 <4.0.0"
+  flutter: ">=3.13.0"
+
+platforms:
+  android:
+  ios:
+  windows:
+  macos:
+  web:
 
 dependencies:
+  flutter:
+    sdk: flutter
   webauthn: ^0.2.1
   web3dart: ^2.7.2
   webcrypto: ^0.5.3
@@ -15,7 +27,6 @@ dependencies:
   uuid: ^4.1.0
   crypto: ^3.0.3
   cbor: ^6.1.1
-  local_auth: ^2.1.7
   http: ^1.1.0
   bip39: ^1.0.6
   bip32_bip44: ^1.0.0
@@ -31,3 +42,9 @@ dev_dependencies:
   freezed: ^2.4.5
   json_serializable: ^6.7.1
   mockito: ^5.4.2
+
+topics:
+  - wallets
+  - ethereum
+  - 4337
+  - account-abstraction

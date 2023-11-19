@@ -1,8 +1,6 @@
 part of 'package:variance_dart/variance.dart';
 
 class HDWalletSigner implements HDInterface {
-  final LocalAuthentication _localAuth = LocalAuthentication();
-
   String? _mnemonic;
   final String _seed;
 
@@ -33,19 +31,18 @@ class HDWalletSigner implements HDInterface {
   }
 
   @override
-  Future<EthereumAddress> addAccount(int index) async {
-    await _authWrapper();
+  EthereumAddress addAccount(int index) {
     return _add(_seed, index);
   }
 
   @override
-  Future<String?> exportMnemonic() async {
-    return await _getMnemonic();
+  String? exportMnemonic() {
+    return _getMnemonic();
   }
 
   @override
-  Future<String> exportPrivateKey(int index) async {
-    final ethPrivateKey = await _getPrivateKey(index);
+  String exportPrivateKey(int index) {
+    final ethPrivateKey = _getPrivateKey(index);
     Uint8List privKey = ethPrivateKey.privateKey;
     bool rlz = shouldRemoveLeadingZero(privKey);
     if (rlz) {
@@ -69,14 +66,14 @@ class HDWalletSigner implements HDInterface {
   @override
   Future<Uint8List> personalSign(Uint8List hash,
       {int? index, String? id}) async {
-    final privKey = await _getPrivateKey(index ?? 0);
+    final privKey = _getPrivateKey(index ?? 0);
     return privKey.signPersonalMessageToUint8List(hash);
   }
 
   @override
   Future<MsgSignature> signToEc(Uint8List hash,
       {int? index, String? id}) async {
-    final privKey = await _getPrivateKey(index ?? 0);
+    final privKey = _getPrivateKey(index ?? 0);
     return privKey.signToEcSignature(hash);
   }
 
@@ -84,13 +81,6 @@ class HDWalletSigner implements HDInterface {
     final hdKey = _deriveHdKey(seed, index);
     final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
     return privKey.address;
-  }
-
-  Future _authWrapper() async {
-    final didAuth = await _localAuth.authenticate(
-      localizedReason: 'Please authenticate with HD Wallet',
-    );
-    if (!didAuth) throw Exception("Authentication failed");
   }
 
   EthPrivateKey _deriveEthPrivKey(String key) {
@@ -109,14 +99,12 @@ class HDWalletSigner implements HDInterface {
     return _deriveHdKey(_seed, index);
   }
 
-  Future<String?> _getMnemonic() async {
-    await _authWrapper();
+  String? _getMnemonic() {
     if (_mnemonic != null) throw "exportMnemonic: Not a Valid Wallet";
     return _mnemonic;
   }
 
-  Future<EthPrivateKey> _getPrivateKey(int index) async {
-    await _authWrapper();
+  EthPrivateKey _getPrivateKey(int index) {
     final hdKey = _getHdKey(index);
     final privateKey = _deriveEthPrivKey(hdKey.privateKeyHex());
     return privateKey;

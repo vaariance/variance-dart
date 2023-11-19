@@ -1,11 +1,11 @@
 part of 'package:variance_dart/interfaces.dart';
 
 /// An interface for a multi-signer, allowing signing of data and returning the result.
-/// 
+///
 /// the multi-signer interface provides a uniform interface for accessing signer address and signing
 /// messages in the Ethereum context. This allows for flexibility in creating different implementations
 /// of multi-signers while adhering to a common interface.
-/// interfaces include: [Credential], [Passkey] and [HD Wallet]
+/// interfaces include: [CredentialSigner], [PassKeySigner] and [HDWalletSigner]
 abstract class MultiSignerInterface {
   /// Returns the Hex address associated with the signer.
   ///
