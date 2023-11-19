@@ -16,17 +16,20 @@ _$TransactionImpl _$$TransactionImplFromJson(Map<String, dynamic> json) =>
       transactionIndex: json['transaction_index'] as num,
       fromAddress: json['from_address'] as String,
       toAddress: json['to_address'] as String,
-      value: json['value'] as String,
+      value: const BigIntConverter().fromJson(json['value']),
       input: json['input'] as String?,
       nonce: json['nonce'] as num,
       contractAddress: json['contract_address'] as String?,
-      gas: json['gas'] as num,
-      gasPrice: json['gas_price'] as num,
-      gasUsed: json['gas_used'] as num,
-      effectiveGasPrice: json['effective_gas_price'] as num,
-      cumulativeGasUsed: json['cumulative_gas_used'] as num,
-      maxFeePerGas: json['max_fee_per_gas'] as num?,
-      maxPriorityFeePerGas: json['max_priority_fee_per_gas'] as num?,
+      gas: const BigIntConverter().fromJson(json['gas']),
+      gasPrice: const BigIntConverter().fromJson(json['gas_price']),
+      gasUsed: const BigIntConverter().fromJson(json['gas_used']),
+      effectiveGasPrice:
+          const BigIntConverter().fromJson(json['effective_gas_price']),
+      cumulativeGasUsed:
+          const BigIntConverter().fromJson(json['cumulative_gas_used']),
+      maxFeePerGas: const BigIntConverter().fromJson(json['max_fee_per_gas']),
+      maxPriorityFeePerGas:
+          const BigIntConverter().fromJson(json['max_priority_fee_per_gas']),
       txFee: json['tx_fee'] as num,
       savingFee: json['saving_fee'] as num?,
       burntFee: json['burnt_fee'] as num?,
@@ -42,18 +45,28 @@ Map<String, dynamic> _$$TransactionImplToJson(_$TransactionImpl instance) =>
       'transaction_index': instance.transactionIndex,
       'from_address': instance.fromAddress,
       'to_address': instance.toAddress,
-      'value': instance.value,
+      'value': const BigIntConverter().toJson(instance.value),
       'input': instance.input,
       'nonce': instance.nonce,
       'contract_address': instance.contractAddress,
-      'gas': instance.gas,
-      'gas_price': instance.gasPrice,
-      'gas_used': instance.gasUsed,
-      'effective_gas_price': instance.effectiveGasPrice,
-      'cumulative_gas_used': instance.cumulativeGasUsed,
-      'max_fee_per_gas': instance.maxFeePerGas,
-      'max_priority_fee_per_gas': instance.maxPriorityFeePerGas,
+      'gas': const BigIntConverter().toJson(instance.gas),
+      'gas_price': const BigIntConverter().toJson(instance.gasPrice),
+      'gas_used': const BigIntConverter().toJson(instance.gasUsed),
+      'effective_gas_price':
+          const BigIntConverter().toJson(instance.effectiveGasPrice),
+      'cumulative_gas_used':
+          const BigIntConverter().toJson(instance.cumulativeGasUsed),
+      'max_fee_per_gas': _$JsonConverterToJson<dynamic, Uint256>(
+          instance.maxFeePerGas, const BigIntConverter().toJson),
+      'max_priority_fee_per_gas': _$JsonConverterToJson<dynamic, Uint256>(
+          instance.maxPriorityFeePerGas, const BigIntConverter().toJson),
       'tx_fee': instance.txFee,
       'saving_fee': instance.savingFee,
       'burnt_fee': instance.burntFee,
     };
+
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) =>
+    value == null ? null : toJson(value);

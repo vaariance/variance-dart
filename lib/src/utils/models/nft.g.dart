@@ -16,7 +16,7 @@ _$NFTImpl _$$NFTImplFromJson(Map<String, dynamic> json) => _$NFTImpl(
       metadata: json['metadata'] == null
           ? null
           : NFTMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
-      mintTime: json['mint_time'] as String,
+      mintTime: DateTime.parse(json['mint_time'] as String),
       mintTransactionHash: json['mint_transaction_hash'] as String,
       name: json['name'] as String?,
       owner: json['owner'] as String?,
@@ -38,7 +38,7 @@ Map<String, dynamic> _$$NFTImplToJson(_$NFTImpl instance) => <String, dynamic>{
       'floor_prices': instance.floorPrices,
       'image_uri': instance.imageUri,
       'metadata': instance.metadata,
-      'mint_time': instance.mintTime,
+      'mint_time': instance.mintTime.toIso8601String(),
       'mint_transaction_hash': instance.mintTransactionHash,
       'name': instance.name,
       'owner': instance.owner,

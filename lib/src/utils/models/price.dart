@@ -9,7 +9,7 @@ class TokenPrice with _$TokenPrice {
     required num? price,
     required String? symbol,
     required num? decimals,
-    @JsonKey(name: 'updated_at') required String? updatedAt,
+    @JsonKey(name: 'updated_at') required DateTime? updatedAt,
   }) = _TokenPrice;
 
   factory TokenPrice.fromJson(Map<String, dynamic> json) =>

@@ -1,4 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:variance_dart/src/common/common.dart' show Uint256;
+import 'package:variance_dart/utils.dart' show BigIntConverter;
 
 part 'transfer.freezed.dart';
 part 'transfer.g.dart';
@@ -6,6 +8,7 @@ part 'transfer.g.dart';
 @freezed
 class TokenTransfer with _$TokenTransfer {
   const factory TokenTransfer({
+    required TxType direction,
     @JsonKey(name: 'block_number') required num blockNumber,
     @JsonKey(name: 'block_timestamp') required DateTime blockTimestamp,
     @JsonKey(name: 'contract_address') required String contractAddress,
@@ -16,9 +19,11 @@ class TokenTransfer with _$TokenTransfer {
     @JsonKey(name: 'transaction_index') required num transactionIndex,
     @JsonKey(name: 'tx_fee') required num txFee,
     @JsonKey(name: 'tx_type') required num txType,
-    required String value,
+    @BigIntConverter() required Uint256 value,
   }) = _TokenTransfer;
 
   factory TokenTransfer.fromJson(Map<String, dynamic> json) =>
       _$TokenTransferFromJson(json);
 }
+
+enum TxType { RECEIVE, SEND }

@@ -11,7 +11,9 @@ _$TokenPriceImpl _$$TokenPriceImplFromJson(Map<String, dynamic> json) =>
       price: json['price'] as num?,
       symbol: json['symbol'] as String?,
       decimals: json['decimals'] as num?,
-      updatedAt: json['updated_at'] as String?,
+      updatedAt: json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
     );
 
 Map<String, dynamic> _$$TokenPriceImplToJson(_$TokenPriceImpl instance) =>
@@ -19,5 +21,5 @@ Map<String, dynamic> _$$TokenPriceImplToJson(_$TokenPriceImpl instance) =>
       'price': instance.price,
       'symbol': instance.symbol,
       'decimals': instance.decimals,
-      'updated_at': instance.updatedAt,
+      'updated_at': instance.updatedAt?.toIso8601String(),
     };

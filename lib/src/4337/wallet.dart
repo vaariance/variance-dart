@@ -3,7 +3,7 @@ part of 'package:variance_dart/variance.dart';
 class SmartWallet with _PluginManager implements SmartWalletBase {
   final Chain _chain;
 
-  Address? _walletAddress;
+  EthereumAddress? _walletAddress;
   String? _initCode;
 
   /// [Entrypoint] is not initialized
@@ -18,7 +18,7 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
       required MultiSignerInterface signer,
       required BundlerProviderBase bundler,
       RPCProviderBase? jsonRpcProvider,
-      Address? address})
+      EthereumAddress? address})
       : _chain = chain.validate(),
         _walletAddress = address {
     final rpc = jsonRpcProvider ?? RPCProvider(chain.ethRpcUrl!);
@@ -48,7 +48,7 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
       required MultiSignerInterface signer,
       required BundlerProviderBase bundler,
       RPCProviderBase? jsonRpcProvider,
-      Address? address,
+      EthereumAddress? address,
       String? initCode}) {
     final instance = SmartWallet(
         chain: chain,
@@ -69,7 +69,7 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   }
 
   @override
-  Address? get address => _walletAddress;
+  EthereumAddress? get address => _walletAddress;
 
   @override
   Future<EtherAmount> get balance async =>
@@ -141,20 +141,20 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   }
 
   @override
-  Future<Address> getSimpleAccountAddress(
+  Future<EthereumAddress> getSimpleAccountAddress(
       EthereumAddress signer, Uint256 salt) async {
-    final EthereumAddress address =
-        await plugin<_AccountFactory>('factory').getAddress(signer, salt.value);
-    return Address.fromEthAddress(address);
+    return await plugin<_AccountFactory>('factory')
+        .getAddress(signer, salt.value);
   }
 
   @override
-  Future<Address> getSimplePassKeyAccountAddress(
+  Future<EthereumAddress> getSimplePassKeyAccountAddress(
       PassKeyPair pkp, Uint256 salt) async {
-    final EthereumAddress address = await plugin<_AccountFactory>('factory')
-        .getPasskeyAccountAddress(pkp.credentialHexBytes,
-            pkp.publicKey[0].value, pkp.publicKey[1].value, salt.value);
-    return Address.fromEthAddress(address);
+    return await plugin<_AccountFactory>('factory').getPasskeyAccountAddress(
+        pkp.credentialHexBytes,
+        pkp.publicKey[0].value,
+        pkp.publicKey[1].value,
+        salt.value);
   }
 
   @override

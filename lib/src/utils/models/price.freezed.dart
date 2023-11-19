@@ -24,7 +24,7 @@ mixin _$TokenPrice {
   String? get symbol => throw _privateConstructorUsedError;
   num? get decimals => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at')
-  String? get updatedAt => throw _privateConstructorUsedError;
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -42,7 +42,7 @@ abstract class $TokenPriceCopyWith<$Res> {
       {num? price,
       String? symbol,
       num? decimals,
-      @JsonKey(name: 'updated_at') String? updatedAt});
+      @JsonKey(name: 'updated_at') DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -79,7 +79,7 @@ class _$TokenPriceCopyWithImpl<$Res, $Val extends TokenPrice>
       updatedAt: freezed == updatedAt
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -96,7 +96,7 @@ abstract class _$$TokenPriceImplCopyWith<$Res>
       {num? price,
       String? symbol,
       num? decimals,
-      @JsonKey(name: 'updated_at') String? updatedAt});
+      @JsonKey(name: 'updated_at') DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -131,7 +131,7 @@ class __$$TokenPriceImplCopyWithImpl<$Res>
       updatedAt: freezed == updatedAt
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as DateTime?,
     ));
   }
 }
@@ -156,7 +156,7 @@ class _$TokenPriceImpl implements _TokenPrice {
   final num? decimals;
   @override
   @JsonKey(name: 'updated_at')
-  final String? updatedAt;
+  final DateTime? updatedAt;
 
   @override
   String toString() {
@@ -200,7 +200,7 @@ abstract class _TokenPrice implements TokenPrice {
           {required final num? price,
           required final String? symbol,
           required final num? decimals,
-          @JsonKey(name: 'updated_at') required final String? updatedAt}) =
+          @JsonKey(name: 'updated_at') required final DateTime? updatedAt}) =
       _$TokenPriceImpl;
 
   factory _TokenPrice.fromJson(Map<String, dynamic> json) =
@@ -214,7 +214,7 @@ abstract class _TokenPrice implements TokenPrice {
   num? get decimals;
   @override
   @JsonKey(name: 'updated_at')
-  String? get updatedAt;
+  DateTime? get updatedAt;
   @override
   @JsonKey(ignore: true)
   _$$TokenPriceImplCopyWith<_$TokenPriceImpl> get copyWith =>
