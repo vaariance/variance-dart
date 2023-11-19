@@ -8,6 +8,7 @@ part 'transfer.g.dart';
 @freezed
 class TokenTransfer with _$TokenTransfer {
   const factory TokenTransfer({
+    required TxType direction,
     @JsonKey(name: 'block_number') required num blockNumber,
     @JsonKey(name: 'block_timestamp') required DateTime blockTimestamp,
     @JsonKey(name: 'contract_address') required String contractAddress,
@@ -23,16 +24,6 @@ class TokenTransfer with _$TokenTransfer {
 
   factory TokenTransfer.fromJson(Map<String, dynamic> json) =>
       _$TokenTransferFromJson(json);
-
-  const TokenTransfer._();
-
-  TxType direction(String compareAddress) {
-    if (fromAddress.toLowerCase() == compareAddress.toLowerCase()) {
-      return TxType.SEND;
-    } else {
-      return TxType.RECEIVE;
-    }
-  }
 }
 
 enum TxType { RECEIVE, SEND }

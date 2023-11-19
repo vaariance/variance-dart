@@ -8,6 +8,7 @@ part of 'transfer.dart';
 
 _$TokenTransferImpl _$$TokenTransferImplFromJson(Map<String, dynamic> json) =>
     _$TokenTransferImpl(
+      direction: $enumDecode(_$TxTypeEnumMap, json['direction']),
       blockNumber: json['block_number'] as num,
       blockTimestamp: DateTime.parse(json['block_timestamp'] as String),
       contractAddress: json['contract_address'] as String,
@@ -23,6 +24,7 @@ _$TokenTransferImpl _$$TokenTransferImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$TokenTransferImplToJson(_$TokenTransferImpl instance) =>
     <String, dynamic>{
+      'direction': _$TxTypeEnumMap[instance.direction]!,
       'block_number': instance.blockNumber,
       'block_timestamp': instance.blockTimestamp.toIso8601String(),
       'contract_address': instance.contractAddress,
@@ -35,3 +37,8 @@ Map<String, dynamic> _$$TokenTransferImplToJson(_$TokenTransferImpl instance) =>
       'tx_type': instance.txType,
       'value': const BigIntConverter().toJson(instance.value),
     };
+
+const _$TxTypeEnumMap = {
+  TxType.RECEIVE: 'RECEIVE',
+  TxType.SEND: 'SEND',
+};

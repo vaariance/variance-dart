@@ -20,6 +20,7 @@ TokenTransfer _$TokenTransferFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$TokenTransfer {
+  TxType get direction => throw _privateConstructorUsedError;
   @JsonKey(name: 'block_number')
   num get blockNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'block_timestamp')
@@ -56,7 +57,8 @@ abstract class $TokenTransferCopyWith<$Res> {
       _$TokenTransferCopyWithImpl<$Res, TokenTransfer>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'block_number') num blockNumber,
+      {TxType direction,
+      @JsonKey(name: 'block_number') num blockNumber,
       @JsonKey(name: 'block_timestamp') DateTime blockTimestamp,
       @JsonKey(name: 'contract_address') String contractAddress,
       @JsonKey(name: 'from_address') String fromAddress,
@@ -82,6 +84,7 @@ class _$TokenTransferCopyWithImpl<$Res, $Val extends TokenTransfer>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? direction = null,
     Object? blockNumber = null,
     Object? blockTimestamp = null,
     Object? contractAddress = null,
@@ -95,6 +98,10 @@ class _$TokenTransferCopyWithImpl<$Res, $Val extends TokenTransfer>
     Object? value = null,
   }) {
     return _then(_value.copyWith(
+      direction: null == direction
+          ? _value.direction
+          : direction // ignore: cast_nullable_to_non_nullable
+              as TxType,
       blockNumber: null == blockNumber
           ? _value.blockNumber
           : blockNumber // ignore: cast_nullable_to_non_nullable
@@ -152,7 +159,8 @@ abstract class _$$TokenTransferImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'block_number') num blockNumber,
+      {TxType direction,
+      @JsonKey(name: 'block_number') num blockNumber,
       @JsonKey(name: 'block_timestamp') DateTime blockTimestamp,
       @JsonKey(name: 'contract_address') String contractAddress,
       @JsonKey(name: 'from_address') String fromAddress,
@@ -176,6 +184,7 @@ class __$$TokenTransferImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? direction = null,
     Object? blockNumber = null,
     Object? blockTimestamp = null,
     Object? contractAddress = null,
@@ -189,6 +198,10 @@ class __$$TokenTransferImplCopyWithImpl<$Res>
     Object? value = null,
   }) {
     return _then(_$TokenTransferImpl(
+      direction: null == direction
+          ? _value.direction
+          : direction // ignore: cast_nullable_to_non_nullable
+              as TxType,
       blockNumber: null == blockNumber
           ? _value.blockNumber
           : blockNumber // ignore: cast_nullable_to_non_nullable
@@ -239,9 +252,10 @@ class __$$TokenTransferImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$TokenTransferImpl extends _TokenTransfer {
+class _$TokenTransferImpl implements _TokenTransfer {
   const _$TokenTransferImpl(
-      {@JsonKey(name: 'block_number') required this.blockNumber,
+      {required this.direction,
+      @JsonKey(name: 'block_number') required this.blockNumber,
       @JsonKey(name: 'block_timestamp') required this.blockTimestamp,
       @JsonKey(name: 'contract_address') required this.contractAddress,
       @JsonKey(name: 'from_address') required this.fromAddress,
@@ -251,12 +265,13 @@ class _$TokenTransferImpl extends _TokenTransfer {
       @JsonKey(name: 'transaction_index') required this.transactionIndex,
       @JsonKey(name: 'tx_fee') required this.txFee,
       @JsonKey(name: 'tx_type') required this.txType,
-      @BigIntConverter() required this.value})
-      : super._();
+      @BigIntConverter() required this.value});
 
   factory _$TokenTransferImpl.fromJson(Map<String, dynamic> json) =>
       _$$TokenTransferImplFromJson(json);
 
+  @override
+  final TxType direction;
   @override
   @JsonKey(name: 'block_number')
   final num blockNumber;
@@ -293,7 +308,7 @@ class _$TokenTransferImpl extends _TokenTransfer {
 
   @override
   String toString() {
-    return 'TokenTransfer(blockNumber: $blockNumber, blockTimestamp: $blockTimestamp, contractAddress: $contractAddress, fromAddress: $fromAddress, logIndex: $logIndex, toAddress: $toAddress, transactionHash: $transactionHash, transactionIndex: $transactionIndex, txFee: $txFee, txType: $txType, value: $value)';
+    return 'TokenTransfer(direction: $direction, blockNumber: $blockNumber, blockTimestamp: $blockTimestamp, contractAddress: $contractAddress, fromAddress: $fromAddress, logIndex: $logIndex, toAddress: $toAddress, transactionHash: $transactionHash, transactionIndex: $transactionIndex, txFee: $txFee, txType: $txType, value: $value)';
   }
 
   @override
@@ -301,6 +316,8 @@ class _$TokenTransferImpl extends _TokenTransfer {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TokenTransferImpl &&
+            (identical(other.direction, direction) ||
+                other.direction == direction) &&
             (identical(other.blockNumber, blockNumber) ||
                 other.blockNumber == blockNumber) &&
             (identical(other.blockTimestamp, blockTimestamp) ||
@@ -326,6 +343,7 @@ class _$TokenTransferImpl extends _TokenTransfer {
   @override
   int get hashCode => Object.hash(
       runtimeType,
+      direction,
       blockNumber,
       blockTimestamp,
       contractAddress,
@@ -352,9 +370,10 @@ class _$TokenTransferImpl extends _TokenTransfer {
   }
 }
 
-abstract class _TokenTransfer extends TokenTransfer {
+abstract class _TokenTransfer implements TokenTransfer {
   const factory _TokenTransfer(
-      {@JsonKey(name: 'block_number') required final num blockNumber,
+      {required final TxType direction,
+      @JsonKey(name: 'block_number') required final num blockNumber,
       @JsonKey(name: 'block_timestamp') required final DateTime blockTimestamp,
       @JsonKey(name: 'contract_address') required final String contractAddress,
       @JsonKey(name: 'from_address') required final String fromAddress,
@@ -365,11 +384,12 @@ abstract class _TokenTransfer extends TokenTransfer {
       @JsonKey(name: 'tx_fee') required final num txFee,
       @JsonKey(name: 'tx_type') required final num txType,
       @BigIntConverter() required final Uint256 value}) = _$TokenTransferImpl;
-  const _TokenTransfer._() : super._();
 
   factory _TokenTransfer.fromJson(Map<String, dynamic> json) =
       _$TokenTransferImpl.fromJson;
 
+  @override
+  TxType get direction;
   @override
   @JsonKey(name: 'block_number')
   num get blockNumber;

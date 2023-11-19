@@ -62,18 +62,21 @@ class ChainBaseApi implements ChainBaseApiBase {
     int page = 1,
     int pageSize = 20,
   }) async {
-    return TokenTransfersResponse.fromJson(await _restClient
-        .get<Map<String, dynamic>>('/token/transfers', queryParameters: {
-      'address': address.hex,
-      'chain_id': _chain.chainId,
-      if (tokenAddress != null) 'contract_address': tokenAddress.hex,
-      if (fromBlock != null) 'from_block': fromBlock.toBlockParam(),
-      if (toBlock != null) 'to_block': toBlock.toBlockParam(),
-      if (fromTime != null) 'from_timestamp': fromTime.millisecondsSinceEpoch,
-      if (toTime != null) 'end_timestamp': toTime.millisecondsSinceEpoch,
-      'page': page,
-      'limit': pageSize,
-    }));
+    return TokenTransfersResponse.fromJson(
+        await _restClient
+            .get<Map<String, dynamic>>('/token/transfers', queryParameters: {
+          'address': address.hex,
+          'chain_id': _chain.chainId,
+          if (tokenAddress != null) 'contract_address': tokenAddress.hex,
+          if (fromBlock != null) 'from_block': fromBlock.toBlockParam(),
+          if (toBlock != null) 'to_block': toBlock.toBlockParam(),
+          if (fromTime != null)
+            'from_timestamp': fromTime.millisecondsSinceEpoch,
+          if (toTime != null) 'end_timestamp': toTime.millisecondsSinceEpoch,
+          'page': page,
+          'limit': pageSize,
+        }),
+        address.hex);
   }
 
   @override
@@ -323,13 +326,23 @@ class TokenTransfersResponse extends ChainBaseResponse {
     super.count,
   });
 
-  factory TokenTransfersResponse.fromJson(Map<String, dynamic> json) {
+  factory TokenTransfersResponse.fromJson(
+      Map<String, dynamic> json, String caller) {
+    Map<String, dynamic> getModifiedJson(Map<String, dynamic> json) {
+      if (json['from_address'].toLowerCase() == caller.toLowerCase()) {
+        json['direction'] = 'SEND';
+      } else {
+        json['direction'] = 'RECEIVE';
+      }
+      return json;
+    }
+
     return TokenTransfersResponse(
       code: json['code'],
       message: json['message'],
       data: json['data'] != null
-          ? List<TokenTransfer>.from(
-              json['data'].map((x) => TokenTransfer.fromJson(x)))
+          ? List<TokenTransfer>.from(json['data']
+              .map((x) => TokenTransfer.fromJson(getModifiedJson(x))))
           : null,
       nextPageNumber: json['next_page'],
       count: json['count'],
