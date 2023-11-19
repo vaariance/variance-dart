@@ -30,7 +30,7 @@ mixin _$NFT {
   String? get imageUri => throw _privateConstructorUsedError;
   NFTMetadata? get metadata => throw _privateConstructorUsedError;
   @JsonKey(name: 'mint_time')
-  String get mintTime => throw _privateConstructorUsedError;
+  DateTime get mintTime => throw _privateConstructorUsedError;
   @JsonKey(name: 'mint_transaction_hash')
   String get mintTransactionHash => throw _privateConstructorUsedError;
   String? get name => throw _privateConstructorUsedError;
@@ -65,7 +65,7 @@ abstract class $NFTCopyWith<$Res> {
       @JsonKey(name: 'floor_prices') List<NFTFloorPrice>? floorPrices,
       @JsonKey(name: 'image_uri') String? imageUri,
       NFTMetadata? metadata,
-      @JsonKey(name: 'mint_time') String mintTime,
+      @JsonKey(name: 'mint_time') DateTime mintTime,
       @JsonKey(name: 'mint_transaction_hash') String mintTransactionHash,
       String? name,
       String? owner,
@@ -133,7 +133,7 @@ class _$NFTCopyWithImpl<$Res, $Val extends NFT> implements $NFTCopyWith<$Res> {
       mintTime: null == mintTime
           ? _value.mintTime
           : mintTime // ignore: cast_nullable_to_non_nullable
-              as String,
+              as DateTime,
       mintTransactionHash: null == mintTransactionHash
           ? _value.mintTransactionHash
           : mintTransactionHash // ignore: cast_nullable_to_non_nullable
@@ -194,7 +194,7 @@ abstract class _$$NFTImplCopyWith<$Res> implements $NFTCopyWith<$Res> {
       @JsonKey(name: 'floor_prices') List<NFTFloorPrice>? floorPrices,
       @JsonKey(name: 'image_uri') String? imageUri,
       NFTMetadata? metadata,
-      @JsonKey(name: 'mint_time') String mintTime,
+      @JsonKey(name: 'mint_time') DateTime mintTime,
       @JsonKey(name: 'mint_transaction_hash') String mintTransactionHash,
       String? name,
       String? owner,
@@ -259,7 +259,7 @@ class __$$NFTImplCopyWithImpl<$Res> extends _$NFTCopyWithImpl<$Res, _$NFTImpl>
       mintTime: null == mintTime
           ? _value.mintTime
           : mintTime // ignore: cast_nullable_to_non_nullable
-              as String,
+              as DateTime,
       mintTransactionHash: null == mintTransactionHash
           ? _value.mintTransactionHash
           : mintTransactionHash // ignore: cast_nullable_to_non_nullable
@@ -360,7 +360,7 @@ class _$NFTImpl implements _NFT {
   final NFTMetadata? metadata;
   @override
   @JsonKey(name: 'mint_time')
-  final String mintTime;
+  final DateTime mintTime;
   @override
   @JsonKey(name: 'mint_transaction_hash')
   final String mintTransactionHash;
@@ -480,7 +480,7 @@ abstract class _NFT implements NFT {
       required final List<NFTFloorPrice>? floorPrices,
       @JsonKey(name: 'image_uri') required final String? imageUri,
       required final NFTMetadata? metadata,
-      @JsonKey(name: 'mint_time') required final String mintTime,
+      @JsonKey(name: 'mint_time') required final DateTime mintTime,
       @JsonKey(name: 'mint_transaction_hash')
       required final String mintTransactionHash,
       required final String? name,
@@ -512,7 +512,7 @@ abstract class _NFT implements NFT {
   NFTMetadata? get metadata;
   @override
   @JsonKey(name: 'mint_time')
-  String get mintTime;
+  DateTime get mintTime;
   @override
   @JsonKey(name: 'mint_transaction_hash')
   String get mintTransactionHash;

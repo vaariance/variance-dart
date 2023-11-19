@@ -11,7 +11,7 @@ class NFT with _$NFT {
     @JsonKey(name: 'floor_prices') required List<NFTFloorPrice>? floorPrices,
     @JsonKey(name: 'image_uri') required String? imageUri,
     required NFTMetadata? metadata,
-    @JsonKey(name: 'mint_time') required String mintTime,
+    @JsonKey(name: 'mint_time') required DateTime mintTime,
     @JsonKey(name: 'mint_transaction_hash') required String mintTransactionHash,
     required String? name,
     required String? owner,

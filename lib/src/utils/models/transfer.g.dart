@@ -18,7 +18,7 @@ _$TokenTransferImpl _$$TokenTransferImplFromJson(Map<String, dynamic> json) =>
       transactionIndex: json['transaction_index'] as num,
       txFee: json['tx_fee'] as num,
       txType: json['tx_type'] as num,
-      value: json['value'] as String,
+      value: const BigIntConverter().fromJson(json['value']),
     );
 
 Map<String, dynamic> _$$TokenTransferImplToJson(_$TokenTransferImpl instance) =>
@@ -33,5 +33,5 @@ Map<String, dynamic> _$$TokenTransferImplToJson(_$TokenTransferImpl instance) =>
       'transaction_index': instance.transactionIndex,
       'tx_fee': instance.txFee,
       'tx_type': instance.txType,
-      'value': instance.value,
+      'value': const BigIntConverter().toJson(instance.value),
     };

@@ -1,6 +1,8 @@
 part of 'common.dart';
 
 class Uint256 implements Uint256Base {
+  static Uint256 get zero => Uint256(BigInt.zero);
+
   final BigInt _value;
 
   Uint256(this._value);
@@ -15,8 +17,6 @@ class Uint256 implements Uint256Base {
 
   @override
   BigInt get value => _value;
-
-  static Uint256 get zero => Uint256(BigInt.zero);
 
   @override
   Uint256 operator *(Uint256 other) {
@@ -39,6 +39,16 @@ class Uint256 implements Uint256Base {
   }
 
   @override
+  BigInt toEther() {
+    return toEtherAmount().getInEther;
+  }
+
+  @override
+  EtherAmount toEtherAmount() {
+    return EtherAmount.fromBigInt(EtherUnit.wei, _value);
+  }
+
+  @override
   String toHex() {
     final hexString = _value.toRadixString(16);
     return '0x${hexString.padLeft(64, '0')}';
@@ -55,7 +65,12 @@ class Uint256 implements Uint256Base {
   }
 
   @override
-  EtherAmount toWei() {
-    return EtherAmount.fromBigInt(EtherUnit.wei, _value);
+  double toUnit(int decimals) {
+    return _value / BigInt.from(pow(10, decimals));
+  }
+
+  @override
+  BigInt toWei() {
+    return toEtherAmount().getInWei;
   }
 }

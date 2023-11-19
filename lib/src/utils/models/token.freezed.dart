@@ -20,7 +20,8 @@ Token _$TokenFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Token {
-  String get balance => throw _privateConstructorUsedError;
+  @HexConverter()
+  Uint256 get balance => throw _privateConstructorUsedError;
   @JsonKey(name: 'contract_address')
   String get contractAddress => throw _privateConstructorUsedError;
   @JsonKey(name: 'current_usd_price')
@@ -29,8 +30,9 @@ mixin _$Token {
   List<TokenLogo>? get logos => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String get symbol => throw _privateConstructorUsedError;
+  @BigIntConverter()
   @JsonKey(name: 'total_supply')
-  String? get totalSupply => throw _privateConstructorUsedError;
+  Uint256? get totalSupply => throw _privateConstructorUsedError;
   List<TokenUrl>? get urls => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -44,14 +46,14 @@ abstract class $TokenCopyWith<$Res> {
       _$TokenCopyWithImpl<$Res, Token>;
   @useResult
   $Res call(
-      {String balance,
+      {@HexConverter() Uint256 balance,
       @JsonKey(name: 'contract_address') String contractAddress,
       @JsonKey(name: 'current_usd_price') num? currentUsdPrice,
       num decimals,
       List<TokenLogo>? logos,
       String name,
       String symbol,
-      @JsonKey(name: 'total_supply') String? totalSupply,
+      @BigIntConverter() @JsonKey(name: 'total_supply') Uint256? totalSupply,
       List<TokenUrl>? urls});
 }
 
@@ -82,7 +84,7 @@ class _$TokenCopyWithImpl<$Res, $Val extends Token>
       balance: null == balance
           ? _value.balance
           : balance // ignore: cast_nullable_to_non_nullable
-              as String,
+              as Uint256,
       contractAddress: null == contractAddress
           ? _value.contractAddress
           : contractAddress // ignore: cast_nullable_to_non_nullable
@@ -110,7 +112,7 @@ class _$TokenCopyWithImpl<$Res, $Val extends Token>
       totalSupply: freezed == totalSupply
           ? _value.totalSupply
           : totalSupply // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as Uint256?,
       urls: freezed == urls
           ? _value.urls
           : urls // ignore: cast_nullable_to_non_nullable
@@ -127,14 +129,14 @@ abstract class _$$TokenImplCopyWith<$Res> implements $TokenCopyWith<$Res> {
   @override
   @useResult
   $Res call(
-      {String balance,
+      {@HexConverter() Uint256 balance,
       @JsonKey(name: 'contract_address') String contractAddress,
       @JsonKey(name: 'current_usd_price') num? currentUsdPrice,
       num decimals,
       List<TokenLogo>? logos,
       String name,
       String symbol,
-      @JsonKey(name: 'total_supply') String? totalSupply,
+      @BigIntConverter() @JsonKey(name: 'total_supply') Uint256? totalSupply,
       List<TokenUrl>? urls});
 }
 
@@ -163,7 +165,7 @@ class __$$TokenImplCopyWithImpl<$Res>
       balance: null == balance
           ? _value.balance
           : balance // ignore: cast_nullable_to_non_nullable
-              as String,
+              as Uint256,
       contractAddress: null == contractAddress
           ? _value.contractAddress
           : contractAddress // ignore: cast_nullable_to_non_nullable
@@ -191,7 +193,7 @@ class __$$TokenImplCopyWithImpl<$Res>
       totalSupply: freezed == totalSupply
           ? _value.totalSupply
           : totalSupply // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as Uint256?,
       urls: freezed == urls
           ? _value._urls
           : urls // ignore: cast_nullable_to_non_nullable
@@ -204,14 +206,16 @@ class __$$TokenImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$TokenImpl implements _Token {
   const _$TokenImpl(
-      {required this.balance,
+      {@HexConverter() required this.balance,
       @JsonKey(name: 'contract_address') required this.contractAddress,
       @JsonKey(name: 'current_usd_price') required this.currentUsdPrice,
       required this.decimals,
       required final List<TokenLogo>? logos,
       required this.name,
       required this.symbol,
-      @JsonKey(name: 'total_supply') required this.totalSupply,
+      @BigIntConverter()
+      @JsonKey(name: 'total_supply')
+      required this.totalSupply,
       required final List<TokenUrl>? urls})
       : _logos = logos,
         _urls = urls;
@@ -220,7 +224,8 @@ class _$TokenImpl implements _Token {
       _$$TokenImplFromJson(json);
 
   @override
-  final String balance;
+  @HexConverter()
+  final Uint256 balance;
   @override
   @JsonKey(name: 'contract_address')
   final String contractAddress;
@@ -244,8 +249,9 @@ class _$TokenImpl implements _Token {
   @override
   final String symbol;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'total_supply')
-  final String? totalSupply;
+  final Uint256? totalSupply;
   final List<TokenUrl>? _urls;
   @override
   List<TokenUrl>? get urls {
@@ -311,20 +317,23 @@ class _$TokenImpl implements _Token {
 
 abstract class _Token implements Token {
   const factory _Token(
-      {required final String balance,
+      {@HexConverter() required final Uint256 balance,
       @JsonKey(name: 'contract_address') required final String contractAddress,
       @JsonKey(name: 'current_usd_price') required final num? currentUsdPrice,
       required final num decimals,
       required final List<TokenLogo>? logos,
       required final String name,
       required final String symbol,
-      @JsonKey(name: 'total_supply') required final String? totalSupply,
+      @BigIntConverter()
+      @JsonKey(name: 'total_supply')
+      required final Uint256? totalSupply,
       required final List<TokenUrl>? urls}) = _$TokenImpl;
 
   factory _Token.fromJson(Map<String, dynamic> json) = _$TokenImpl.fromJson;
 
   @override
-  String get balance;
+  @HexConverter()
+  Uint256 get balance;
   @override
   @JsonKey(name: 'contract_address')
   String get contractAddress;
@@ -340,8 +349,9 @@ abstract class _Token implements Token {
   @override
   String get symbol;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'total_supply')
-  String? get totalSupply;
+  Uint256? get totalSupply;
   @override
   List<TokenUrl>? get urls;
   @override

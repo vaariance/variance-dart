@@ -40,7 +40,8 @@ mixin _$TokenTransfer {
   num get txFee => throw _privateConstructorUsedError;
   @JsonKey(name: 'tx_type')
   num get txType => throw _privateConstructorUsedError;
-  String get value => throw _privateConstructorUsedError;
+  @BigIntConverter()
+  Uint256 get value => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -65,7 +66,7 @@ abstract class $TokenTransferCopyWith<$Res> {
       @JsonKey(name: 'transaction_index') num transactionIndex,
       @JsonKey(name: 'tx_fee') num txFee,
       @JsonKey(name: 'tx_type') num txType,
-      String value});
+      @BigIntConverter() Uint256 value});
 }
 
 /// @nodoc
@@ -137,7 +138,7 @@ class _$TokenTransferCopyWithImpl<$Res, $Val extends TokenTransfer>
       value: null == value
           ? _value.value
           : value // ignore: cast_nullable_to_non_nullable
-              as String,
+              as Uint256,
     ) as $Val);
   }
 }
@@ -161,7 +162,7 @@ abstract class _$$TokenTransferImplCopyWith<$Res>
       @JsonKey(name: 'transaction_index') num transactionIndex,
       @JsonKey(name: 'tx_fee') num txFee,
       @JsonKey(name: 'tx_type') num txType,
-      String value});
+      @BigIntConverter() Uint256 value});
 }
 
 /// @nodoc
@@ -231,14 +232,14 @@ class __$$TokenTransferImplCopyWithImpl<$Res>
       value: null == value
           ? _value.value
           : value // ignore: cast_nullable_to_non_nullable
-              as String,
+              as Uint256,
     ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$TokenTransferImpl implements _TokenTransfer {
+class _$TokenTransferImpl extends _TokenTransfer {
   const _$TokenTransferImpl(
       {@JsonKey(name: 'block_number') required this.blockNumber,
       @JsonKey(name: 'block_timestamp') required this.blockTimestamp,
@@ -250,7 +251,8 @@ class _$TokenTransferImpl implements _TokenTransfer {
       @JsonKey(name: 'transaction_index') required this.transactionIndex,
       @JsonKey(name: 'tx_fee') required this.txFee,
       @JsonKey(name: 'tx_type') required this.txType,
-      required this.value});
+      @BigIntConverter() required this.value})
+      : super._();
 
   factory _$TokenTransferImpl.fromJson(Map<String, dynamic> json) =>
       _$$TokenTransferImplFromJson(json);
@@ -286,7 +288,8 @@ class _$TokenTransferImpl implements _TokenTransfer {
   @JsonKey(name: 'tx_type')
   final num txType;
   @override
-  final String value;
+  @BigIntConverter()
+  final Uint256 value;
 
   @override
   String toString() {
@@ -349,7 +352,7 @@ class _$TokenTransferImpl implements _TokenTransfer {
   }
 }
 
-abstract class _TokenTransfer implements TokenTransfer {
+abstract class _TokenTransfer extends TokenTransfer {
   const factory _TokenTransfer(
       {@JsonKey(name: 'block_number') required final num blockNumber,
       @JsonKey(name: 'block_timestamp') required final DateTime blockTimestamp,
@@ -361,7 +364,8 @@ abstract class _TokenTransfer implements TokenTransfer {
       @JsonKey(name: 'transaction_index') required final num transactionIndex,
       @JsonKey(name: 'tx_fee') required final num txFee,
       @JsonKey(name: 'tx_type') required final num txType,
-      required final String value}) = _$TokenTransferImpl;
+      @BigIntConverter() required final Uint256 value}) = _$TokenTransferImpl;
+  const _TokenTransfer._() : super._();
 
   factory _TokenTransfer.fromJson(Map<String, dynamic> json) =
       _$TokenTransferImpl.fromJson;
@@ -397,7 +401,8 @@ abstract class _TokenTransfer implements TokenTransfer {
   @JsonKey(name: 'tx_type')
   num get txType;
   @override
-  String get value;
+  @BigIntConverter()
+  Uint256 get value;
   @override
   @JsonKey(ignore: true)
   _$$TokenTransferImplCopyWith<_$TokenTransferImpl> get copyWith =>

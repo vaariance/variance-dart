@@ -1,5 +1,6 @@
 library common;
 
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:variance_dart/interfaces.dart';

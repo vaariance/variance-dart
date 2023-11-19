@@ -34,24 +34,32 @@ mixin _$Transaction {
   String get fromAddress => throw _privateConstructorUsedError;
   @JsonKey(name: 'to_address')
   String get toAddress => throw _privateConstructorUsedError;
-  String get value => throw _privateConstructorUsedError;
+  @BigIntConverter()
+  Uint256 get value => throw _privateConstructorUsedError;
   String? get input => throw _privateConstructorUsedError;
   num get nonce => throw _privateConstructorUsedError;
   @JsonKey(name: 'contract_address')
   String? get contractAddress => throw _privateConstructorUsedError;
-  num get gas => throw _privateConstructorUsedError;
+  @BigIntConverter()
+  Uint256 get gas => throw _privateConstructorUsedError;
+  @BigIntConverter()
   @JsonKey(name: 'gas_price')
-  num get gasPrice => throw _privateConstructorUsedError;
+  Uint256 get gasPrice => throw _privateConstructorUsedError;
+  @BigIntConverter()
   @JsonKey(name: 'gas_used')
-  num get gasUsed => throw _privateConstructorUsedError;
+  Uint256 get gasUsed => throw _privateConstructorUsedError;
+  @BigIntConverter()
   @JsonKey(name: 'effective_gas_price')
-  num get effectiveGasPrice => throw _privateConstructorUsedError;
+  Uint256 get effectiveGasPrice => throw _privateConstructorUsedError;
+  @BigIntConverter()
   @JsonKey(name: 'cumulative_gas_used')
-  num get cumulativeGasUsed => throw _privateConstructorUsedError;
+  Uint256 get cumulativeGasUsed => throw _privateConstructorUsedError;
+  @BigIntConverter()
   @JsonKey(name: 'max_fee_per_gas')
-  num? get maxFeePerGas => throw _privateConstructorUsedError;
+  Uint256? get maxFeePerGas => throw _privateConstructorUsedError;
+  @BigIntConverter()
   @JsonKey(name: 'max_priority_fee_per_gas')
-  num? get maxPriorityFeePerGas => throw _privateConstructorUsedError;
+  Uint256? get maxPriorityFeePerGas => throw _privateConstructorUsedError;
   @JsonKey(name: 'tx_fee')
   num get txFee => throw _privateConstructorUsedError;
   @JsonKey(name: 'saving_fee')
@@ -80,17 +88,25 @@ abstract class $TransactionCopyWith<$Res> {
       @JsonKey(name: 'transaction_index') num transactionIndex,
       @JsonKey(name: 'from_address') String fromAddress,
       @JsonKey(name: 'to_address') String toAddress,
-      String value,
+      @BigIntConverter() Uint256 value,
       String? input,
       num nonce,
       @JsonKey(name: 'contract_address') String? contractAddress,
-      num gas,
-      @JsonKey(name: 'gas_price') num gasPrice,
-      @JsonKey(name: 'gas_used') num gasUsed,
-      @JsonKey(name: 'effective_gas_price') num effectiveGasPrice,
-      @JsonKey(name: 'cumulative_gas_used') num cumulativeGasUsed,
-      @JsonKey(name: 'max_fee_per_gas') num? maxFeePerGas,
-      @JsonKey(name: 'max_priority_fee_per_gas') num? maxPriorityFeePerGas,
+      @BigIntConverter() Uint256 gas,
+      @BigIntConverter() @JsonKey(name: 'gas_price') Uint256 gasPrice,
+      @BigIntConverter() @JsonKey(name: 'gas_used') Uint256 gasUsed,
+      @BigIntConverter()
+      @JsonKey(name: 'effective_gas_price')
+      Uint256 effectiveGasPrice,
+      @BigIntConverter()
+      @JsonKey(name: 'cumulative_gas_used')
+      Uint256 cumulativeGasUsed,
+      @BigIntConverter()
+      @JsonKey(name: 'max_fee_per_gas')
+      Uint256? maxFeePerGas,
+      @BigIntConverter()
+      @JsonKey(name: 'max_priority_fee_per_gas')
+      Uint256? maxPriorityFeePerGas,
       @JsonKey(name: 'tx_fee') num txFee,
       @JsonKey(name: 'saving_fee') num? savingFee,
       @JsonKey(name: 'burnt_fee') num? burntFee});
@@ -168,7 +184,7 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
       value: null == value
           ? _value.value
           : value // ignore: cast_nullable_to_non_nullable
-              as String,
+              as Uint256,
       input: freezed == input
           ? _value.input
           : input // ignore: cast_nullable_to_non_nullable
@@ -184,31 +200,31 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
       gas: null == gas
           ? _value.gas
           : gas // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Uint256,
       gasPrice: null == gasPrice
           ? _value.gasPrice
           : gasPrice // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Uint256,
       gasUsed: null == gasUsed
           ? _value.gasUsed
           : gasUsed // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Uint256,
       effectiveGasPrice: null == effectiveGasPrice
           ? _value.effectiveGasPrice
           : effectiveGasPrice // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Uint256,
       cumulativeGasUsed: null == cumulativeGasUsed
           ? _value.cumulativeGasUsed
           : cumulativeGasUsed // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Uint256,
       maxFeePerGas: freezed == maxFeePerGas
           ? _value.maxFeePerGas
           : maxFeePerGas // ignore: cast_nullable_to_non_nullable
-              as num?,
+              as Uint256?,
       maxPriorityFeePerGas: freezed == maxPriorityFeePerGas
           ? _value.maxPriorityFeePerGas
           : maxPriorityFeePerGas // ignore: cast_nullable_to_non_nullable
-              as num?,
+              as Uint256?,
       txFee: null == txFee
           ? _value.txFee
           : txFee // ignore: cast_nullable_to_non_nullable
@@ -242,17 +258,25 @@ abstract class _$$TransactionImplCopyWith<$Res>
       @JsonKey(name: 'transaction_index') num transactionIndex,
       @JsonKey(name: 'from_address') String fromAddress,
       @JsonKey(name: 'to_address') String toAddress,
-      String value,
+      @BigIntConverter() Uint256 value,
       String? input,
       num nonce,
       @JsonKey(name: 'contract_address') String? contractAddress,
-      num gas,
-      @JsonKey(name: 'gas_price') num gasPrice,
-      @JsonKey(name: 'gas_used') num gasUsed,
-      @JsonKey(name: 'effective_gas_price') num effectiveGasPrice,
-      @JsonKey(name: 'cumulative_gas_used') num cumulativeGasUsed,
-      @JsonKey(name: 'max_fee_per_gas') num? maxFeePerGas,
-      @JsonKey(name: 'max_priority_fee_per_gas') num? maxPriorityFeePerGas,
+      @BigIntConverter() Uint256 gas,
+      @BigIntConverter() @JsonKey(name: 'gas_price') Uint256 gasPrice,
+      @BigIntConverter() @JsonKey(name: 'gas_used') Uint256 gasUsed,
+      @BigIntConverter()
+      @JsonKey(name: 'effective_gas_price')
+      Uint256 effectiveGasPrice,
+      @BigIntConverter()
+      @JsonKey(name: 'cumulative_gas_used')
+      Uint256 cumulativeGasUsed,
+      @BigIntConverter()
+      @JsonKey(name: 'max_fee_per_gas')
+      Uint256? maxFeePerGas,
+      @BigIntConverter()
+      @JsonKey(name: 'max_priority_fee_per_gas')
+      Uint256? maxPriorityFeePerGas,
       @JsonKey(name: 'tx_fee') num txFee,
       @JsonKey(name: 'saving_fee') num? savingFee,
       @JsonKey(name: 'burnt_fee') num? burntFee});
@@ -328,7 +352,7 @@ class __$$TransactionImplCopyWithImpl<$Res>
       value: null == value
           ? _value.value
           : value // ignore: cast_nullable_to_non_nullable
-              as String,
+              as Uint256,
       input: freezed == input
           ? _value.input
           : input // ignore: cast_nullable_to_non_nullable
@@ -344,31 +368,31 @@ class __$$TransactionImplCopyWithImpl<$Res>
       gas: null == gas
           ? _value.gas
           : gas // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Uint256,
       gasPrice: null == gasPrice
           ? _value.gasPrice
           : gasPrice // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Uint256,
       gasUsed: null == gasUsed
           ? _value.gasUsed
           : gasUsed // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Uint256,
       effectiveGasPrice: null == effectiveGasPrice
           ? _value.effectiveGasPrice
           : effectiveGasPrice // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Uint256,
       cumulativeGasUsed: null == cumulativeGasUsed
           ? _value.cumulativeGasUsed
           : cumulativeGasUsed // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Uint256,
       maxFeePerGas: freezed == maxFeePerGas
           ? _value.maxFeePerGas
           : maxFeePerGas // ignore: cast_nullable_to_non_nullable
-              as num?,
+              as Uint256?,
       maxPriorityFeePerGas: freezed == maxPriorityFeePerGas
           ? _value.maxPriorityFeePerGas
           : maxPriorityFeePerGas // ignore: cast_nullable_to_non_nullable
-              as num?,
+              as Uint256?,
       txFee: null == txFee
           ? _value.txFee
           : txFee // ignore: cast_nullable_to_non_nullable
@@ -397,16 +421,23 @@ class _$TransactionImpl implements _Transaction {
       @JsonKey(name: 'transaction_index') required this.transactionIndex,
       @JsonKey(name: 'from_address') required this.fromAddress,
       @JsonKey(name: 'to_address') required this.toAddress,
-      required this.value,
+      @BigIntConverter() required this.value,
       required this.input,
       required this.nonce,
       @JsonKey(name: 'contract_address') required this.contractAddress,
-      required this.gas,
-      @JsonKey(name: 'gas_price') required this.gasPrice,
-      @JsonKey(name: 'gas_used') required this.gasUsed,
-      @JsonKey(name: 'effective_gas_price') required this.effectiveGasPrice,
-      @JsonKey(name: 'cumulative_gas_used') required this.cumulativeGasUsed,
-      @JsonKey(name: 'max_fee_per_gas') required this.maxFeePerGas,
+      @BigIntConverter() required this.gas,
+      @BigIntConverter() @JsonKey(name: 'gas_price') required this.gasPrice,
+      @BigIntConverter() @JsonKey(name: 'gas_used') required this.gasUsed,
+      @BigIntConverter()
+      @JsonKey(name: 'effective_gas_price')
+      required this.effectiveGasPrice,
+      @BigIntConverter()
+      @JsonKey(name: 'cumulative_gas_used')
+      required this.cumulativeGasUsed,
+      @BigIntConverter()
+      @JsonKey(name: 'max_fee_per_gas')
+      required this.maxFeePerGas,
+      @BigIntConverter()
       @JsonKey(name: 'max_priority_fee_per_gas')
       required this.maxPriorityFeePerGas,
       @JsonKey(name: 'tx_fee') required this.txFee,
@@ -439,7 +470,8 @@ class _$TransactionImpl implements _Transaction {
   @JsonKey(name: 'to_address')
   final String toAddress;
   @override
-  final String value;
+  @BigIntConverter()
+  final Uint256 value;
   @override
   final String? input;
   @override
@@ -448,25 +480,32 @@ class _$TransactionImpl implements _Transaction {
   @JsonKey(name: 'contract_address')
   final String? contractAddress;
   @override
-  final num gas;
+  @BigIntConverter()
+  final Uint256 gas;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'gas_price')
-  final num gasPrice;
+  final Uint256 gasPrice;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'gas_used')
-  final num gasUsed;
+  final Uint256 gasUsed;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'effective_gas_price')
-  final num effectiveGasPrice;
+  final Uint256 effectiveGasPrice;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'cumulative_gas_used')
-  final num cumulativeGasUsed;
+  final Uint256 cumulativeGasUsed;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'max_fee_per_gas')
-  final num? maxFeePerGas;
+  final Uint256? maxFeePerGas;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'max_priority_fee_per_gas')
-  final num? maxPriorityFeePerGas;
+  final Uint256? maxPriorityFeePerGas;
   @override
   @JsonKey(name: 'tx_fee')
   final num txFee;
@@ -577,20 +616,29 @@ abstract class _Transaction implements Transaction {
       @JsonKey(name: 'transaction_index') required final num transactionIndex,
       @JsonKey(name: 'from_address') required final String fromAddress,
       @JsonKey(name: 'to_address') required final String toAddress,
-      required final String value,
+      @BigIntConverter() required final Uint256 value,
       required final String? input,
       required final num nonce,
       @JsonKey(name: 'contract_address') required final String? contractAddress,
-      required final num gas,
-      @JsonKey(name: 'gas_price') required final num gasPrice,
-      @JsonKey(name: 'gas_used') required final num gasUsed,
+      @BigIntConverter() required final Uint256 gas,
+      @BigIntConverter()
+      @JsonKey(name: 'gas_price')
+      required final Uint256 gasPrice,
+      @BigIntConverter()
+      @JsonKey(name: 'gas_used')
+      required final Uint256 gasUsed,
+      @BigIntConverter()
       @JsonKey(name: 'effective_gas_price')
-      required final num effectiveGasPrice,
+      required final Uint256 effectiveGasPrice,
+      @BigIntConverter()
       @JsonKey(name: 'cumulative_gas_used')
-      required final num cumulativeGasUsed,
-      @JsonKey(name: 'max_fee_per_gas') required final num? maxFeePerGas,
+      required final Uint256 cumulativeGasUsed,
+      @BigIntConverter()
+      @JsonKey(name: 'max_fee_per_gas')
+      required final Uint256? maxFeePerGas,
+      @BigIntConverter()
       @JsonKey(name: 'max_priority_fee_per_gas')
-      required final num? maxPriorityFeePerGas,
+      required final Uint256? maxPriorityFeePerGas,
       @JsonKey(name: 'tx_fee') required final num txFee,
       @JsonKey(name: 'saving_fee') required final num? savingFee,
       @JsonKey(name: 'burnt_fee')
@@ -622,7 +670,8 @@ abstract class _Transaction implements Transaction {
   @JsonKey(name: 'to_address')
   String get toAddress;
   @override
-  String get value;
+  @BigIntConverter()
+  Uint256 get value;
   @override
   String? get input;
   @override
@@ -631,25 +680,32 @@ abstract class _Transaction implements Transaction {
   @JsonKey(name: 'contract_address')
   String? get contractAddress;
   @override
-  num get gas;
+  @BigIntConverter()
+  Uint256 get gas;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'gas_price')
-  num get gasPrice;
+  Uint256 get gasPrice;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'gas_used')
-  num get gasUsed;
+  Uint256 get gasUsed;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'effective_gas_price')
-  num get effectiveGasPrice;
+  Uint256 get effectiveGasPrice;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'cumulative_gas_used')
-  num get cumulativeGasUsed;
+  Uint256 get cumulativeGasUsed;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'max_fee_per_gas')
-  num? get maxFeePerGas;
+  Uint256? get maxFeePerGas;
   @override
+  @BigIntConverter()
   @JsonKey(name: 'max_priority_fee_per_gas')
-  num? get maxPriorityFeePerGas;
+  Uint256? get maxPriorityFeePerGas;
   @override
   @JsonKey(name: 'tx_fee')
   num get txFee;

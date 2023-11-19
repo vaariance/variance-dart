@@ -36,6 +36,16 @@ abstract class Uint256Base {
   /// Returns a new Uint256 representing the result of the division.
   Uint256Base operator /(covariant Uint256Base other);
 
+  /// Converts this Uint256 to an [EtherAmount] in ether.
+  ///
+  /// Returns an [BigInt] representing the Uint256 value in ether.
+  BigInt toEther();
+
+  /// Converts this Uint256 to an [EtherAmount] in wei.
+  ///
+  /// Returns an [EtherAmount]
+  EtherAmount toEtherAmount();
+
   /// Converts this Uint256 to a hexadecimal string.
   ///
   /// Returns a string representation of the Uint256 value in hexadecimal format.
@@ -52,8 +62,13 @@ abstract class Uint256Base {
   @override
   String toString();
 
+  /// Converts this Uint256 to a [double] giving the [decimals].
+  ///
+  /// Returns an [double]
+  double toUnit(int decimals);
+
   /// Converts this Uint256 to an [EtherAmount] in wei.
   ///
-  /// Returns an [EtherAmount] representing the Uint256 value in wei.
-  EtherAmount toWei();
+  /// Returns an [BigInt] representing the Uint256 value in wei.
+  BigInt toWei();
 }
