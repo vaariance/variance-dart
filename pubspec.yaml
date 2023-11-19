@@ -1,8 +1,9 @@
 name: variance_dart
 description: An Account Abstraction (4337) Development kit, for quickly building mobile web3 apps.
-version: 1.1.0+1
-publish_to: none
-homepage: https://github.com/vaariance/variance-dart.git
+version: 0.0.2
+documentation: https://docs.variance.space
+homepage: https://variance.space
+repository: https://github.com/vaariance/variance-dart.git
 environment:
   sdk: ">=3.0.6 <4.0.0"
 
