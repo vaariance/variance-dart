@@ -1,7 +1,3 @@
-## 0.0.1
+## 0.0.3
 
-* Create SmartWallet class using simple accounts
-
-* Initial Implementation of the Bundler Providers
-
-* Multi-Signer Interface with Passkey support for signing User Operations
+* deprecated support for internally handling local authentication in the hd wallet

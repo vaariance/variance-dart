@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the SmartWalletBase class from the interfaces library, for the Dart programming language.">
+  <title>SmartWalletBase class - interfaces library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../static-assets/styles.css?v1">
+  <link rel="icon" href="../static-assets/favicon.png?v1">
+
+  
+</head>
+
+
+<body data-base-href="../" data-using-base-href="false" class="light-theme">
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">variance_dart</a></li>
+    <li><a href="../interfaces/interfaces-library.html">interfaces</a></li>
+    <li class="self-crumb">SmartWalletBase class</li>
+  </ol>
+  <div class="self-name">SmartWalletBase</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <div class="toggle" id="theme-button">
+    <label for="theme">
+      <input type="checkbox" id="theme" value="light-theme">
+      <span id="dark-theme-button" class="material-symbols-outlined">
+        brightness_4
+      </span>
+      <span id="light-theme-button" class="material-symbols-outlined">
+        brightness_5
+      </span>
+    </label>
+  </div>
+</header>
+<main>
+
+  <div
+      id="dartdoc-main-content"
+      class="main-content"
+      data-above-sidebar="interfaces&#47;interfaces-library-sidebar.html"
+      data-below-sidebar="interfaces&#47;SmartWalletBase-class-sidebar.html">
+      <div>
+<h1><span class="kind-class">SmartWalletBase</span> class 
+    <a href="https://dart.dev/language/classes#abstract-classes" class="feature feature-abstract" title="This type can not be directly constructed.">abstract</a>
+ 
+</h1></div>
+
+    
+<section class="desc markdown">
+  <p>An abstract class representing the base structure of a Smart Wallet.</p>
+<p>The SmartWalletBase class defines the common structure and methods that
+a Smart Wallet implementation should have. This allows for flexibility in
+creating different implementations of Smart Wallets while adhering to a
+common interface.</p>
+</section>
+
+
+    <section>
+      <dl class="dl-horizontal">
+        
+
+        
+        
+
+        <dt>Implementers</dt>
+        <dd><ul class="comma-separated clazz-relationships">
+          <li><a href="../variance/SmartWallet-class.html">SmartWallet</a></li>
+        </ul></dd>
+
+
+        
+
+
+      </dl>
+    </section>
+
+    
+  <section class="summary offset-anchor" id="constructors">
+    <h2>Constructors</h2>
+
+    <dl class="constructor-summary-list">
+        <dt id="SmartWalletBase" class="callable">
+          <span class="name"><a href="../interfaces/SmartWalletBase/SmartWalletBase.html">SmartWalletBase</a></span><span class="signature">()</span>
+        </dt>
+        <dd>
+          
+        </dd>
+    </dl>
+  </section>
+
+    <section class="summary offset-anchor" id="instance-properties">
+      <h2>Properties</h2>
+
+      <dl class="properties">
+        <dt id="address" class="property">
+  <span class="name"><a href="../interfaces/SmartWalletBase/address.html">address</a></span>
+  <span class="signature">&#8594; <a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a>?</span> 
+
+</dt>
+<dd>
+  The Ethereum address associated with the Smart Wallet.
+  <div class="features"><span class="feature">read-only</span></div>
+
+</dd>
+
+        <dt id="balance" class="property">
+  <span class="name"><a href="../interfaces/SmartWalletBase/balance.html">balance</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/web3dart/2.7.2/web3dart/EtherAmount-class.html">EtherAmount</a></span>&gt;</span></span> 
+
+</dt>
+<dd>
+  Retrieves the balance of the Smart Wallet.
+  <div class="features"><span class="feature">read-only</span></div>
+
+</dd>
+
+        <dt id="deployed" class="property">
+  <span class="name"><a href="../interfaces/SmartWalletBase/deployed.html">deployed</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.dart.dev/stable/3.1.5/dart-core/bool-class.html">bool</a></span>&gt;</span></span> 
+
+</dt>
+<dd>
+  Checks if the Smart Wallet has been deployed on the blockchain.
+  <div class="features"><span class="feature">read-only</span></div>
+
+</dd>
+
+        <dt id="hashCode" class="property inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Object/hashCode.html">hashCode</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-core/int-class.html">int</a></span> 
+
+</dt>
+<dd class="inherited">
+  The hash code for this object.
+  <div class="features"><span class="feature">read-only</span><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="initCode" class="property">
+  <span class="name"><a href="../interfaces/SmartWalletBase/initCode.html">initCode</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-core/String-class.html">String</a>?</span> 
+
+</dt>
+<dd>
+  Retrieves the init code of the Smart Wallet.
+  <div class="features"><span class="feature">read-only</span></div>
+
+</dd>
+
+        <dt id="initCodeGas" class="property">
+  <span class="name"><a href="../interfaces/SmartWalletBase/initCodeGas.html">initCodeGas</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.dart.dev/stable/3.1.5/dart-core/BigInt-class.html">BigInt</a></span>&gt;</span></span> 
+
+</dt>
+<dd>
+  Retrieves the gas required to deploy the Smart Wallet.
+  <div class="features"><span class="feature">read-only</span></div>
+
+</dd>
+
+        <dt id="nonce" class="property">
+  <span class="name"><a href="../interfaces/SmartWalletBase/nonce.html">nonce</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../variance/Uint256-class.html">Uint256</a></span>&gt;</span></span> 
+
+</dt>
+<dd>
+  Retrieves the nonce of the Smart Wallet.
+  <div class="features"><span class="feature">read-only</span></div>
+
+</dd>
+
+        <dt id="runtimeType" class="property inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Object/runtimeType.html">runtimeType</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-core/Type-class.html">Type</a></span> 
+
+</dt>
+<dd class="inherited">
+  A representation of the runtime type of the object.
+  <div class="features"><span class="feature">read-only</span><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="toHex" class="property">
+  <span class="name"><a href="../interfaces/SmartWalletBase/toHex.html">toHex</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-core/String-class.html">String</a>?</span> 
+
+</dt>
+<dd>
+  Converts the Smart Wallet address to its hexadecimal representation.
+  <div class="features"><span class="feature">read-only</span></div>
+
+</dd>
+
+      </dl>
+    </section>
+
+    
+  <section
+      class="summary offset-anchor"
+      id="instance-methods">
+    <h2>Methods</h2>
+    <dl class="callables">
+        <dt id="buildUserOperation" class="callable">
+  <span class="name"><a href="../interfaces/SmartWalletBase/buildUserOperation.html">buildUserOperation</a></span><span class="signature">(<wbr><span class="parameter" id="buildUserOperation-param-callData">{<span>required</span> <span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-typed_data/Uint8List-class.html">Uint8List</a></span> <span class="parameter-name">callData</span>, </span><span class="parameter" id="buildUserOperation-param-customNonce"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/BigInt-class.html">BigInt</a>?</span> <span class="parameter-name">customNonce</span>, </span><span class="parameter" id="buildUserOperation-param-callGasLimit"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/BigInt-class.html">BigInt</a>?</span> <span class="parameter-name">callGasLimit</span>, </span><span class="parameter" id="buildUserOperation-param-verificationGasLimit"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/BigInt-class.html">BigInt</a>?</span> <span class="parameter-name">verificationGasLimit</span>, </span><span class="parameter" id="buildUserOperation-param-preVerificationGas"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/BigInt-class.html">BigInt</a>?</span> <span class="parameter-name">preVerificationGas</span>, </span><span class="parameter" id="buildUserOperation-param-maxFeePerGas"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/BigInt-class.html">BigInt</a>?</span> <span class="parameter-name">maxFeePerGas</span>, </span><span class="parameter" id="buildUserOperation-param-maxPriorityFeePerGas"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/BigInt-class.html">BigInt</a>?</span> <span class="parameter-name">maxPriorityFeePerGas</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="../variance/UserOperation-class.html">UserOperation</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Builds a <a href="../variance/UserOperation-class.html">UserOperation</a> based on provided parameters.
+  
+
+</dd>
+
+        <dt id="createSimpleAccount" class="callable">
+  <span class="name"><a href="../interfaces/SmartWalletBase/createSimpleAccount.html">createSimpleAccount</a></span><span class="signature">(<wbr><span class="parameter" id="createSimpleAccount-param-salt"><span class="type-annotation"><a href="../variance/Uint256-class.html">Uint256</a></span> <span class="parameter-name">salt</span>, </span><span class="parameter" id="createSimpleAccount-param-index">{<span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">index</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Creates a new wallet address using counterfactual deployment.
+  
+
+</dd>
+
+        <dt id="createSimplePasskeyAccount" class="callable">
+  <span class="name"><a href="../interfaces/SmartWalletBase/createSimplePasskeyAccount.html">createSimplePasskeyAccount</a></span><span class="signature">(<wbr><span class="parameter" id="createSimplePasskeyAccount-param-pkp"><span class="type-annotation"><a href="../variance/PassKeyPair-class.html">PassKeyPair</a></span> <span class="parameter-name">pkp</span>, </span><span class="parameter" id="createSimplePasskeyAccount-param-salt"><span class="type-annotation"><a href="../variance/Uint256-class.html">Uint256</a></span> <span class="parameter-name">salt</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Creates a new Passkey wallet address using counterfactual deployment.
+  
+
+</dd>
+
+        <dt id="dangerouslySetInitCode" class="callable">
+  <span class="name"><a href="../interfaces/SmartWalletBase/dangerouslySetInitCode.html">dangerouslySetInitCode</a></span><span class="signature">(<wbr><span class="parameter" id="dangerouslySetInitCode-param-code"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">code</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  manually Sets the init code of the Smart Wallet and overrides the default.
+  
+
+</dd>
+
+        <dt id="getSimpleAccountAddress" class="callable">
+  <span class="name"><a href="../interfaces/SmartWalletBase/getSimpleAccountAddress.html">getSimpleAccountAddress</a></span><span class="signature">(<wbr><span class="parameter" id="getSimpleAccountAddress-param-signer"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span> <span class="parameter-name">signer</span>, </span><span class="parameter" id="getSimpleAccountAddress-param-salt"><span class="type-annotation"><a href="../variance/Uint256-class.html">Uint256</a></span> <span class="parameter-name">salt</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Retrieves the counterfactual address of a wallet created with <code>createAccount</code>.
+  
+
+</dd>
+
+        <dt id="getSimplePassKeyAccountAddress" class="callable">
+  <span class="name"><a href="../interfaces/SmartWalletBase/getSimplePassKeyAccountAddress.html">getSimplePassKeyAccountAddress</a></span><span class="signature">(<wbr><span class="parameter" id="getSimplePassKeyAccountAddress-param-pkp"><span class="type-annotation"><a href="../variance/PassKeyPair-class.html">PassKeyPair</a></span> <span class="parameter-name">pkp</span>, </span><span class="parameter" id="getSimplePassKeyAccountAddress-param-salt"><span class="type-annotation"><a href="../variance/Uint256-class.html">Uint256</a></span> <span class="parameter-name">salt</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Retrieves the counterfactual address of a Passkey wallet created with <a href="../interfaces/SmartWalletBase/createSimplePasskeyAccount.html">createSimplePasskeyAccount</a>.
+  
+
+</dd>
+
+        <dt id="noSuchMethod" class="callable inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Object/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Invocation-class.html">Invocation</a></span> <span class="parameter-name">invocation</span></span>)
+    <span class="returntype parameter">&#8594; dynamic</span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  Invoked when a nonexistent method or property is accessed.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="send" class="callable">
+  <span class="name"><a href="../interfaces/SmartWalletBase/send.html">send</a></span><span class="signature">(<wbr><span class="parameter" id="send-param-recipient"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span> <span class="parameter-name">recipient</span>, </span><span class="parameter" id="send-param-amount"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/web3dart/EtherAmount-class.html">EtherAmount</a></span> <span class="parameter-name">amount</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../variance/UserOperationResponse-class.html">UserOperationResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Transfers native tokens to another recipient.
+  
+
+</dd>
+
+        <dt id="sendBatchedTransaction" class="callable">
+  <span class="name"><a href="../interfaces/SmartWalletBase/sendBatchedTransaction.html">sendBatchedTransaction</a></span><span class="signature">(<wbr><span class="parameter" id="sendBatchedTransaction-param-recipients"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span>&gt;</span></span> <span class="parameter-name">recipients</span>, </span><span class="parameter" id="sendBatchedTransaction-param-calls"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.dart.dev/stable/3.1.5/dart-typed_data/Uint8List-class.html">Uint8List</a></span>&gt;</span></span> <span class="parameter-name">calls</span>, </span><span class="parameter" id="sendBatchedTransaction-param-amounts">{<span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/web3dart/2.7.2/web3dart/EtherAmount-class.html">EtherAmount</a></span>&gt;</span>?</span> <span class="parameter-name">amounts</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../variance/UserOperationResponse-class.html">UserOperationResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Sends a batched transaction to the wallet.
+  
+
+</dd>
+
+        <dt id="sendSignedUserOperation" class="callable">
+  <span class="name"><a href="../interfaces/SmartWalletBase/sendSignedUserOperation.html">sendSignedUserOperation</a></span><span class="signature">(<wbr><span class="parameter" id="sendSignedUserOperation-param-op"><span class="type-annotation"><a href="../variance/UserOperation-class.html">UserOperation</a></span> <span class="parameter-name">op</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../variance/UserOperationResponse-class.html">UserOperationResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Sends a signed user operation to the bundler.
+  
+
+</dd>
+
+        <dt id="sendTransaction" class="callable">
+  <span class="name"><a href="../interfaces/SmartWalletBase/sendTransaction.html">sendTransaction</a></span><span class="signature">(<wbr><span class="parameter" id="sendTransaction-param-to"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span> <span class="parameter-name">to</span>, </span><span class="parameter" id="sendTransaction-param-encodedFunctionData"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-typed_data/Uint8List-class.html">Uint8List</a></span> <span class="parameter-name">encodedFunctionData</span>, </span><span class="parameter" id="sendTransaction-param-amount">{<span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/web3dart/EtherAmount-class.html">EtherAmount</a>?</span> <span class="parameter-name">amount</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../variance/UserOperationResponse-class.html">UserOperationResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Sends a transaction to the wallet contract.
+  
+
+</dd>
+
+        <dt id="sendUserOperation" class="callable">
+  <span class="name"><a href="../interfaces/SmartWalletBase/sendUserOperation.html">sendUserOperation</a></span><span class="signature">(<wbr><span class="parameter" id="sendUserOperation-param-op"><span class="type-annotation"><a href="../variance/UserOperation-class.html">UserOperation</a></span> <span class="parameter-name">op</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../variance/UserOperationResponse-class.html">UserOperationResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Signs and sends a user operation to the bundler.
+  
+
+</dd>
+
+        <dt id="signUserOperation" class="callable">
+  <span class="name"><a href="../interfaces/SmartWalletBase/signUserOperation.html">signUserOperation</a></span><span class="signature">(<wbr><span class="parameter" id="signUserOperation-param-userOp"><span class="type-annotation"><a href="../variance/UserOperation-class.html">UserOperation</a></span> <span class="parameter-name">userOp</span>, </span><span class="parameter" id="signUserOperation-param-update">{<span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">update</span> = <span class="default-value">true</span>, </span><span class="parameter" id="signUserOperation-param-id"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">id</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../variance/UserOperation-class.html">UserOperation</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Signs a user operation using the provided key.
+  
+
+</dd>
+
+        <dt id="toString" class="callable inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Object/toString.html">toString</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-core/String-class.html">String</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  A string representation of this object.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+    
+  <section
+      class="summary offset-anchor inherited"
+      id="operators">
+    <h2>Operators</h2>
+    <dl class="callables">
+        <dt id="operator ==" class="callable inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Object/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">other</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-core/bool-class.html">bool</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  The equality operator.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+    
+    
+    
+
+
+  </div> <!-- /.main-content -->
+
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../index.html">variance_dart</a></li>
+    <li><a href="../interfaces/interfaces-library.html">interfaces</a></li>
+    <li class="self-crumb">SmartWalletBase class</li>
+</ol>
+
+
+    <!--<h5>interfaces library</h5>-->
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div>
+
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    variance_dart
+      0.0.1
+  </span>
+
+  
+</footer>
+
+
+
+<script src="../static-assets/highlight.pack.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
+
+
+
+</body>
+
+</html>
+

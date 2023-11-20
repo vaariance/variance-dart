@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the ChainBaseApiBase class from the utils library, for the Dart programming language.">
+  <title>ChainBaseApiBase class - utils library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../static-assets/styles.css?v1">
+  <link rel="icon" href="../static-assets/favicon.png?v1">
+
+  
+</head>
+
+
+<body data-base-href="../" data-using-base-href="false" class="light-theme">
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">variance_dart</a></li>
+    <li><a href="../utils/utils-library.html">utils</a></li>
+    <li class="self-crumb">ChainBaseApiBase class</li>
+  </ol>
+  <div class="self-name">ChainBaseApiBase</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <div class="toggle" id="theme-button">
+    <label for="theme">
+      <input type="checkbox" id="theme" value="light-theme">
+      <span id="dark-theme-button" class="material-symbols-outlined">
+        brightness_4
+      </span>
+      <span id="light-theme-button" class="material-symbols-outlined">
+        brightness_5
+      </span>
+    </label>
+  </div>
+</header>
+<main>
+
+  <div
+      id="dartdoc-main-content"
+      class="main-content"
+      data-above-sidebar="utils&#47;utils-library-sidebar.html"
+      data-below-sidebar="utils&#47;ChainBaseApiBase-class-sidebar.html">
+      <div>
+<h1><span class="kind-class">ChainBaseApiBase</span> class 
+    <a href="https://dart.dev/language/classes#abstract-classes" class="feature feature-abstract" title="This type can not be directly constructed.">abstract</a>
+ 
+</h1></div>
+
+    
+<section class="desc markdown">
+  <p>An abstract class representing the base API for interacting with a blockchain.</p>
+<p>This class defines methods for retrieving various information related to
+ERC-20 tokens, NFT balances, token balances, token transfers, transactions,
+ENS name resolution, and reverse ENS address lookup.</p>
+</section>
+
+
+    <section>
+      <dl class="dl-horizontal">
+        
+
+        
+        
+
+        <dt>Implementers</dt>
+        <dd><ul class="comma-separated clazz-relationships">
+          <li><a href="../utils/ChainBaseApi-class.html">ChainBaseApi</a></li>
+        </ul></dd>
+
+
+        
+
+
+      </dl>
+    </section>
+
+    
+  <section class="summary offset-anchor" id="constructors">
+    <h2>Constructors</h2>
+
+    <dl class="constructor-summary-list">
+        <dt id="ChainBaseApiBase" class="callable">
+          <span class="name"><a href="../utils/ChainBaseApiBase/ChainBaseApiBase.html">ChainBaseApiBase</a></span><span class="signature">()</span>
+        </dt>
+        <dd>
+          
+        </dd>
+    </dl>
+  </section>
+
+    <section class="summary offset-anchor inherited" id="instance-properties">
+      <h2>Properties</h2>
+
+      <dl class="properties">
+        <dt id="hashCode" class="property inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Object/hashCode.html">hashCode</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-core/int-class.html">int</a></span> 
+
+</dt>
+<dd class="inherited">
+  The hash code for this object.
+  <div class="features"><span class="feature">read-only</span><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="runtimeType" class="property inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Object/runtimeType.html">runtimeType</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-core/Type-class.html">Type</a></span> 
+
+</dt>
+<dd class="inherited">
+  A representation of the runtime type of the object.
+  <div class="features"><span class="feature">read-only</span><span class="feature">inherited</span></div>
+
+</dd>
+
+      </dl>
+    </section>
+
+    
+  <section
+      class="summary offset-anchor"
+      id="instance-methods">
+    <h2>Methods</h2>
+    <dl class="callables">
+        <dt id="getERC20TokenMarketPrice" class="callable">
+  <span class="name"><a href="../utils/ChainBaseApiBase/getERC20TokenMarketPrice.html">getERC20TokenMarketPrice</a></span><span class="signature">(<wbr><span class="parameter" id="getERC20TokenMarketPrice-param-tokenAddress"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span> <span class="parameter-name">tokenAddress</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../utils/TokenPriceResponse-class.html">TokenPriceResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Retrieves the market price of an ERC-20 token.
+  
+
+</dd>
+
+        <dt id="getNFTBalancesForAddress" class="callable">
+  <span class="name"><a href="../utils/ChainBaseApiBase/getNFTBalancesForAddress.html">getNFTBalancesForAddress</a></span><span class="signature">(<wbr><span class="parameter" id="getNFTBalancesForAddress-param-address"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span> <span class="parameter-name">address</span>, </span><span class="parameter" id="getNFTBalancesForAddress-param-tokenAddress">{<span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a>?</span> <span class="parameter-name">tokenAddress</span>, </span><span class="parameter" id="getNFTBalancesForAddress-param-page"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/int-class.html">int</a></span> <span class="parameter-name">page</span> = <span class="default-value">1</span>, </span><span class="parameter" id="getNFTBalancesForAddress-param-pageSize"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/int-class.html">int</a></span> <span class="parameter-name">pageSize</span> = <span class="default-value">20</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../utils/NFTBalancesResponse-class.html">NFTBalancesResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Retrieves NFT balances for a specific address.
+  
+
+</dd>
+
+        <dt id="getTokenBalancesForAddress" class="callable">
+  <span class="name"><a href="../utils/ChainBaseApiBase/getTokenBalancesForAddress.html">getTokenBalancesForAddress</a></span><span class="signature">(<wbr><span class="parameter" id="getTokenBalancesForAddress-param-address"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span> <span class="parameter-name">address</span>, </span><span class="parameter" id="getTokenBalancesForAddress-param-tokenAddress">{<span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a>?</span> <span class="parameter-name">tokenAddress</span>, </span><span class="parameter" id="getTokenBalancesForAddress-param-page"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/int-class.html">int</a></span> <span class="parameter-name">page</span> = <span class="default-value">1</span>, </span><span class="parameter" id="getTokenBalancesForAddress-param-pageSize"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/int-class.html">int</a></span> <span class="parameter-name">pageSize</span> = <span class="default-value">20</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../utils/TokenBalancesResponse-class.html">TokenBalancesResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Retrieves token balances for a specific address.
+  
+
+</dd>
+
+        <dt id="getTokenMetadata" class="callable">
+  <span class="name"><a href="../utils/ChainBaseApiBase/getTokenMetadata.html">getTokenMetadata</a></span><span class="signature">(<wbr><span class="parameter" id="getTokenMetadata-param-tokenAddress"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span> <span class="parameter-name">tokenAddress</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../utils/TokenMetadataResponse-class.html">TokenMetadataResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Retrieves token metadata for a specific address.
+  
+
+</dd>
+
+        <dt id="getTokenTransfersForAddress" class="callable">
+  <span class="name"><a href="../utils/ChainBaseApiBase/getTokenTransfersForAddress.html">getTokenTransfersForAddress</a></span><span class="signature">(<wbr><span class="parameter" id="getTokenTransfersForAddress-param-address"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span> <span class="parameter-name">address</span>, </span><span class="parameter" id="getTokenTransfersForAddress-param-tokenAddress">{<span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a>?</span> <span class="parameter-name">tokenAddress</span>, </span><span class="parameter" id="getTokenTransfersForAddress-param-fromBlock"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/web3dart/BlockNum-class.html">BlockNum</a>?</span> <span class="parameter-name">fromBlock</span>, </span><span class="parameter" id="getTokenTransfersForAddress-param-toBlock"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/web3dart/BlockNum-class.html">BlockNum</a>?</span> <span class="parameter-name">toBlock</span>, </span><span class="parameter" id="getTokenTransfersForAddress-param-fromTime"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/DateTime-class.html">DateTime</a>?</span> <span class="parameter-name">fromTime</span>, </span><span class="parameter" id="getTokenTransfersForAddress-param-toTime"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/DateTime-class.html">DateTime</a>?</span> <span class="parameter-name">toTime</span>, </span><span class="parameter" id="getTokenTransfersForAddress-param-page"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/int-class.html">int</a></span> <span class="parameter-name">page</span> = <span class="default-value">1</span>, </span><span class="parameter" id="getTokenTransfersForAddress-param-pageSize"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/int-class.html">int</a></span> <span class="parameter-name">pageSize</span> = <span class="default-value">20</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../utils/TokenTransfersResponse-class.html">TokenTransfersResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Retrieves token transfers for a specific address and token.
+  
+
+</dd>
+
+        <dt id="getTransactionsForAddress" class="callable">
+  <span class="name"><a href="../utils/ChainBaseApiBase/getTransactionsForAddress.html">getTransactionsForAddress</a></span><span class="signature">(<wbr><span class="parameter" id="getTransactionsForAddress-param-address"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span> <span class="parameter-name">address</span>, </span><span class="parameter" id="getTransactionsForAddress-param-tokenAddress">{<span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a>?</span> <span class="parameter-name">tokenAddress</span>, </span><span class="parameter" id="getTransactionsForAddress-param-fromBlock"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/web3dart/BlockNum-class.html">BlockNum</a>?</span> <span class="parameter-name">fromBlock</span>, </span><span class="parameter" id="getTransactionsForAddress-param-toBlock"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/web3dart/BlockNum-class.html">BlockNum</a>?</span> <span class="parameter-name">toBlock</span>, </span><span class="parameter" id="getTransactionsForAddress-param-fromTime"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/DateTime-class.html">DateTime</a>?</span> <span class="parameter-name">fromTime</span>, </span><span class="parameter" id="getTransactionsForAddress-param-toTime"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/DateTime-class.html">DateTime</a>?</span> <span class="parameter-name">toTime</span>, </span><span class="parameter" id="getTransactionsForAddress-param-page"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/int-class.html">int</a></span> <span class="parameter-name">page</span> = <span class="default-value">1</span>, </span><span class="parameter" id="getTransactionsForAddress-param-pageSize"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/int-class.html">int</a></span> <span class="parameter-name">pageSize</span> = <span class="default-value">20</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../utils/TransactionsResponse-class.html">TransactionsResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Retrieves transactions for a specific address.
+  
+
+</dd>
+
+        <dt id="noSuchMethod" class="callable inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Object/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Invocation-class.html">Invocation</a></span> <span class="parameter-name">invocation</span></span>)
+    <span class="returntype parameter">&#8594; dynamic</span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  Invoked when a nonexistent method or property is accessed.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="resolveENSName" class="callable">
+  <span class="name"><a href="../utils/ChainBaseApiBase/resolveENSName.html">resolveENSName</a></span><span class="signature">(<wbr><span class="parameter" id="resolveENSName-param-name"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span>, </span><span class="parameter" id="resolveENSName-param-toBlock">{<span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/web3dart/BlockNum-class.html">BlockNum</a>?</span> <span class="parameter-name">toBlock</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../utils/ENSResponse-class.html">ENSResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Resolves an ENS name to its corresponding Ethereum address.
+  
+
+</dd>
+
+        <dt id="reverseENSAddress" class="callable">
+  <span class="name"><a href="../utils/ChainBaseApiBase/reverseENSAddress.html">reverseENSAddress</a></span><span class="signature">(<wbr><span class="parameter" id="reverseENSAddress-param-address"><span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/credentials/EthereumAddress-class.html">EthereumAddress</a></span> <span class="parameter-name">address</span>, </span><span class="parameter" id="reverseENSAddress-param-toBlock">{<span class="type-annotation"><a href="https://pub.dev/documentation/web3dart/2.7.2/web3dart/BlockNum-class.html">BlockNum</a>?</span> <span class="parameter-name">toBlock</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../utils/ENSResponse-class.html">ENSResponse</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Performs a reverse ENS address lookup to obtain the associated ENS name.
+  
+
+</dd>
+
+        <dt id="toString" class="callable inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Object/toString.html">toString</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-core/String-class.html">String</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  A string representation of this object.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+    
+  <section
+      class="summary offset-anchor inherited"
+      id="operators">
+    <h2>Operators</h2>
+    <dl class="callables">
+        <dt id="operator ==" class="callable inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Object/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.1.5/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">other</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.1.5/dart-core/bool-class.html">bool</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  The equality operator.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+    
+    
+    
+
+
+  </div> <!-- /.main-content -->
+
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../index.html">variance_dart</a></li>
+    <li><a href="../utils/utils-library.html">utils</a></li>
+    <li class="self-crumb">ChainBaseApiBase class</li>
+</ol>
+
+
+    <!--<h5>utils library</h5>-->
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div>
+
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    variance_dart
+      0.0.1
+  </span>
+
+  
+</footer>
+
+
+
+<script src="../static-assets/highlight.pack.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
+
+
+
+</body>
+
+</html>
+
