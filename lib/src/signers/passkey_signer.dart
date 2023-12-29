@@ -8,7 +8,7 @@ class AuthData {
   AuthData(this.credentialHex, this.credentialId, this.publicKey, this.aaGUID);
 }
 
-class PassKeyPair {
+class PassKeyPair with SecureStorageMixin {
   final Uint8List credentialHexBytes;
   final String credentialId;
   final List<Uint256> publicKey;
@@ -47,6 +47,23 @@ class PassKeyPair {
       'aaGUID': aaGUID,
       'registrationTime': registrationTime.millisecondsSinceEpoch,
     };
+  }
+
+  @override
+  SecureStorageMiddleware withSecureStorage(SecureStorage secureStorage,
+      {Authentication? authMiddleware}) {
+    return SecureStorageMiddleware(
+        secureStorage: secureStorage,
+        authMiddleware: authMiddleware,
+        credential: toJson());
+  }
+
+  static Future<PassKeyPair?> loadFromSecureStorage(
+      {required SecureStorageRepository storageMiddleware,
+      SSAuthOperationOptions? options}) {
+    return storageMiddleware
+        .readCredential(CredentialType.passkeypair, options: options)
+        .then((value) => value != null ? PassKeyPair.fromJson(value) : null);
   }
 }
 
@@ -124,10 +141,10 @@ class PassKeySigner implements PasskeyInterface {
         _auth = Authenticator(true, true);
 
   @override
-  PassKeysOptions get opts => _opts;
+  String? get defaultId => _defaultId;
 
   @override
-  String? get defaultId => _defaultId;
+  PassKeysOptions get opts => _opts;
 
   @override
   Uint8List clientDataHash(PassKeysOptions options, {String? challenge}) {

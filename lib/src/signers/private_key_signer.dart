@@ -1,25 +1,35 @@
 part of 'package:variance_dart/variance.dart';
 
-class CredentialSigner implements CredentialInterface {
+class PrivateKeySigner with SecureStorageMixin implements CredentialInterface {
   final Wallet _credential;
 
-  CredentialSigner.create(
+  PrivateKeySigner.create(
       EthPrivateKey privateKey, String password, Random random,
       {int scryptN = 8192, int p = 1})
       : _credential = Wallet.createNew(privateKey, password, random,
             scryptN: scryptN, p: p);
 
-  factory CredentialSigner.createRandom(String password) {
+  factory PrivateKeySigner.createRandom(String password) {
     final random = Random.secure();
     final privateKey = EthPrivateKey.createRandom(random);
     final credential = Wallet.createNew(privateKey, password, random);
-    return CredentialSigner._internal(credential);
+    return PrivateKeySigner._internal(credential);
   }
 
-  factory CredentialSigner.fromJson(String source, String password) =>
-      CredentialSigner._internal(Wallet.fromJson(source, password));
+  factory PrivateKeySigner.fromJson(String source, String password) =>
+      PrivateKeySigner._internal(Wallet.fromJson(source, password));
 
-  const CredentialSigner._internal(
+  static Future<PrivateKeySigner?> loadFromSecureStorage(
+      {required SecureStorageRepository storageMiddleware,
+      required String password,
+      SSAuthOperationOptions? options}) {
+    return storageMiddleware
+        .readCredential(CredentialType.hdwallet, options: options)
+        .then((value) =>
+            value != null ? PrivateKeySigner.fromJson(value, password) : null);
+  }
+
+  const PrivateKeySigner._internal(
     this._credential,
   );
 
@@ -48,4 +58,13 @@ class CredentialSigner implements CredentialInterface {
 
   @override
   String toJson() => _credential.toJson();
+
+  @override
+  SecureStorageMiddleware withSecureStorage(SecureStorage secureStorage,
+      {Authentication? authMiddleware}) {
+    return SecureStorageMiddleware(
+        secureStorage: secureStorage,
+        authMiddleware: authMiddleware,
+        credential: toJson());
+  }
 }

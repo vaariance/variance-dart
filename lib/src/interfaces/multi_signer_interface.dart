@@ -5,7 +5,7 @@ part of 'package:variance_dart/interfaces.dart';
 /// the multi-signer interface provides a uniform interface for accessing signer address and signing
 /// messages in the Ethereum context. This allows for flexibility in creating different implementations
 /// of multi-signers while adhering to a common interface.
-/// interfaces include: [CredentialSigner], [PassKeySigner] and [HDWalletSigner]
+/// interfaces include: [PrivateKeySigner], [PassKeySigner] and [HDWalletSigner]
 abstract class MultiSignerInterface {
   /// Returns the Hex address associated with the signer.
   ///
@@ -35,6 +35,18 @@ abstract class MultiSignerInterface {
   /// - [index]: The index or position of the signer. Used for multi-signature scenarios.
   /// - [id]: An optional identifier associated with the signing process.
   ///
-  /// Returns a Future<MsgSignature> representing the r and s values.
+  /// Returns a `Future<MsgSignature>` representing the r and s values.
   Future<MsgSignature> signToEc(Uint8List hash, {int? index, String? id});
+}
+
+mixin SecureStorageMixin {
+  /// Wraps a [SecureStorage] instance with additional middleware.
+  ///
+  /// The [secureStorage] parameter represents the underlying secure storage
+  /// implementation to be enhanced. The [authMiddleware] parameter, when provided,
+  /// allows incorporating authentication features into secure storage operations.
+  ///
+  /// Returns a new instance of [SecureStorage] with the specified middleware.
+  SecureStorageMiddleware withSecureStorage(SecureStorage secureStorage,
+      {Authentication? authMiddleware});
 }

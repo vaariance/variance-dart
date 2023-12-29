@@ -1,6 +1,6 @@
 part of 'package:variance_dart/variance.dart';
 
-class HDWalletSigner implements HDInterface {
+class HDWalletSigner with SecureStorageMixin implements HDInterface {
   String? _mnemonic;
   final String _seed;
 
@@ -28,6 +28,22 @@ class HDWalletSigner implements HDInterface {
     final signer = HDWalletSigner(seed: seed);
     signer.zerothAddress = signer._add(seed, 0);
     return signer;
+  }
+
+  /// Loads an account from secure storage and stores it in the HD wallet as zeroth.
+  /// if no account is found, it returns `null`.
+  ///
+  /// - [storageMiddleware]: The secure storage middleware.
+  /// - [options]: The authentication options.
+  ///
+  /// Returns a `Future` completing with the HD signer instance.
+  static Future<HDWalletSigner?> loadFromSecureStorage(
+      {required SecureStorageRepository storageMiddleware,
+      SSAuthOperationOptions? options}) {
+    return storageMiddleware
+        .readCredential(CredentialType.hdwallet, options: options)
+        .then((value) =>
+            value != null ? HDWalletSigner.recoverAccount(value) : null);
   }
 
   @override
@@ -100,7 +116,7 @@ class HDWalletSigner implements HDInterface {
   }
 
   String? _getMnemonic() {
-    if (_mnemonic != null) throw "exportMnemonic: Not a Valid Wallet";
+    require(_mnemonic != null, "exportMnemonic: Not a Valid Wallet");
     return _mnemonic;
   }
 
@@ -108,5 +124,14 @@ class HDWalletSigner implements HDInterface {
     final hdKey = _getHdKey(index);
     final privateKey = _deriveEthPrivKey(hdKey.privateKeyHex());
     return privateKey;
+  }
+
+  @override
+  SecureStorageMiddleware withSecureStorage(SecureStorage secureStorage,
+      {Authentication? authMiddleware}) {
+    return SecureStorageMiddleware(
+        secureStorage: secureStorage,
+        authMiddleware: authMiddleware,
+        credential: _getMnemonic());
   }
 }
