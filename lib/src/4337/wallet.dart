@@ -244,21 +244,21 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   }
 
   Future _updateUserOperation(UserOperation op) async {
-    final map = op.toMap();
-    List<dynamic> reponses = await Future.wait([
-      plugin<BundlerProviderBase>('bundler')
-          .estimateUserOperationGas(map, _chain.entrypoint),
-      plugin<RPCProviderBase>('ethRpc').getGasPrice(),
-      nonce,
-      deployed
-    ]);
+    List<dynamic> reponses = await Future.wait(
+        [plugin<RPCProviderBase>('ethRpc').getGasPrice(), nonce, deployed]);
     dev.log("responses from update: $reponses");
-    op = UserOperation.update(map, reponses[0],
+    op = UserOperation.update(op.toMap(),
         sender: _walletAddress,
-        nonce: reponses[2].value,
-        initCode: !(reponses[3]) ? _initCode! : null);
-    op.maxFeePerGas = reponses[1]["maxFeePerGas"] as BigInt;
-    op.maxPriorityFeePerGas = reponses[1]["maxPriorityFeePerGas"] as BigInt;
+        nonce: reponses[1].value,
+        initCode: !(reponses[2]) ? _initCode! : null);
+    op.maxFeePerGas = reponses[0]["maxFeePerGas"] as BigInt;
+    op.maxPriorityFeePerGas = reponses[0]["maxPriorityFeePerGas"] as BigInt;
+    op.signature = op.dummySig;
+    dev.log("mock user op = ${op.toMap()}");
+    UserOperationGas opGas = await plugin<BundlerProviderBase>('bundler')
+        .estimateUserOperationGas(op.toMap(), _chain.entrypoint);
+    dev.log("opGas = ${opGas.toString()}");
+    op = UserOperation.update(op.toMap(), opGas: opGas);
   }
 
   Future<void> _validateUserOperation(UserOperation op) async {

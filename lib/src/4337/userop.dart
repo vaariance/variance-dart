@@ -34,6 +34,9 @@ class UserOperation implements UserOperationBase {
   @override
   String paymasterAndData;
 
+  final dummySig =
+      "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
+
   Uint8List _hash;
 
   UserOperation({
@@ -117,15 +120,17 @@ class UserOperation implements UserOperationBase {
       );
 
   factory UserOperation.update(
-    Map<String, dynamic> map,
-    UserOperationGas opGas, {
+    Map<String, dynamic> map, {
+    UserOperationGas? opGas,
     EthereumAddress? sender,
     BigInt? nonce,
     String? initCode,
   }) {
-    map['callGasLimit'] = opGas.callGasLimit;
-    map['verificationGasLimit'] = opGas.verificationGasLimit;
-    map['preVerificationGas'] = opGas.preVerificationGas;
+    map['callGasLimit'] = opGas?.callGasLimit ?? map['callGasLimit'];
+    map['verificationGasLimit'] =
+        opGas?.verificationGasLimit ?? map['verificationGasLimit'];
+    map['preVerificationGas'] =
+        opGas?.preVerificationGas ?? map['preVerificationGas'];
 
     if (sender != null) map['sender'] = sender.hex;
     if (nonce != null) map['nonce'] = '0x${nonce.toRadixString(16)}';
