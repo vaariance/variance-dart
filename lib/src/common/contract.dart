@@ -170,7 +170,7 @@ class Contract {
       Uint8List? innerCallData}) {
     final params = [
       to,
-      amount ?? EtherAmount.zero().getInWei,
+      amount?.getInWei ?? EtherAmount.zero().getInWei,
       innerCallData ?? Uint8List.fromList([])
     ];
 
@@ -197,8 +197,8 @@ class Contract {
       List<Uint8List>? innerCalls}) {
     final params = [
       recipients,
-      amounts ?? [],
-      innerCalls ?? [],
+      amounts?.map<BigInt>((e) => e.getInWei) ?? [],
+      innerCalls ?? Uint8List.fromList([]),
     ];
     if (innerCalls == null || innerCalls.isEmpty) {
       require(amounts != null && amounts.isNotEmpty, "malformed batch request");
