@@ -171,10 +171,9 @@ class Contract {
     final params = [
       to,
       amount ?? EtherAmount.zero().getInWei,
+      innerCallData ?? Uint8List.fromList([])
     ];
-    if (innerCallData != null && innerCallData.isNotEmpty) {
-      params.add(innerCallData);
-    }
+
     return encodeFunctionCall(
       'execute',
       walletAddress,

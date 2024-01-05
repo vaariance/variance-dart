@@ -102,6 +102,7 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
     BigInt? maxFeePerGas,
     BigInt? maxPriorityFeePerGas,
   }) {
+    dev.log("building useroperation: $callData");
     return UserOperation.partial(
       callData: hexlify(callData),
       sender: _walletAddress,
@@ -206,12 +207,14 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   Future<UserOperation> signUserOperation(UserOperation userOp,
       {bool update = true, String? id, int? index}) async {
     if (update) await _updateUserOperation(userOp);
+    dev.log("updated useroperation: ${userOp.toMap()}");
     final opHash = userOp.hash(_chain);
     Uint8List signature = await plugin<MultiSignerInterface>('signer')
         .personalSign(opHash,
             index: index,
             id: id ?? plugin<PasskeyInterface>('signer').defaultId);
     userOp.signature = hexlify(signature);
+    dev.log("signed useroperation: ${userOp.signature}");
     await _validateUserOperation(userOp);
     return userOp;
   }
@@ -249,6 +252,7 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
       nonce,
       deployed
     ]);
+    dev.log("responses from update: $reponses");
     op = UserOperation.update(map, reponses[0],
         sender: _walletAddress,
         nonce: reponses[2].value,

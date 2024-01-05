@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:developer' as dev;
 
 import 'package:asn1lib/asn1lib.dart';
 import 'package:bip32_bip44/dart_bip32_bip44.dart' as bip44;
