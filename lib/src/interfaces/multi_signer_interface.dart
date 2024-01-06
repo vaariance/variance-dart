@@ -7,6 +7,11 @@ part of 'package:variance_dart/interfaces.dart';
 /// of multi-signers while adhering to a common interface.
 /// interfaces include: [PrivateKeySigner], [PassKeySigner] and [HDWalletSigner]
 abstract class MultiSignerInterface {
+  /// The dummy signature is a valid signature that can be used for testing purposes.
+  /// specifically, this will be used to simulate user operation on the entrypoint.
+  /// You must specify a dummy signature that matches your transaction signature standard.
+  String dummySignature = "0x";
+
   /// Returns the Hex address associated with the signer.
   ///
   /// Optional parameters:

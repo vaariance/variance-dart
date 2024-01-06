@@ -28,6 +28,9 @@ abstract class SmartWalletBase {
   /// Converts the Smart Wallet address to its hexadecimal representation.
   String? get toHex;
 
+  /// Sets the smart wallet address for this account;
+  set setWalletAddress(EthereumAddress address);
+
   /// Builds a [UserOperation] based on provided parameters.
   ///
   /// This method creates a [UserOperation] with the given call data and optional parameters.
@@ -43,7 +46,7 @@ abstract class SmartWalletBase {
   });
 
   /// manually Sets the init code of the Smart Wallet and overrides the default.
-  void dangerouslySetInitCode(String? code);
+  void dangerouslySetInitCallData(Uint8List? code);
 
   /// Creates a new wallet address using counterfactual deployment.
   ///

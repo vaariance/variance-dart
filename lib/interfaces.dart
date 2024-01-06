@@ -19,15 +19,15 @@ import 'src/abis/abis.dart' show Entrypoint;
 import 'variance.dart'
     show
         Chain,
+        PassKeyPair,
+        PassKeySignature,
+        PassKeysOptions,
         Uint256,
         UserOperation,
         UserOperationByHash,
         UserOperationGas,
         UserOperationReceipt,
-        UserOperationResponse,
-        PassKeySignature,
-        PassKeysOptions,
-        PassKeyPair;
+        UserOperationResponse;
 
 part 'src/interfaces/account_factory.dart';
 part 'src/interfaces/bundler_provider.dart';

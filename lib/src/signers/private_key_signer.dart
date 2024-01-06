@@ -17,7 +17,9 @@ class PrivateKeySigner with SecureStorageMixin implements CredentialInterface {
   }
 
   factory PrivateKeySigner.fromJson(String source, String password) =>
-      PrivateKeySigner._internal(Wallet.fromJson(source, password));
+      PrivateKeySigner._internal(
+        Wallet.fromJson(source, password),
+      );
 
   static Future<PrivateKeySigner?> loadFromSecureStorage(
       {required SecureStorageRepository storageMiddleware,
@@ -29,9 +31,7 @@ class PrivateKeySigner with SecureStorageMixin implements CredentialInterface {
             value != null ? PrivateKeySigner.fromJson(value, password) : null);
   }
 
-  const PrivateKeySigner._internal(
-    this._credential,
-  );
+  PrivateKeySigner._internal(this._credential);
 
   @override
   EthereumAddress get address => _credential.privateKey.address;
@@ -67,4 +67,8 @@ class PrivateKeySigner with SecureStorageMixin implements CredentialInterface {
         authMiddleware: authMiddleware,
         credential: toJson());
   }
+
+  @override
+  String dummySignature =
+      "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
 }

@@ -8,12 +8,10 @@ class UserOperation implements UserOperationBase {
   final BigInt nonce;
 
   @override
-  final String initCode;
+  final Uint8List initCode;
 
   @override
-  final String callData;
-
-  final Uint8List? callDataBytes;
+  final Uint8List callData;
 
   @override
   final BigInt callGasLimit;
@@ -34,13 +32,9 @@ class UserOperation implements UserOperationBase {
   String signature;
 
   @override
-  String paymasterAndData;
-
-  final dummySig =
-      "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
+  Uint8List paymasterAndData;
 
   UserOperation({
-    this.callDataBytes,
     required this.sender,
     required this.nonce,
     required this.initCode,
@@ -55,30 +49,29 @@ class UserOperation implements UserOperationBase {
   });
 
   factory UserOperation.fromJson(String source) =>
-      UserOperation.fromMap(json.decode(source) as Map<String, dynamic>);
+      UserOperation.fromMap(json.decode(source) as Map<String, String>);
 
-  factory UserOperation.fromMap(Map<String, dynamic> map) {
+  factory UserOperation.fromMap(Map<String, String> map) {
     return UserOperation(
-      sender: EthereumAddress.fromHex(map['sender']),
-      nonce: BigInt.parse(map['nonce']),
-      initCode: map['initCode'],
-      callData: map['callData'],
-      callGasLimit: BigInt.parse(map['callGasLimit']),
-      verificationGasLimit: BigInt.parse(map['verificationGasLimit']),
-      preVerificationGas: BigInt.parse(map['preVerificationGas']),
-      maxFeePerGas: BigInt.parse(map['maxFeePerGas']),
-      maxPriorityFeePerGas: BigInt.parse(map['maxPriorityFeePerGas']),
-      signature: map['signature'],
-      paymasterAndData: map['paymasterAndData'],
+      sender: EthereumAddress.fromHex(map['sender'] as String),
+      nonce: BigInt.parse(map['nonce'] as String),
+      initCode: hexToBytes(map['initCode'] as String),
+      callData: hexToBytes(map['callData'] as String),
+      callGasLimit: BigInt.parse(map['callGasLimit'] as String),
+      verificationGasLimit: BigInt.parse(map['verificationGasLimit'] as String),
+      preVerificationGas: BigInt.parse(map['preVerificationGas'] as String),
+      maxFeePerGas: BigInt.parse(map['maxFeePerGas'] as String),
+      maxPriorityFeePerGas: BigInt.parse(map['maxPriorityFeePerGas'] as String),
+      signature: map['signature'] as String,
+      paymasterAndData: hexToBytes(map['paymasterAndData'] as String),
     );
   }
 
   factory UserOperation.partial({
-    Uint8List? calldataBytes,
-    required String callData,
+    required Uint8List callData,
     EthereumAddress? sender,
     BigInt? nonce,
-    String? initCode,
+    Uint8List? initCode,
     BigInt? callGasLimit,
     BigInt? verificationGasLimit,
     BigInt? preVerificationGas,
@@ -86,32 +79,33 @@ class UserOperation implements UserOperationBase {
     BigInt? maxPriorityFeePerGas,
   }) =>
       UserOperation(
-        callDataBytes: calldataBytes,
         sender: sender ?? Constants.zeroAddress,
         nonce: nonce ?? BigInt.zero,
-        initCode: initCode ?? "0x",
+        initCode: initCode ?? Uint8List(0),
         callData: callData,
-        callGasLimit: callGasLimit ?? BigInt.from(21000000),
-        verificationGasLimit: verificationGasLimit ?? BigInt.from(21000000),
+        callGasLimit: callGasLimit ?? BigInt.from(10000000),
+        verificationGasLimit: verificationGasLimit ?? BigInt.from(10000000),
         preVerificationGas: preVerificationGas ?? BigInt.from(21000),
         maxFeePerGas: maxFeePerGas ?? BigInt.one,
         maxPriorityFeePerGas: maxPriorityFeePerGas ?? BigInt.one,
         signature: "0x",
-        paymasterAndData: '0x',
+        paymasterAndData: Uint8List(0),
       );
 
   factory UserOperation.update(
-    Map<String, dynamic> map, {
+    Map<String, String> map, {
     UserOperationGas? opGas,
     EthereumAddress? sender,
     BigInt? nonce,
     String? initCode,
   }) {
-    map['callGasLimit'] = opGas?.callGasLimit ?? map['callGasLimit'];
-    map['verificationGasLimit'] =
-        opGas?.verificationGasLimit ?? map['verificationGasLimit'];
-    map['preVerificationGas'] =
-        opGas?.preVerificationGas ?? map['preVerificationGas'];
+    if (opGas != null) {
+      map['callGasLimit'] = '0x${opGas.callGasLimit.toRadixString(16)}';
+      map['verificationGasLimit'] =
+          '0x${opGas.verificationGasLimit.toRadixString(16)}';
+      map['preVerificationGas'] =
+          '0x${(opGas.preVerificationGas + BigInt.from(35000)).toRadixString(16)}';
+    }
 
     if (sender != null) map['sender'] = sender.hex;
     if (nonce != null) map['nonce'] = '0x${nonce.toRadixString(16)}';
@@ -136,37 +130,39 @@ class UserOperation implements UserOperationBase {
     ], [
       sender,
       nonce,
-      keccak256(hexToBytes(initCode)),
-      keccak256(hexToBytes(callData)),
+      keccak256(initCode),
+      keccak256(callData),
       callGasLimit,
       verificationGasLimit,
       preVerificationGas,
       maxFeePerGas,
       maxPriorityFeePerGas,
-      keccak256(hexToBytes(paymasterAndData)),
+      keccak256(paymasterAndData),
     ]));
     return keccak256(abi.encode(['bytes32', 'address', 'uint256'],
-        [encoded, chain.entrypoint, chain.chainId]));
+        [encoded, chain.entrypoint, BigInt.from(chain.chainId)]));
   }
 
   @override
-  String toJson() => json.encode(toMap());
-
-  @override
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
+  Map<String, String> toMap() {
+    return <String, String>{
       'sender': sender.hexEip55,
       'nonce': '0x${nonce.toRadixString(16)}',
-      'initCode': initCode,
-      'callData': callData,
+      'initCode': hexlify(initCode),
+      'callData': hexlify(callData),
       'callGasLimit': '0x${callGasLimit.toRadixString(16)}',
       'verificationGasLimit': '0x${verificationGasLimit.toRadixString(16)}',
       'preVerificationGas': '0x${preVerificationGas.toRadixString(16)}',
       'maxFeePerGas': '0x${maxFeePerGas.toRadixString(16)}',
       'maxPriorityFeePerGas': '0x${maxPriorityFeePerGas.toRadixString(16)}',
       'signature': signature,
-      'paymasterAndData': paymasterAndData,
+      'paymasterAndData': hexlify(paymasterAndData),
     };
+  }
+
+  @override
+  String toJson() {
+    return jsonEncode(toMap());
   }
 }
 

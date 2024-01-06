@@ -5,12 +5,12 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
-import 'dart:developer' as dev;
 
 import 'package:asn1lib/asn1lib.dart';
 import 'package:bip32_bip44/dart_bip32_bip44.dart' as bip44;
 import "package:bip39/bip39.dart" as bip39;
 import 'package:cbor/cbor.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import 'package:web3dart/crypto.dart';
@@ -20,7 +20,6 @@ import 'package:webauthn/webauthn.dart';
 
 import 'interfaces.dart';
 import 'src/abis/abis.dart';
-import 'src/abis/encoder.g.dart';
 import 'src/common/common.dart';
 import 'utils.dart';
 

@@ -134,4 +134,8 @@ class HDWalletSigner with SecureStorageMixin implements HDInterface {
         authMiddleware: authMiddleware,
         credential: _getMnemonic());
   }
+
+  @override
+  String dummySignature =
+      "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
 }
