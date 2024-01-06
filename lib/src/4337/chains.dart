@@ -26,6 +26,7 @@ class Chain {
   }
 }
 
+//predefined Chains you can use
 class Chains {
   static Map<Network, Chain> chains = {
     // Ethereum Mainnet

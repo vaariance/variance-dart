@@ -5,6 +5,7 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
 
   EthereumAddress? _walletAddress;
   String? _initCode;
+  Uint8List? _initCodeBytes;
 
   /// [Entrypoint] is not initialized
   /// to initialize with entrypoint, you have to call [SmartWallet.init] instead
@@ -102,8 +103,8 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
     BigInt? maxFeePerGas,
     BigInt? maxPriorityFeePerGas,
   }) {
-    dev.log("building useroperation: $callData");
     return UserOperation.partial(
+      calldataBytes: callData,
       callData: hexlify(callData),
       sender: _walletAddress,
       nonce: customNonce,
@@ -129,14 +130,16 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
         .then((value) => {_walletAddress = value});
   }
 
+//create account signed with passkey
   @override
   Future createSimplePasskeyAccount(PassKeyPair pkp, Uint256 salt) async {
-    _initCode = hexlify(_getInitCode('createPasskeyAccount', [
+    _initCodeBytes = _getInitCode('createPasskeyAccount', [
       pkp.credentialHexBytes,
       pkp.publicKey[0].value,
       pkp.publicKey[1].value,
       salt.value
-    ]));
+    ]);
+    _initCode = hexlify(_initCodeBytes!);
     getSimplePassKeyAccountAddress(pkp, salt)
         .then((addr) => {_walletAddress = addr});
   }
@@ -206,9 +209,26 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   @override
   Future<UserOperation> signUserOperation(UserOperation userOp,
       {bool update = true, String? id, int? index}) async {
-    if (update) await _updateUserOperation(userOp);
+    if (update) userOp = await _updateUserOperation(userOp);
     dev.log("updated useroperation: ${userOp.toMap()}");
-    final opHash = userOp.hash(_chain);
+    final opHash = await Encoder(
+            address: EthereumAddress.fromHex(
+                "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"),
+            client: Web3Client.custom(plugin<RPCProviderBase>('ethRpc')))
+        .encodeUserOpEntriesToHash(
+            userOp.sender,
+            userOp.nonce,
+            _initCodeBytes!,
+            userOp.callDataBytes!,
+            userOp.callGasLimit,
+            userOp.verificationGasLimit,
+            userOp.preVerificationGas,
+            userOp.maxFeePerGas,
+            userOp.maxPriorityFeePerGas,
+            Uint8List.fromList([]),
+            BigInt.from(_chain.chainId));
+
+    dev.log("$opHash");
     Uint8List signature = await plugin<MultiSignerInterface>('signer')
         .personalSign(opHash,
             index: index,
@@ -222,6 +242,7 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   Uint8List _getInitCode(String functionName, List params) {
     final factory = plugin<_AccountFactory>('factory');
     final data = factory.self.function(functionName).encodeCall(params);
+    dev.log(bytesToHex(data));
     final initCode =
         abi.encode(['address', 'bytes'], [factory.self.address, data]);
     return initCode;
@@ -243,22 +264,35 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
         .catchError((e) => Uint256.zero);
   }
 
-  Future _updateUserOperation(UserOperation op) async {
-    List<dynamic> reponses = await Future.wait(
+  Future<UserOperation> _updateUserOperation(UserOperation op) async {
+    List<dynamic> responses = await Future.wait(
         [plugin<RPCProviderBase>('ethRpc').getGasPrice(), nonce, deployed]);
-    dev.log("responses from update: $reponses");
+    dev.log("responses from update: $responses");
+
+    String extractInitCode(String code) {
+      // making sure the first 20 bytes is the factory address.
+      String extractedString = code.substring(0, 66);
+      String modifiedString =
+          extractedString.replaceRange(2, extractedString.length - 40, "");
+      return modifiedString + code.substring(66);
+    }
+
     op = UserOperation.update(op.toMap(),
         sender: _walletAddress,
-        nonce: reponses[1].value,
-        initCode: !(reponses[2]) ? _initCode! : null);
-    op.maxFeePerGas = reponses[0]["maxFeePerGas"] as BigInt;
-    op.maxPriorityFeePerGas = reponses[0]["maxPriorityFeePerGas"] as BigInt;
+        nonce: responses[1].value,
+        initCode: !(responses[2]) ? extractInitCode(_initCode!) : null);
+    op.maxFeePerGas =
+        (responses[0] as Map<String, EtherAmount>)["maxFeePerGas"]!.getInWei;
+    op.maxPriorityFeePerGas =
+        (responses[0] as Map<String, EtherAmount>)["maxPriorityFeePerGas"]!
+            .getInWei;
     op.signature = op.dummySig;
     dev.log("mock user op = ${op.toMap()}");
-    UserOperationGas opGas = await plugin<BundlerProviderBase>('bundler')
-        .estimateUserOperationGas(op.toMap(), _chain.entrypoint);
-    dev.log("opGas = ${opGas.toString()}");
-    op = UserOperation.update(op.toMap(), opGas: opGas);
+    // UserOperationGas opGas = await plugin<BundlerProviderBase>('bundler')
+    //     .estimateUserOperationGas(op.toMap(), _chain.entrypoint);
+    // dev.log("opGas = ${opGas.toString()}");
+    // op = UserOperation.update(op.toMap(), opGas: opGas);
+    return op;
   }
 
   Future<void> _validateUserOperation(UserOperation op) async {

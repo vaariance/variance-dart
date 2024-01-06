@@ -13,6 +13,8 @@ class UserOperation implements UserOperationBase {
   @override
   final String callData;
 
+  final Uint8List? callDataBytes;
+
   @override
   final BigInt callGasLimit;
 
@@ -37,9 +39,8 @@ class UserOperation implements UserOperationBase {
   final dummySig =
       "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
 
-  Uint8List _hash;
-
   UserOperation({
+    this.callDataBytes,
     required this.sender,
     required this.nonce,
     required this.initCode,
@@ -51,29 +52,7 @@ class UserOperation implements UserOperationBase {
     required this.maxPriorityFeePerGas,
     required this.signature,
     required this.paymasterAndData,
-  }) : _hash = keccak256(abi.encode([
-          'address',
-          'uint256',
-          'bytes32',
-          'bytes32',
-          'uint256',
-          'uint256',
-          'uint256',
-          'uint256',
-          'uint256',
-          'bytes32',
-        ], [
-          sender,
-          nonce,
-          keccak256(hexToBytes(initCode)),
-          keccak256(hexToBytes(callData)),
-          callGasLimit,
-          verificationGasLimit,
-          preVerificationGas,
-          maxFeePerGas,
-          maxPriorityFeePerGas,
-          keccak256(hexToBytes(paymasterAndData)),
-        ]));
+  });
 
   factory UserOperation.fromJson(String source) =>
       UserOperation.fromMap(json.decode(source) as Map<String, dynamic>);
@@ -95,6 +74,7 @@ class UserOperation implements UserOperationBase {
   }
 
   factory UserOperation.partial({
+    Uint8List? calldataBytes,
     required String callData,
     EthereumAddress? sender,
     BigInt? nonce,
@@ -106,15 +86,16 @@ class UserOperation implements UserOperationBase {
     BigInt? maxPriorityFeePerGas,
   }) =>
       UserOperation(
+        callDataBytes: calldataBytes,
         sender: sender ?? Constants.zeroAddress,
         nonce: nonce ?? BigInt.zero,
         initCode: initCode ?? "0x",
         callData: callData,
-        callGasLimit: callGasLimit ?? BigInt.from(35000),
-        verificationGasLimit: verificationGasLimit ?? BigInt.from(70000),
+        callGasLimit: callGasLimit ?? BigInt.from(21000000),
+        verificationGasLimit: verificationGasLimit ?? BigInt.from(21000000),
         preVerificationGas: preVerificationGas ?? BigInt.from(21000),
-        maxFeePerGas: maxFeePerGas ?? BigInt.zero,
-        maxPriorityFeePerGas: maxPriorityFeePerGas ?? BigInt.zero,
+        maxFeePerGas: maxFeePerGas ?? BigInt.one,
+        maxPriorityFeePerGas: maxPriorityFeePerGas ?? BigInt.one,
         signature: "0x",
         paymasterAndData: '0x',
       );
@@ -140,9 +121,33 @@ class UserOperation implements UserOperationBase {
   }
 
   @override
-  Uint8List hash(Chain chain) => keccak256(abi.encode(
-      ['bytes32', 'address', 'uint256'],
-      [keccak256(_hash), chain.entrypoint, chain.chainId]));
+  Uint8List hash(Chain chain) {
+    final encoded = keccak256(abi.encode([
+      'address',
+      'uint256',
+      'bytes32',
+      'bytes32',
+      'uint256',
+      'uint256',
+      'uint256',
+      'uint256',
+      'uint256',
+      'bytes32',
+    ], [
+      sender,
+      nonce,
+      keccak256(hexToBytes(initCode)),
+      keccak256(hexToBytes(callData)),
+      callGasLimit,
+      verificationGasLimit,
+      preVerificationGas,
+      maxFeePerGas,
+      maxPriorityFeePerGas,
+      keccak256(hexToBytes(paymasterAndData)),
+    ]));
+    return keccak256(abi.encode(['bytes32', 'address', 'uint256'],
+        [encoded, chain.entrypoint, chain.chainId]));
+  }
 
   @override
   String toJson() => json.encode(toMap());

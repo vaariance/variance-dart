@@ -48,5 +48,5 @@ dev_dependencies:
 topics:
   - wallets
   - ethereum
-  - 4337
+  - "4337"
   - account-abstraction

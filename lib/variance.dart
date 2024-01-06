@@ -20,6 +20,7 @@ import 'package:webauthn/webauthn.dart';
 
 import 'interfaces.dart';
 import 'src/abis/abis.dart';
+import 'src/abis/encoder.g.dart';
 import 'src/common/common.dart';
 import 'utils.dart';
 
