@@ -62,10 +62,29 @@ abstract class Uint256Base {
   @override
   String toString();
 
-  /// Converts this Uint256 to a [double] giving the [decimals].
+  /// The `toUnit` method is used to convert a Uint256 value from its base unit to a specific
+  /// unit. It takes an `int` parameter `decimals` which represents the number of decimal places
+  /// to consider. The method returns a `BigInt` representing the converted value.
+  /// example:
   ///
-  /// Returns an [double]
-  double toUnit(int decimals);
+  /// ```dart
+  /// Uint256(BigInt.from(1)).toUnit(18);
+  ///
+  /// // 1 * 10^18 = 1000000000000000000
+  /// ```
+  BigInt toUnit(int decimals);
+
+  /// The `fromUnit` method is used to convert a Uint256 value from a specific unit to its base
+  /// unit. It takes an `int` parameter `decimals` which represents the number of decimal places
+  /// to consider. The method returns a `double` representing the converted value.
+  /// example:
+  ///
+  /// ```dart
+  /// Uint256(BigInt.from(1000000000000000000)).fromUnit(18);
+  ///
+  /// // 1000000000000000000 / 10^18 = 1.0
+  /// ```
+  double fromUnit(int decimals);
 
   /// Converts this Uint256 to an [EtherAmount] in wei.
   ///

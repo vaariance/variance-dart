@@ -1,12 +1,15 @@
 part of 'package:variance_dart/variance.dart';
 
 class HDWalletSigner with SecureStorageMixin implements HDInterface {
-  String? _mnemonic;
+  final String _mnemonic;
+
   final String _seed;
 
   late final EthereumAddress zerothAddress;
 
-  HDWalletSigner({required String seed}) : _seed = seed {
+  HDWalletSigner._internal({required String seed, required String mnemonic})
+      : _seed = seed,
+        _mnemonic = mnemonic {
     assert(seed.isNotEmpty, "seed cannot be empty");
   }
 
@@ -14,8 +17,7 @@ class HDWalletSigner with SecureStorageMixin implements HDInterface {
   ///
   /// Returns the HD signer instance.
   factory HDWalletSigner.createWallet() {
-    final mnemonic = bip39.generateMnemonic();
-    return HDWalletSigner.recoverAccount(mnemonic);
+    return HDWalletSigner.recoverAccount(bip39.generateMnemonic());
   }
 
   /// Recovers an account from a mnemonic phrase and stores it in the HD wallet as zeroth.
@@ -25,7 +27,7 @@ class HDWalletSigner with SecureStorageMixin implements HDInterface {
   /// Returns the HD signer instance.
   factory HDWalletSigner.recoverAccount(String mnemonic) {
     final seed = bip39.mnemonicToSeedHex(mnemonic);
-    final signer = HDWalletSigner(seed: seed);
+    final signer = HDWalletSigner._internal(seed: seed, mnemonic: mnemonic);
     signer.zerothAddress = signer._add(seed, 0);
     return signer;
   }
@@ -52,7 +54,7 @@ class HDWalletSigner with SecureStorageMixin implements HDInterface {
   }
 
   @override
-  String? exportMnemonic() {
+  String exportMnemonic() {
     return _getMnemonic();
   }
 
@@ -115,8 +117,7 @@ class HDWalletSigner with SecureStorageMixin implements HDInterface {
     return _deriveHdKey(_seed, index);
   }
 
-  String? _getMnemonic() {
-    require(_mnemonic != null, "exportMnemonic: Not a Valid Wallet");
+  String _getMnemonic() {
     return _mnemonic;
   }
 

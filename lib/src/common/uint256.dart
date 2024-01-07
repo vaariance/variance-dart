@@ -65,7 +65,12 @@ class Uint256 implements Uint256Base {
   }
 
   @override
-  double toUnit(int decimals) {
+  BigInt toUnit(int decimals) {
+    return _value * BigInt.from(pow(10, decimals));
+  }
+
+  @override
+  double fromUnit(int decimals) {
     return _value / BigInt.from(pow(10, decimals));
   }
 

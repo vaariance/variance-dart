@@ -139,10 +139,10 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   @override
   Future<SmartWallet> createSimpleAccount(Uint256 salt, {int? index}) async {
     EthereumAddress signer = EthereumAddress.fromHex(
-        plugin<MultiSignerInterface>('signer').getAddress());
+        plugin<MultiSignerInterface>('signer').getAddress(index: index ?? 0));
     _initCalldata = _getInitCallData('createAccount', [signer, salt.value]);
     await getSimpleAccountAddress(signer, salt)
-        .then((value) => {_walletAddress = value});
+        .then((addr) => {_walletAddress = addr});
     return this;
   }
 
@@ -170,25 +170,17 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   @override
   Future<EthereumAddress> getSimpleAccountAddress(
       EthereumAddress signer, Uint256 salt) {
-    try {
-      return plugin<_AccountFactory>('factory').getAddress(signer, salt.value);
-    } catch (e) {
-      throw SmartWalletError("Simple acount creation error: $e");
-    }
+    return plugin<_AccountFactory>('factory').getAddress(signer, salt.value);
   }
 
   @override
   Future<EthereumAddress> getSimplePassKeyAccountAddress(
       PassKeyPair pkp, Uint256 salt) {
-    try {
-      return plugin<_AccountFactory>('factory').getPasskeyAccountAddress(
-          pkp.credentialHexBytes,
-          pkp.publicKey[0].value,
-          pkp.publicKey[1].value,
-          salt.value);
-    } catch (e) {
-      throw SmartWalletError("Passkey acount creation error: $e");
-    }
+    return plugin<_AccountFactory>('factory').getPasskeyAccountAddress(
+        pkp.credentialHexBytes,
+        pkp.publicKey[0].value,
+        pkp.publicKey[1].value,
+        salt.value);
   }
 
   @override
@@ -244,9 +236,14 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
     final opHash = userOp.hash(_chain);
 
     Uint8List signature = await plugin<MultiSignerInterface>('signer')
-        .personalSign(opHash,
+        .personalSign(
+            opHash,
             index: index,
-            id: id ?? plugin<PasskeyInterface>('signer').defaultId);
+            id: id ??
+                (plugin('signer') is PasskeyInterface
+                    ? plugin('signer').defaultId
+                    : id));
+
     userOp.signature = hexlify(signature);
 
     await _validateUserOperation(userOp);
