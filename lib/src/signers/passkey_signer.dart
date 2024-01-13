@@ -1,4 +1,4 @@
-part of 'package:variance_dart/variance.dart';
+part of '../../variance.dart';
 
 class AuthData {
   final String credentialHex;
@@ -50,7 +50,7 @@ class PassKeyPair with SecureStorageMixin {
   }
 
   @override
-  SecureStorageMiddleware withSecureStorage(SecureStorage secureStorage,
+  SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
       {Authentication? authMiddleware}) {
     return SecureStorageMiddleware(
         secureStorage: secureStorage,
@@ -58,6 +58,21 @@ class PassKeyPair with SecureStorageMixin {
         credential: toJson());
   }
 
+  /// Loads a passkey pair from secure storage using the provided [SecureStorageRepository].
+  ///
+  /// Parameters:
+  /// - [storageMiddleware]: The secure storage repository used to retrieve the passkey pair credentials.
+  /// - [options]: Optional authentication operation options. Defaults to `null`.
+  ///
+  /// Returns a `Future` that resolves to a `PassKeyPair` instance if successfully loaded, or `null` otherwise.
+  ///
+  /// Example:
+  /// ```dart
+  /// final secureStorageRepo = SecureStorageRepository(); // Replace with an actual instance
+  /// final loadedPassKeyPair = await PassKeyPair.loadFromSecureStorage(
+  ///   storageMiddleware: secureStorageRepo,
+  /// );
+  /// ```
   static Future<PassKeyPair?> loadFromSecureStorage(
       {required SecureStorageRepository storageMiddleware,
       SSAuthOperationOptions? options}) {
@@ -76,7 +91,15 @@ class PassKeySignature {
   PassKeySignature(this.credentialId, this.rs, this.authData,
       this.clientDataPrefix, this.clientDataSuffix);
 
-  Uint8List toList() {
+  /// Converts the `PassKeySignature` to a `Uint8List` using the specified ABI encoding.
+  ///
+  /// Returns the encoded Uint8List.
+  ///
+  /// Example:
+  /// ```dart
+  /// final Uint8List encodedSig = pkpSig.toUint8List();
+  /// ```
+  Uint8List toUint8List() {
     return abi.encode([
       'uint256',
       'uint256',
@@ -209,7 +232,7 @@ class PassKeySigner implements PasskeyInterface {
       {int? index, String? id}) async {
     require(id != null, "credential id expected");
     final signature = await signToPasskeySignature(hash, id!);
-    return signature.toList();
+    return signature.toUint8List();
   }
 
   @override

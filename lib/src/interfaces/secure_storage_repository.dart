@@ -1,4 +1,4 @@
-part of 'package:variance_dart/interfaces.dart';
+part of 'interfaces.dart';
 
 /// A repository for secure storage operations.
 ///
@@ -10,69 +10,140 @@ part of 'package:variance_dart/interfaces.dart';
 /// for these methods based on the specific secure storage mechanism they intend
 /// to use.
 abstract class SecureStorageRepository {
-  /// Saves a key-value pair in the secure storage.
+  /// Saves a key-value pair to the secure storage.
   ///
-  /// The [key] parameter represents the identifier for the stored value, and
-  /// the [value] parameter is the data to be stored. The [options] parameter
-  /// encapsulates authentication and other operation-specific options.
+  /// Parameters:
+  /// - [key]: The key under which to store the value.
+  /// - [value]: The value to be stored.
+  /// - [options]: Options for the secure storage operation, including authentication requirements.
   ///
-  /// Throws an exception if the operation fails.
+  /// Throws a [SecureStorageAuthMiddlewareError] if authentication is required but no authentication middleware is provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// final saveKey = 'myKey';
+  /// final saveValue = 'myValue';
+  /// final saveOptions = SSAuthOperationOptions(
+  ///   requiresAuth: true,
+  ///   authReason: 'Authenticate to save the key-value pair.',
+  ///   ssNameSpace: 'myNamespace',
+  /// );
+  /// await save(saveKey, saveValue, options: saveOptions);
+  /// print('Key-value pair saved successfully.');
+  /// ```
   Future<void> save(String key, String value,
       {SSAuthOperationOptions? options});
 
-  /// Saves a credential of the specified type.
+  /// Saves a credential to the secure storage for a specified [CredentialType].
   ///
-  /// The [type] parameter represents the type of credential to be saved.
-  /// The [type] is an enum that defines three types of credentials: `mnemonic`,
-  /// `privateKey`, and `passkeypair`. The [options] parameter encapsulates
-  /// authentication and other operation-specific options.
+  /// Parameters:
+  /// - [type]: The type of credential to be saved.
+  /// - [options]: Options for the secure storage operation, including authentication requirements.
   ///
-  /// Throws an exception if the operation fails.
+  /// Throws a [SecureStorageAuthMiddlewareError] if authentication is required but no authentication middleware is provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// final saveCredentialType = CredentialType.exampleCredential;
+  /// final saveOptions = SSAuthOperationOptions(
+  ///   requiresAuth: true,
+  ///   authReason: 'Authenticate to save the credential.',
+  ///   ssNameSpace: 'myNamespace',
+  /// );
+  /// await saveCredential(saveCredentialType, options: saveOptions);
+  /// print('Credential saved successfully.');
+  /// ```
   Future<void> saveCredential(CredentialType type,
       {SSAuthOperationOptions? options});
 
-  /// Reads the value associated with the given key from secure storage.
+  /// Reads a value from the secure storage.
   ///
-  /// The [key] parameter represents the identifier for the value to be read.
-  /// The [options] parameter encapsulates authentication and other
-  /// operation-specific options.
+  /// Parameters:
+  /// - [key]: The key for the value to be read.
+  /// - [options]: Options for the secure storage operation, including authentication requirements.
   ///
-  /// Returns the stored value if found, otherwise returns `null`.
+  /// Throws a [SecureStorageAuthMiddlewareError] if authentication is required but no authentication middleware is provided.
   ///
-  /// Throws an exception if the operation fails.
+  /// Returns the value associated with the provided key, or `null` if the key is not found.
+  ///
+  /// Example:
+  /// ```dart
+  /// final keyToRead = 'exampleKey';
+  /// final readOptions = SSAuthOperationOptions(
+  ///   requiresAuth: true,
+  ///   authReason: 'Authenticate to read the key.',
+  ///   ssNameSpace: 'myNamespace',
+  /// );
+  /// final storedValue = await read(keyToRead, options: readOptions);
+  /// print('Stored value: $storedValue');
+  /// ```
   Future<String?> read(String key, {SSAuthOperationOptions? options});
 
-  /// Reads a credential of the specified type.
+  /// Reads a credential from the secure storage.
   ///
-  /// The [type] parameter represents the type of credential to be read.
-  /// The [type] is an enum that defines three types of credentials: `mnemonic`,
-  /// `privateKey`, and `passkeypair`. The [options] parameter encapsulates
-  /// authentication and other operation-specific options.
+  /// Parameters:
+  /// - [type]: The type of credential to be read.
+  /// - [options]: Options for the secure storage operation, including authentication requirements.
   ///
-  /// Returns the stored credential if found, otherwise returns `null`.
+  /// Throws a [SecureStorageAuthMiddlewareError] if authentication is required but no authentication middleware is provided.
   ///
-  /// Throws an exception if the operation fails.
+  /// Returns the credential associated with the provided type, or `null` if the credential is not found.
+  ///
+  /// Example:
+  /// ```dart
+  /// final credentialType = CredentialType.hdwallet;
+  /// final readOptions = SSAuthOperationOptions(
+  ///   requiresAuth: true,
+  ///   authReason: 'Authenticate to read the credential.',
+  ///   ssNameSpace: 'myNamespace',
+  /// );
+  /// final storedCredential = await readCredential(credentialType, options: readOptions);
+  /// print('Stored credential: $storedCredential');
+  /// ```
   Future<String?> readCredential(CredentialType type,
       {SSAuthOperationOptions? options});
 
-  /// Updates the value associated with the given key in secure storage.
+  /// Updates the value of an existing key in the secure storage.
   ///
-  /// The [key] parameter represents the identifier for the value to be updated,
-  /// and the [value] parameter is the new data to be stored. The [options]
-  /// parameter encapsulates authentication and other operation-specific options.
+  /// Parameters:
+  /// - [key]: The key for which to update the value.
+  /// - [value]: The new value to be stored.
+  /// - [options]: Options for the secure storage operation, including authentication requirements.
   ///
-  /// Throws an exception if the operation fails.
+  /// Throws a [SecureStorageAuthMiddlewareError] if authentication is required but no authentication middleware is provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// final updateKey = 'myKey';
+  /// final updateValue = 'newValue';
+  /// final updateOptions = SSAuthOperationOptions(
+  ///   requiresAuth: true,
+  ///   authReason: 'Authenticate to update the key value.',
+  ///   ssNameSpace: 'myNamespace',
+  /// );
+  /// await update(updateKey, updateValue, options: updateOptions);
+  /// print('Key updated successfully.');
+  /// ```
   Future<void> update(String key, String value,
       {SSAuthOperationOptions? options});
 
-  /// Deletes the key-value pair associated with the given key from secure storage.
+  /// Deletes a key from the secure storage.
   ///
-  /// The [key] parameter represents the identifier for the value to be deleted.
-  /// The [options] parameter encapsulates authentication and other
-  /// operation-specific options.
+  /// Parameters:
+  /// - [key]: The key to be deleted.
+  /// - [options]: Options for the secure storage operation, including authentication requirements.
   ///
-  /// Throws an exception if the operation fails.
+  /// Throws a [SecureStorageAuthMiddlewareError] if authentication is required but no authentication middleware is provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// final keyToDelete = 'exampleKey';
+  /// final deleteOptions = SSAuthOperationOptions(
+  ///   requiresAuth: true,
+  ///   authReason: 'Authenticate to delete the key.',
+  ///   ssNameSpace: 'myNamespace',
+  /// );
+  /// await delete(keyToDelete, options: deleteOptions);
+  /// ```
   Future<void> delete(String key, {SSAuthOperationOptions? options});
 }
-
-abstract class SecureStorage implements FlutterSecureStorage {}

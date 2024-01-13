@@ -1,4 +1,4 @@
-part of 'package:variance_dart/utils.dart';
+part of '../../utils.dart';
 
 class AuthenticationError extends Error {
   final String message;

@@ -8,17 +8,40 @@ mixin _PluginManager {
     return _plugins.keys.toList(growable: false);
   }
 
-  ///gets a [plugin] by name
+  /// Gets a plugin by name.
+  ///
+  /// Parameters:
+  ///   - `name`: The name of the plugin to retrieve.
+  ///
+  /// Returns:
+  ///   The plugin with the specified name.
   T plugin<T>(String name) {
     return _plugins[name] as T;
   }
 
-  /// removes an unwanted plugin by [name]
+  /// Removes an unwanted plugin by name.
+  ///
+  /// Parameters:
+  ///   - `name`: The name of the plugin to remove.
+  ///
+  /// Example:
+  /// ```dart
+  /// removePlugin('logger');
+  /// ```
   void removePlugin(String name) {
     _plugins.remove(name);
   }
 
-  ///adds a [plugin] by name
+  /// Adds a plugin by name.
+  ///
+  /// Parameters:
+  ///   - `name`: The name of the plugin to add.
+  ///   - `module`: The instance of the plugin.
+  ///
+  /// Example:
+  /// ```dart
+  /// addPlugin('logger', Logger());
+  /// ```
   void addPlugin<T>(String name, T module) {
     _plugins[name] = module;
   }

@@ -1,4 +1,4 @@
-part of 'package:variance_dart/interfaces.dart';
+part of 'interfaces.dart';
 
 /// An interface for hierarchical deterministic (HD) wallets.
 ///
@@ -6,29 +6,42 @@ part of 'package:variance_dart/interfaces.dart';
 /// allowing the creation of accounts, exporting mnemonic phrases, exporting
 /// private keys, signing messages, and more.
 abstract class HDInterface extends MultiSignerInterface {
-  /// Adds a new account to the HD wallet.
+  /// Adds an Ethereum account derived from the HD wallet using the specified [index].
   ///
-  /// - [index]: The index of the account.
+  /// Parameters:
+  /// - [index]: The index used to derive the Ethereum account.
   ///
-  /// Returns the Ethereum address of the new account.
+  /// Returns the Ethereum address associated with the specified index.
+  ///
+  /// Example:
+  /// ```dart
+  /// final walletSigner = HDWalletSigner.recoverAccount('mnemonic phrase');
+  /// final newAccount = walletSigner.addAccount(1);
+  /// ```
   EthereumAddress addAccount(int index);
 
-  /// Exports the mnemonic phrase associated with the HD wallet.
+  /// Exports the mnemonic phrase associated with the HD wallet signer.
   ///
-  /// Returns the mnemonic phrase as a [String].
+  /// Returns the mnemonic phrase.
+  ///
+  /// Example:
+  /// ```dart
+  /// final walletSigner = HDWalletSigner.recoverAccount('mnemonic phrase');
+  /// final exportedMnemonic = walletSigner.exportMnemonic();
+  /// ```
   String? exportMnemonic();
 
-  /// Exports the private key of an account from the HD wallet.
+  /// Exports the private key associated with the Ethereum account derived from the HD wallet using the specified [index].
   ///
-  /// - [index]: The index of the account.
+  /// Parameters:
+  /// - [index]: The index used to derive the Ethereum account.
   ///
-  /// Returns the private key as a [String].
+  /// Returns the exported private key as a hexadecimal string.
+  ///
+  /// Example:
+  /// ```dart
+  /// final walletSigner = HDWalletSigner.recoverAccount('mnemonic phrase');
+  /// final exportedPrivateKey = walletSigner.exportPrivateKey(1);
+  /// ```
   String exportPrivateKey(int index);
-
-  /// Retrieves the Ethereum address of an account from the HD wallet.
-  ///
-  /// - [index]: The index of the account.
-  ///
-  /// Returns the Ethereum address.
-  EthereumAddress getEthereumAddress({int index = 0});
 }

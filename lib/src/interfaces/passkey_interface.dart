@@ -1,4 +1,4 @@
-part of 'package:variance_dart/interfaces.dart';
+part of 'interfaces.dart';
 
 abstract class PasskeyInterface extends MultiSignerInterface {
   /// Gets the PassKeysOptions used by the PasskeyInterface.
@@ -7,49 +7,95 @@ abstract class PasskeyInterface extends MultiSignerInterface {
   /// Gets the default credential ID used by the Passkey.
   String? get defaultId;
 
-  /// Creates a client data hash for PassKeys authentication.
+  /// Generates the client data hash for the given [PassKeysOptions] and optional challenge.
   ///
-  /// - [options]: The PassKeysOptions for the client data hash.
-  /// - [challenge]: A random challenge for the client data hash.
+  /// Parameters:
+  /// - [options]: PassKeysOptions containing the authentication options.
+  /// - [challenge]: Optional challenge value. Defaults to a randomly generated challenge if not provided.
   ///
-  /// Returns a [Uint8List] representing the client data hash.
+  /// Returns the Uint8List representation of the client data hash.
+  ///
+  /// Example:
+  /// ```dart
+  /// final passKeysOptions = PassKeysOptions(type: 'webauthn', origin: 'https://example.com');
+  /// final clientDataHash = clientDataHash(passKeysOptions);
+  /// ```
   Uint8List clientDataHash(PassKeysOptions options, {String? challenge});
 
-  /// Creates a 32-byte client data hash for PassKeys authentication.
+  /// Generates the 32-byte client data hash for the given [PassKeysOptions] and optional challenge.
   ///
-  /// - [options]: The PassKeysOptions for the client data hash.
-  /// - [challenge]: A random challenge for the client data hash.
+  /// Parameters:
+  /// - [options]: PassKeysOptions containing the authentication options.
+  /// - [challenge]: Optional challenge value. Defaults to a randomly generated challenge if not provided.
   ///
-  /// Returns a [Uint8List] representing the 32-byte client data hash.
+  /// Returns the Uint8List representation of the 32-byte client data hash.
+  ///
+  /// Example:
+  /// ```dart
+  /// final passKeysOptions = PassKeysOptions(type: 'webauthn', origin: 'https://example.com');
+  /// final clientDataHash32 = clientDataHash32(passKeysOptions);
+  /// ```
   Uint8List clientDataHash32(PassKeysOptions options, {String? challenge});
 
-  /// Converts a credentialId to a 32-byte hex string.
+  /// Converts a List<int> credentialId to a hex string representation with a length of 32 bytes.
   ///
-  /// - [credentialId]: The credentialId to convert.
+  /// Parameters:
+  /// - [credentialId]: List of integers representing the credentialId.
   ///
-  /// Returns a 32-byte hex string.
+  /// Returns the hex string representation of the credentialId padded to 32 bytes.
+  ///
+  /// Example:
+  /// ```dart
+  /// final credentialId = [1, 2, 3];
+  /// final hexString = credentialIdToBytes32Hex(credentialId);
+  /// ```
   String credentialIdToBytes32Hex(List<int> credentialId);
 
-  /// Gets the messaging signature from the PassKeys authentication response.
+  /// Parses ASN1-encoded signature bytes and returns a List of two hex strings representing the `r` and `s` values.
   ///
-  /// - [signatureBytes]: The base64 encoded signature.
+  /// Parameters:
+  /// - [signatureBytes]: Uint8List containing the ASN1-encoded signature bytes.
   ///
-  /// Returns a [List] containing [String] values representing 'r' and 's'.
+  /// Returns a Future<List<String>> containing hex strings for `r` and `s` values.
+  ///
+  /// Example:
+  /// ```dart
+  /// final signatureBytes = Uint8List.fromList([48, 68, 2, 32, ...]);
+  /// final signatureHexValues = await getMessagingSignature(signatureBytes);
+  /// ```
   Future<List<String>> getMessagingSignature(Uint8List signatureBytes);
 
-  /// Registers a user and returns a PassKeyPair key pair.
+  /// Registers a new PassKeyPair.
   ///
-  /// - [name]: The user name.
-  /// - [requiresUserVerification]: True if user verification is required.
+  /// Parameters:
+  /// - [name]: The name associated with the PassKeyPair.
+  /// - [requiresUserVerification]: A boolean indicating whether user verification is required.
   ///
-  /// Returns a [PassKeyPair].
+  /// Returns a Future<PassKeyPair> representing the registered PassKeyPair.
+  ///
+  /// Example:
+  /// ```dart
+  /// final pkps = PassKeySigner("example", "example.com", "https://example.com");
+  /// final passKeyPair = await pkps.register('geffy', true);
+  /// ```
   Future<PassKeyPair> register(String name, bool requiresUserVerification);
 
-  /// Signs the intended request and returns the signedMessage.
+  /// Signs a hash using the PassKeyPair associated with the given credentialId.
   ///
-  /// - [hash]: The hash of the intended request.
-  /// - [credentialId]: The credential id.
+  /// Parameters:
+  /// - [hash]: The hash to be signed.
+  /// - [credentialId]: The credentialId associated with the PassKeyPair.
   ///
-  /// Returns a [PassKeySignature].
-  Future<PassKeySignature> signToPasskeySignature(Uint8List hash, String credentialId);
+  /// Returns a Future<PassKeySignature> representing the PassKeySignature of the signed hash.
+  ///
+  /// Example:
+  /// ```dart
+  /// final hash = Uint8List.fromList([/* your hash bytes here */]);
+  /// final credentialId = 'your_credential_id';
+  ///
+  /// final pkps = PassKeySigner("example", "example.com", "https://example.com");
+  /// final passKeySignature = await pkps.signToPasskeySignature(hash, credentialId);
+  /// ```
+  Future<PassKeySignature> signToPasskeySignature(
+      Uint8List hash, String credentialId);
 }

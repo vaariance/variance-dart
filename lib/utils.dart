@@ -12,11 +12,10 @@ import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth_android/local_auth_android.dart';
 import 'package:local_auth_ios/types/auth_messages_ios.dart';
-import 'package:variance_dart/interfaces.dart';
-import 'package:variance_dart/variance.dart' show Chain;
 import 'package:web3dart/web3dart.dart' show BlockNum, EthereumAddress;
 import 'package:webcrypto/webcrypto.dart';
 
+import 'src/interfaces/interfaces.dart';
 import 'src/utils/models/ens.dart';
 import 'src/utils/models/metadata.dart';
 import 'src/utils/models/nft.dart';
@@ -24,6 +23,7 @@ import 'src/utils/models/price.dart';
 import 'src/utils/models/token.dart';
 import 'src/utils/models/transaction.dart';
 import 'src/utils/models/transfer.dart';
+import 'variance.dart' show Chain;
 
 export 'package:dio/dio.dart' show BaseOptions;
 

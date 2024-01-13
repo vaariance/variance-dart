@@ -1,4 +1,4 @@
-part of 'package:variance_dart/variance.dart';
+part of '../../variance.dart';
 
 class Chain {
   final int chainId;
@@ -18,10 +18,8 @@ class Chain {
 
   /// asserts that [ethRpcUrl] and [bundlerUrl] is provided
   Chain validate() {
-    require(ethRpcUrl != null && ethRpcUrl!.isNotEmpty,
-        "Chain: please provide a valid eth rpc url");
-    require(bundlerUrl != null && bundlerUrl!.isNotEmpty,
-        "Chain: please provide a valid bundler url");
+    require(isURL(ethRpcUrl), "Chain: please provide a valid eth rpc url");
+    require(isURL(bundlerUrl), "Chain: please provide a valid bundler url");
     return this;
   }
 }

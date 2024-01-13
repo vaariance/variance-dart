@@ -36,6 +36,7 @@ dependencies:
   local_auth_ios: ^1.1.5
   local_auth_android: ^1.0.36
   flutter_secure_storage: ^9.0.0
+  string_validator: ^1.0.2
 
 dev_dependencies:
   web3dart_builders: ^0.0.7

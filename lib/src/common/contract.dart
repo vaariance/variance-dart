@@ -1,10 +1,6 @@
 part of 'common.dart';
 
-/// A wrapper for interacting with deployed Ethereum contracts through RPCProviderBase.
-///
-/// The Contract class provides methods to perform various operations on Ethereum smart contracts,
-/// including making static calls, checking deployment status, getting contract balance,
-/// and encoding data for common operations like ERC20 approvals and transfers.
+/// A wrapper for interacting with deployed Ethereum contracts through [RPCProvider].
 class Contract {
   RPCProviderBase _provider;
 
@@ -18,15 +14,29 @@ class Contract {
     _provider = provider;
   }
 
-  /// Performs a static call to a contract method.
+  /// Asynchronously calls a function on a smart contract with the provided parameters.
   ///
-  /// - [contractAddress]: The address of the contract.
-  /// - [abi]: The ABI (Application Binary Interface) of the contract.
-  /// - [methodName]: The name of the method in the contract.
-  /// - [params]: Additional parameters for the method.
-  /// - [sender]: Additional sender for the transaction.
+  /// Parameters:
+  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
+  ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
+  ///   - `methodName`: The name of the method to call on the smart contract.
+  ///   - `params`: Optional parameters for the function call.
+  ///   - `sender`: The [EthereumAddress] of the sender, if applicable.
   ///
-  /// Returns a list of dynamic values representing the result of the static call.
+  /// Returns:
+  ///   A [Future] that completes with a list of dynamic values representing the result of the function call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var result = await call(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   myErc20ContractAbi,
+  ///   'balanceOf',
+  ///   params: [ EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432')],
+  /// );
+  /// ```
+  /// This method uses the an Ethereum jsonRPC to `staticcall` a function on the specified smart contract.
+  /// **Note:** This method does not support contract calls with state changes.
   Future<List<dynamic>> call(
       EthereumAddress contractAddress, ContractAbi abi, String methodName,
       {List<dynamic>? params, EthereumAddress? sender}) {
@@ -43,12 +53,23 @@ class Contract {
         (value) => function.decodeReturnValues(value));
   }
 
-  /// Checks if a contract is deployed.
+  /// Asynchronously checks whether a smart contract is deployed at the specified address.
   ///
-  /// - [address]: The address of the contract.
-  /// - optional [atBlock]: The block number to check. defaults to the current block
+  /// Parameters:
+  ///   - `address`: The [EthereumAddress] of the smart contract.
+  ///   - `atBlock`: The [BlockNum] specifying the block to check for deployment. Defaults to the current block.
   ///
-  /// Returns a Future<bool> indicating whether the contract is deployed or not.
+  /// Returns:
+  ///   A [Future] that completes with a [bool] indicating whether the smart contract is deployed.
+  ///
+  /// Example:
+  /// ```dart
+  /// var isDeployed = await deployed(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   atBlock: BlockNum.exact(123456), // optional
+  /// );
+  /// ```
+  /// This method uses an ethereum jsonRPC to check if a smart contract is deployed at the specified address.
   Future<bool> deployed(EthereumAddress? address,
       {BlockNum atBlock = const BlockNum.current()}) {
     if (address == null) {
@@ -61,11 +82,23 @@ class Contract {
     return isDeployed;
   }
 
-  /// Gets the amount of Ether held by a contract.
+  /// Asynchronously retrieves the balance of an Ethereum address.
   ///
-  /// - [address]: The address to get the balance of.
+  /// Parameters:
+  ///   - `address`: The [EthereumAddress] for which to retrieve the balance.
+  ///   - `atBlock`: The [BlockNum] specifying the block at which to check the balance. Defaults to the current block.
   ///
-  /// Returns a Future<EtherAmount> representing the balance.
+  /// Returns:
+  ///   A [Future] that completes with an [EtherAmount] representing the balance.
+  ///
+  /// Example:
+  /// ```dart
+  /// var balance = await getBalance(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   atBlock: BlockNum.exact(123456), // optional
+  /// );
+  /// ```
+  /// This method uses an ethereum jsonRPC to  fetch the balance of the specified Ethereum address.
   Future<EtherAmount> getBalance(EthereumAddress? address,
       {BlockNum atBlock = const BlockNum.current()}) {
     if (address == null) {
@@ -77,13 +110,25 @@ class Contract {
         .then((value) => EtherAmount.fromBigInt(EtherUnit.wei, value));
   }
 
-  /// Encodes the calldata for ERC20 approval.
+  /// Encodes an ERC-20 token approval function call.
   ///
-  /// - [address]: The 4337 wallet address.
-  /// - [spender]: The address of the approved spender.
-  /// - [amount]: The amount to approve for the spender.
+  /// Parameters:
+  ///   - `address`: The [EthereumAddress] of the ERC-20 token contract.
+  ///   - `spender`: The [EthereumAddress] of the spender to approve.
+  ///   - `amount`: The [EtherAmount] representing the amount to approve in the token's base unit.
   ///
-  /// Returns a Uint8List representing the calldata.
+  /// Returns:
+  ///   A [Uint8List] containing the ABI-encoded data for the 'approve' function call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var encodedCall = encodeERC20ApproveCall(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  /// );
+  /// ```
+  /// This method uses the ERC-20 contract ABI to return a `calldata` for 'approve' function call.
   static Uint8List encodeERC20ApproveCall(
     EthereumAddress address,
     EthereumAddress spender,
@@ -97,13 +142,25 @@ class Contract {
     );
   }
 
-  /// Encodes the calldata for ERC20 transfer.
+  /// Encodes an ERC-20 token transfer function call.
   ///
-  /// - [address]: The 4337 wallet address.
-  /// - [recipient]: The address of the recipient.
-  /// - [amount]: The amount to transfer.
+  /// Parameters:
+  ///   - `address`: The [EthereumAddress] of the ERC-20 token contract.
+  ///   - `recipient`: The [EthereumAddress] of the recipient to receive the tokens.
+  ///   - `amount`: The [EtherAmount] representing the amount of tokens to transfer in the token's base unit.
   ///
-  /// Returns a Uint8List representing the calldata.
+  /// Returns:
+  ///   A [Uint8List] containing the ABI-encoded data for the 'transfer' function call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var encodedCall = encodeERC20TransferCall(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  /// );
+  /// ```
+  /// This method uses the ERC-20 contract ABI to return a `calldata` for'transfer' function call.
   static Uint8List encodeERC20TransferCall(
     EthereumAddress address,
     EthereumAddress recipient,
@@ -117,54 +174,107 @@ class Contract {
     );
   }
 
-  /// Encodes the calldata for ERC721 approval.
+  /// Encodes an ERC-721 token approval function call.
   ///
-  /// - [contractAddress]: The address of the contract.
-  /// - [to]: The address to approve.
-  /// - [tokenId]: The tokenId to approve.
+  /// Parameters:
+  ///   - `contractAddress`: The [EthereumAddress] of the ERC-721 token contract.
+  ///   - `to`: The [EthereumAddress] of the address to grant approval.
+  ///   - `tokenId`: The [BigInt] representing the ID of the token to approve.
   ///
-  /// Returns a Uint8List representing the calldata.
+  /// Returns:
+  ///   A [Uint8List] containing the ABI-encoded data for the 'approve' function call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var encodedCall = encodeERC721ApproveCall(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   BigInt.from(123),
+  /// );
+  /// ```
+  /// This method uses the ERC-721 contract ABI to return a `calldata` for 'approve' function call.
   static Uint8List encodeERC721ApproveCall(
       EthereumAddress contractAddress, EthereumAddress to, BigInt tokenId) {
     return encodeFunctionCall("approve", contractAddress,
         ContractAbis.get("ERC721"), [to.hex, tokenId]);
   }
 
-  /// Encodes the calldata for ERC721 safe transfer.
+  /// Encodes an ERC-721 token safe transfer function call.
   ///
-  /// - [contractAddress]: The address of the contract.
-  /// - [from]: The address to transfer from.
+  /// Parameters:
+  ///   - `contractAddress`: The [EthereumAddress] of the ERC-721 token contract.
+  ///   - `from`: The [EthereumAddress] of the current owner of the token.
+  ///   - `to`: The [EthereumAddress] of the recipient to receive the token.
+  ///   - `tokenId`: The [BigInt] representing the ID of the token to transfer.
   ///
-  /// Returns a Uint8List representing the calldata.
+  /// Returns:
+  ///   A [Uint8List] containing the ABI-encoded data for the 'safeTransferFrom' function call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var encodedCall = encodeERC721SafeTransferCall(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///   BigInt.from(123),
+  /// );
+  /// ```
+  /// This method uses the ERC-721 contract ABI  to return a `calldata` for 'safeTransferFrom' function call.
   static Uint8List encodeERC721SafeTransferCall(EthereumAddress contractAddress,
       EthereumAddress from, EthereumAddress to, BigInt tokenId) {
     return encodeFunctionCall("safeTransferFrom", contractAddress,
         ContractAbis.get("ERC721"), [from.hex, to.hex, tokenId]);
   }
 
-  /// Encodes the calldata for a function call.
+  /// Encodes a function call for a smart contract.
   ///
-  /// - [methodName]: The name of the method in the contract.
-  /// - [contractAddress]: The address of the contract.
-  /// - [abi]: The ABI of the contract.
-  /// - [params]: The parameters for the method.
+  /// Parameters:
+  ///   - `methodName`: The name of the method to call.
+  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
+  ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
+  ///   - `params`: The list of dynamic parameters for the function call.
   ///
-  /// Returns a Uint8List representing the calldata.
+  /// Returns:
+  ///   A [Uint8List] containing the ABI-encoded calldata for the specified function call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var encodedCall = encodeFunctionCall(
+  ///   'transfer',
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   ContractAbis.get('ERC20'),
+  ///   [EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'), BigInt.from(100)],
+  /// );
+  /// ```
+  /// This method uses the specified ABI to encode the function call for the smart contract.
   static Uint8List encodeFunctionCall(String methodName,
       EthereumAddress contractAddress, ContractAbi abi, List<dynamic> params) {
     final func = getContractFunction(methodName, contractAddress, abi);
     return func.encodeCall(params);
   }
 
-  /// Generates the calldata for a user operation.
+  /// Encodes a function call to execute a user operation in a smart wallet.
   ///
-  /// - [walletAddress]: The address of the wallet.
-  /// - [to]: The address or contract to send the transaction to.
-  /// - [amount]: The amount to send.
-  /// - [innerCallData]: The calldata of the inner call.
+  /// Parameters:
+  ///   - `walletAddress`: The [EthereumAddress] of the smart wallet.
+  ///   - `to`: The [EthereumAddress] of the target recipient for the operation.
+  ///   - `amount`: The [EtherAmount] representing the amount to transfer, if applicable.
+  ///   - `innerCallData`: The [Uint8List] containing inner call data, if applicable.
   ///
-  /// Returns the Uint8List of the calldata.
-  static Uint8List execute(EthereumAddress walletAddress,
+  /// Returns:
+  ///   A [Uint8List] containing the ABI-encoded data for the 'execute' function call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var encodedCall = execute(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   to: EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   amount: EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  ///   innerCallData: Uint8List.fromList([]),
+  /// ); // transfer to 0x1234567890abcdef1234567890abcdef12345678 with 1000000000000000000 wei
+  /// ```
+  /// This method uses the 'execute' function ABI to encode the smart wallet operation.
+  static Uint8List execute(EthereumAddress? walletAddress,
       {required EthereumAddress to,
       EtherAmount? amount,
       Uint8List? innerCallData}) {
@@ -174,6 +284,11 @@ class Contract {
       innerCallData ?? Uint8List.fromList([])
     ];
 
+    if (walletAddress == null) {
+      throw SmartWalletError(
+          "Invlaid Operation, SmartWallet Address is undefined! (contract.execute)");
+    }
+
     return encodeFunctionCall(
       'execute',
       walletAddress,
@@ -182,16 +297,35 @@ class Contract {
     );
   }
 
-  /// Generates the calldata for a batched user operation.
+  /// Encodes a function call to execute a batch of operations in a smart wallet.
   ///
-  /// - [walletAddress]: The address of the wallet.
-  /// - [recipients]: A list of addresses to send the transaction.
-  /// - [amounts]: A list of amounts to send alongside.
-  /// - [innerCalls]: A list of calldata of the inner calls.
+  /// Parameters:
+  ///   - `walletAddress`: The [EthereumAddress] of the smart wallet.
+  ///   - `recipients`: A list of [EthereumAddress] instances representing the recipients for each operation.
+  ///   - `amounts`: Optional list of [EtherAmount] instances representing the amounts to transfer for each operation.
+  ///   - `innerCalls`: Optional list of [Uint8List] instances containing inner call data for each operation.
   ///
-  /// Returns the Uint8List of the calldata.
+  /// Returns:
+  ///   A [Uint8List] containing the ABI-encoded data for the 'executeBatch' function call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var encodedCall = executeBatch(
+  ///   walletAddress: EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   recipients: [
+  ///     EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///     EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///   ],
+  ///   amounts: [EtherAmount.zero(), EtherAmount.inWei(BigInt.from(1000000000000000000))],
+  ///   innerCalls: [
+  ///     Uint8List.fromList([...]),
+  ///     Uint8List.fromList([]),
+  ///   ],
+  /// ); // first call contains call to 0x1234567890abcdef1234567890abcdef12345678 with 0 wei, second call contains call to 0xabcdef1234567890abcdef1234567890abcdef12 with 1000000000000000000 wei
+  /// ```
+  /// This method uses the 'executeBatch' function ABI to encode the smart wallet batch operation.
   static Uint8List executeBatch(
-      {required EthereumAddress walletAddress,
+      {required EthereumAddress? walletAddress,
       required List<EthereumAddress> recipients,
       List<EtherAmount>? amounts,
       List<Uint8List>? innerCalls}) {
@@ -203,6 +337,12 @@ class Contract {
     if (innerCalls == null || innerCalls.isEmpty) {
       require(amounts != null && amounts.isNotEmpty, "malformed batch request");
     }
+
+    if (walletAddress == null) {
+      throw SmartWalletError(
+          "Invlaid Operation, SmartWallet Address is undefined! (contract.executeBatch)");
+    }
+
     return encodeFunctionCall(
       'executeBatch',
       walletAddress,
@@ -211,25 +351,53 @@ class Contract {
     );
   }
 
-  /// Returns a ContractFunction instance for a given method.
+  /// Retrieves a smart contract function by name from its ABI.
   ///
-  /// - [methodName]: The name of the method in the contract.
-  /// - [contractAddress]: The address of the contract.
-  /// - [abi]: The ABI of the contract.
+  /// Parameters:
+  ///   - `methodName`: The name of the method to retrieve.
+  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
+  ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
   ///
-  /// Returns a ContractFunction.
+  /// Returns:
+  ///   A [ContractFunction] representing the specified function from the smart contract's ABI.
+  ///
+  /// Example:
+  /// ```dart
+  /// var function = getContractFunction(
+  ///   'transfer',
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   ContractAbis.get('ERC20'),
+  /// );
+  /// ```
+  /// This method uses the 'function' method of the DeployedContract instance.
   static ContractFunction getContractFunction(
       String methodName, EthereumAddress contractAddress, ContractAbi abi) {
     final instance = DeployedContract(abi, contractAddress);
     return instance.function(methodName);
   }
 
-  /// Returns a UserOperation to approve the spender of the NFT.
+  /// Generates a user operation for approving the transfer of an ERC-721 token.
   ///
-  /// - [contractAddress]: The address of the contract.
-  /// - [owner]: The address of the owner of the NFT.
-  /// - [spender]: The address of the spender of the NFT.
-  static UserOperation nftApproveOperation(EthereumAddress contractAddress,
+  /// Parameters:
+  ///   - `contractAddress`: The [EthereumAddress] of the ERC-721 token contract.
+  ///   - `owner`: The [EthereumAddress] of the token owner.
+  ///   - `spender`: The [EthereumAddress] of the address to grant approval.
+  ///   - `tokenId`: The [BigInt] representing the ID of the token to approve.
+  ///
+  /// Returns:
+  ///   A [UserOperation] instance for the ERC-721 token approval operation.
+  ///
+  /// Example:
+  /// ```dart
+  /// var userOperation = nftApproveUserOperation(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///   BigInt.from(123),
+  /// );
+  /// ```
+  /// This method combines the 'execute' function and 'encodeERC721ApproveCall' to create a user operation.
+  static UserOperation nftApproveUserOperation(EthereumAddress contractAddress,
       EthereumAddress owner, EthereumAddress spender, BigInt tokenId) {
     final innerCallData = execute(owner,
         to: contractAddress,
@@ -241,12 +409,28 @@ class Contract {
     return UserOperation.partial(callData: innerCallData);
   }
 
-  /// Returns a UserOperation to transfer an NFT.
+  /// Generates a user operation for transferring an ERC-721 token.
   ///
-  /// - [contractAddress]: The address of the contract.
-  /// - [owner]: The address of the owner of the NFT.
-  /// - [recipient]: The address of the recipient of the NFT.
-  static UserOperation nftTransferOperation(EthereumAddress contractAddress,
+  /// Parameters:
+  ///   - `contractAddress`: The [EthereumAddress] of the ERC-721 token contract.
+  ///   - `owner`: The [EthereumAddress] of the current owner of the token.
+  ///   - `recipient`: The [EthereumAddress] of the recipient to receive the token.
+  ///   - `tokenId`: The [BigInt] representing the ID of the token to transfer.
+  ///
+  /// Returns:
+  ///   A [UserOperation] instance for the ERC-721 token transfer operation.
+  ///
+  /// Example:
+  /// ```dart
+  /// var userOperation = nftTransferUserOperation(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///   BigInt.from(123),
+  /// );
+  /// ```
+  /// This method combines the 'execute' function and 'encodeERC721SafeTransferCall' to create a user operation.
+  static UserOperation nftTransferUserOperation(EthereumAddress contractAddress,
       EthereumAddress owner, EthereumAddress recipient, BigInt tokenId) {
     final innerCallData = execute(owner,
         to: contractAddress,
@@ -259,15 +443,28 @@ class Contract {
     return UserOperation.partial(callData: innerCallData);
   }
 
-  /// Returns the UserOperation for an ERC20 approval.
+  /// Generates a user operation for approving the transfer of ERC-20 tokens.
   ///
-  /// - [contractAddress]: The 4337 wallet address.
-  /// - [owner]: The address of the approved owner.
-  /// - [spender]: The address of the approved spender.
-  /// - [amount]: The amount to approve for the spender.
+  /// Parameters:
+  ///   - `contractAddress`: The [EthereumAddress] of the ERC-20 token contract.
+  ///   - `owner`: The [EthereumAddress] of the token owner.
+  ///   - `spender`: The [EthereumAddress] of the address to grant approval.
+  ///   - `amount`: The [EtherAmount] representing the amount to approve.
   ///
-  /// Returns the UserOperation.
-  static UserOperation tokenApproveOperation(
+  /// Returns:
+  ///   A [UserOperation] instance for the ERC-20 token approval operation.
+  ///
+  /// Example:
+  /// ```dart
+  /// var userOperation = tokenApproveUserOperation(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///   EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  /// );
+  /// ```
+  /// This method combines the 'execute' function and 'encodeERC20ApproveCall' to create a user operation.
+  static UserOperation tokenApproveUserOperation(
     EthereumAddress contractAddress,
     EthereumAddress owner,
     EthereumAddress spender,
@@ -280,16 +477,32 @@ class Contract {
     return UserOperation.partial(callData: callData);
   }
 
-  /// Returns the UserOperation for an ERC20 transfer.
+  /// Generates a user operation for transferring ERC-20 tokens.
   ///
-  /// - [contractAddress]: The 4337 wallet address.
-  /// - [owner]: The address of the sender.
-  /// - [recipient]: The address of the recipient.
-  /// - [amount]: The amount to transfer.
+  /// Parameters:
+  ///   - `contractAddress`: The [EthereumAddress] of the ERC-20 token contract.
+  ///   - `owner`: The [EthereumAddress] of the current owner of the tokens.
+  ///   - `recipient`: The [EthereumAddress] of the recipient to receive the tokens.
+  ///   - `amount`: The [EtherAmount] representing the amount of tokens to transfer.
   ///
-  /// Returns the UserOperation.
-  static UserOperation tokenTransferOperation(EthereumAddress contractAddress,
-      EthereumAddress owner, EthereumAddress recipient, EtherAmount amount) {
+  /// Returns:
+  ///   A [UserOperation] instance for the ERC-20 token transfer operation.
+  ///
+  /// Example:
+  /// ```dart
+  /// var userOperation = tokenTransferUserOperation(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///   EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  /// );
+  /// ```
+  /// This method combines the 'execute' function and 'encodeERC20TransferCall' to create a user operation.
+  static UserOperation tokenTransferUserOperation(
+      EthereumAddress contractAddress,
+      EthereumAddress owner,
+      EthereumAddress recipient,
+      EtherAmount amount) {
     final callData = execute(owner,
         to: contractAddress,
         innerCallData:

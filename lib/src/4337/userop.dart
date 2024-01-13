@@ -1,4 +1,4 @@
-part of 'package:variance_dart/variance.dart';
+part of '../../variance.dart';
 
 class UserOperation implements UserOperationBase {
   @override
@@ -67,6 +67,29 @@ class UserOperation implements UserOperationBase {
     );
   }
 
+  /// Creates a partial [UserOperation] with specified parameters.
+  ///
+  /// Parameters:
+  ///   - `callData` (required): The call data as a [Uint8List].
+  ///   - `sender`: The Ethereum address of the sender. Defaults to the smartwallet address.
+  ///   - `nonce`: The nonce value. Defaults to [BigInt.zero].
+  ///   - `initCode`: The initialization code as a [Uint8List]. Defaults to an empty [Uint8List].
+  ///   - `callGasLimit`: The call gas limit as a [BigInt]. Defaults to [BigInt.from(10000000)].
+  ///   - `verificationGasLimit`: The verification gas limit as a [BigInt]. Defaults to [BigInt.from(10000000)].
+  ///   - `preVerificationGas`: The pre-verification gas as a [BigInt]. Defaults to [BigInt.from(21000)].
+  ///   - `maxFeePerGas`: The maximum fee per gas as a [BigInt]. Defaults to [BigInt.one].
+  ///   - `maxPriorityFeePerGas`: The maximum priority fee per gas as a [BigInt]. Defaults to [BigInt.one].
+  ///
+  /// Returns:
+  ///   A [UserOperation] instance.
+  ///
+  /// Example:
+  /// ```dart
+  /// var partialUserOperation = UserOperation.partial(
+  ///   callData: Uint8List(0xabcdef),
+  ///   // Other parameters can be set as needed.
+  /// );
+  /// ```
   factory UserOperation.partial({
     required Uint8List callData,
     EthereumAddress? sender,
@@ -92,6 +115,27 @@ class UserOperation implements UserOperationBase {
         paymasterAndData: Uint8List(0),
       );
 
+  /// Creates a [UserOperation] by updating an existing operation using a map.
+  ///
+  /// Parameters:
+  ///   - `map`: A map containing key-value pairs representing the user operation data.
+  ///   - `opGas`: Optional parameter of type [UserOperationGas] for specifying gas-related information.
+  ///   - `sender`: Optional Ethereum address of the sender.
+  ///   - `nonce`: Optional nonce value.
+  ///   - `initCode`: Optional initialization code.
+  ///
+  /// Returns:
+  ///   A [UserOperation] instance created from the provided map.
+  ///
+  /// Example:
+  /// ```dart
+  /// var map = UserOperation.partial(callData: Uint8List(0xabcdef)).toMap();
+  /// var updatedUserOperation = UserOperation.update(
+  ///   map,
+  ///   opGas: UserOperationGas(callGasLimit: BigInt.from(20000000), ...),
+  ///   // Other parameters can be updated as needed.
+  /// );
+  /// ```
   factory UserOperation.update(
     Map<String, String> map, {
     UserOperationGas? opGas,
