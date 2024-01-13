@@ -1,4 +1,4 @@
-part of 'package:variance_dart/interfaces.dart';
+part of 'interfaces.dart';
 
 /// An abstract class representing authentication operations.
 ///

@@ -1,4 +1,4 @@
-part of 'package:variance_dart/interfaces.dart';
+part of 'interfaces.dart';
 
 /// An abstract class representing the base structure of a Smart Wallet.
 ///
@@ -28,10 +28,32 @@ abstract class SmartWalletBase {
   /// Converts the Smart Wallet address to its hexadecimal representation.
   String? get toHex;
 
-  /// Builds a [UserOperation] based on provided parameters.
+  /// Sets the smart wallet address for this account;
+  set setWalletAddress(EthereumAddress address);
+
+  /// Builds a [UserOperation] instance with the specified parameters.
   ///
-  /// This method creates a [UserOperation] with the given call data and optional parameters.
-  /// The resulting [UserOperation] can be used for various operations on the Smart Wallet.
+  /// Parameters:
+  ///   - `callData` (required): The call data as a [Uint8List].
+  ///   - `customNonce`: An optional custom nonce value.
+  ///   - `callGasLimit`: An optional custom call gas limit as a [BigInt].
+  ///   - `verificationGasLimit`: An optional custom verification gas limit as a [BigInt].
+  ///   - `preVerificationGas`: An optional custom pre-verification gas as a [BigInt].
+  ///   - `maxFeePerGas`: An optional custom maximum fee per gas as a [BigInt].
+  ///   - `maxPriorityFeePerGas`: An optional custom maximum priority fee per gas as a [BigInt].
+  ///
+  /// Returns:
+  ///   A [UserOperation] instance with the specified parameters.
+  ///
+  /// Example:
+  /// ```dart
+  /// var userOperation = buildUserOperation(
+  ///   callData: Uint8List(0xabcdef),
+  ///   customNonce: BigInt.from(42),
+  ///   callGasLimit: BigInt.from(20000000),
+  ///   // Other optional parameters can be provided as needed.
+  /// );
+  /// ```
   UserOperation buildUserOperation({
     required Uint8List callData,
     BigInt? customNonce,
@@ -42,95 +64,223 @@ abstract class SmartWalletBase {
     BigInt? maxPriorityFeePerGas,
   });
 
-  /// manually Sets the init code of the Smart Wallet and overrides the default.
-  void dangerouslySetInitCode(String? code);
-
-  /// Creates a new wallet address using counterfactual deployment.
+  /// Sets the account initialization calldata for a [SmartWalletBase] in a potentially unsafe manner.
   ///
-  /// This method generates a new wallet address based on the provided salt value.
-  /// The wallet may not actually be deployed, and [deployed] should be used to check deployment status.
+  /// **Warning:**
+  /// This method allows setting the initialization calldata directly, which may lead to unexpected behavior
+  /// if used improperly. It is intended for advanced use cases where the caller is aware of the potential risks.
+  ///
+  /// Parameters:
+  ///   - `code`: The initialization calldata as a [Uint8List]. Set to `null` to clear the existing data.
+  ///
+  /// Example:
+  /// ```dart
+  /// dangerouslySetInitCallData(Uint8List.fromList([0x01, 0x02, 0x03]));
+  /// ```
+  void dangerouslySetInitCallData(Uint8List? code);
+
+  /// Asynchronously creates a simple Ethereum smart account using the provided salt value.
+  /// Uses counterfactactual deployment to create the account and [deployed] should be used to check deployment status.
   /// An `initCode` will be attached on the first transaction.
   ///
-  /// - [salt]: The salt for the wallet.
-  /// - [index]: The index of the wallet (optional).
+  /// Parameters:
+  ///   - `salt`: A [Uint256] representing the salt value for account creation.
+  ///   - `index`: Optional parameter specifying the index for selecting a signer. Defaults to `null`.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with the created [SmartWallet] instance.
+  ///
+  /// Example:
+  /// ```dart
+  /// var smartWallet = await createSimpleAccount(Uint256.zero, index: 1);
+  /// ```
+  /// This method generates initialization calldata using the 'createAccount' method and the provided signer and salt.
+  /// It then retrieves the Ethereum address for the simple account and sets it to the wallet instance.
   Future createSimpleAccount(Uint256 salt, {int? index});
 
-  /// Creates a new Passkey wallet address using counterfactual deployment.
+  /// Asynchronously creates a simple Ethereum smart account using a passkey pair and the provided salt value.
   ///
-  /// This method generates a new Passkey wallet address based on the provided parameters.
-  /// The wallet may not actually be deployed, and [deployed] should be used to check deployment status.
-  /// An `initCode` will be attached on the first transaction.
+  /// Parameters:
+  ///   - `pkp`: A [PassKeyPair] representing the passkey pair for account creation.
+  ///   - `salt`: A [Uint256] representing the salt value for account creation.
   ///
-  /// - [pkp]: The PasskeyPair for the wallet passkey signer.
-  /// - [salt]: The salt for create2.
+  /// Returns:
+  ///   A [Future] that completes with the created [SmartWallet] instance.
+  ///
+  /// Example:
+  /// ```dart
+  /// var smartWallet = await createSimplePasskeyAccount(myPassKeyPair, Uint256.zero);
+  /// ```
+  /// This method generates initialization calldata using the 'createPasskeyAccount' method and the provided
+  /// passkey pair and salt. The passkey pair includes the credential and public key values.
   Future createSimplePasskeyAccount(PassKeyPair pkp, Uint256 salt);
 
-  /// Retrieves the counterfactual address of a wallet created with [createSimpleAccount].
+  /// Asynchronously retrieves the Ethereum address for a simple account created with the specified signer and salt.
+  ///
+  /// Parameters:
+  ///   - `signer`: The [EthereumAddress] of the signer associated with the account.
+  ///   - `salt`: A [Uint256] representing the salt value used in the account creation.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with the Ethereum address of the simple account.
+  ///
+  /// Example:
+  /// ```dart
+  /// var address = await getSimpleAccountAddress(
+  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   Uint256.zero,
+  /// );
+  /// ```
   Future<EthereumAddress> getSimpleAccountAddress(
       EthereumAddress signer, Uint256 salt);
 
-  /// Retrieves the counterfactual address of a Passkey wallet created with [createSimplePasskeyAccount].
+  /// Asynchronously retrieves the Ethereum address for a simple account created with the specified passkey pair and salt.
+  ///
+  /// Parameters:
+  ///   - `pkp`: The [PassKeyPair] used for creating the account.
+  ///   - `salt`: A [Uint256] representing the salt value used in the account creation.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with the Ethereum address of the simple account.
+  ///
+  /// Example:
+  /// ```dart
+  /// var address = await getSimplePassKeyAccountAddress(
+  ///   myPassKeyPair,
+  ///   Uint256.zero,
+  /// );
+  /// ```
   Future<EthereumAddress> getSimplePassKeyAccountAddress(
       PassKeyPair pkp, Uint256 salt);
 
-  /// Transfers native tokens to another recipient.
+  /// Asynchronously transfers native Token (ETH) to the specified recipient with the given amount.
   ///
-  /// - [recipient]: The address of the recipient.
-  /// - [amount]: The amount to send.
+  /// Parameters:
+  ///   - `recipient`: The [EthereumAddress] of the transaction recipient.
+  ///   - `amount`: The [EtherAmount] representing the amount to be sent in the transaction.
   ///
-  /// Returns the [UserOperationResponse] of the transaction.
+  /// Returns:
+  ///   A [Future] that completes with a [UserOperationResponse] containing information about the transaction.
+  ///
+  /// Example:
+  /// ```dart
+  /// var response = await send(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  /// );
+  /// ```
+  /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
+  /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> send(
     EthereumAddress recipient,
     EtherAmount amount,
   );
 
-  /// Sends a batched transaction to the wallet.
+  /// Asynchronously sends a batched Ethereum transaction to multiple recipients with the given calls and optional amounts.
   ///
-  /// - [recipients]: The addresses of the recipients.
-  /// - [calls]: The calldata to send.
-  /// - [amounts]: The amounts to send (optional).
+  /// Parameters:
+  ///   - `recipients`: A list of [EthereumAddress] representing the recipients of the batched transaction.
+  ///   - `calls`: A list of [Uint8List] representing the calldata for each transaction in the batch.
+  ///   - `amounts`: Optional list of [EtherAmount] representing the amounts for each transaction. Defaults to `null`.
   ///
-  /// Returns the [UserOperationResponse] of the transaction.
+  /// Returns:
+  ///   A [Future] that completes with a [UserOperationResponse] containing information about the batched transaction.
+  ///
+  /// Example:
+  /// ```dart
+  /// var response = await sendBatchedTransaction(
+  ///   [
+  ///     EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///     EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///   ],
+  ///   [
+  ///     Contract.execute(_walletAddress, to: recipient1, amount: amount1),
+  ///     Contract.execute(_walletAddress, to: recipient2, amount: amount2),
+  ///   ],
+  ///   amounts: [EtherAmount.inWei(BigInt.from(1000000000000000000)), EtherAmount.inWei(BigInt.from(500000000000000000))],
+  /// );
+  /// ```
+  /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
+  /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> sendBatchedTransaction(
     List<EthereumAddress> recipients,
     List<Uint8List> calls, {
     List<EtherAmount>? amounts,
   });
 
-  /// Sends a signed user operation to the bundler.
+  /// Asynchronously sends a signed user operation to the bundler for execution.
   ///
-  /// - [op]: The [UserOperation].
+  /// Parameters:
+  ///   - `op`: The signed [UserOperation] to be sent for execution.
   ///
-  /// Returns the [UserOperationResponse] of the transaction.
+  /// Returns:
+  ///   A [Future] that completes with a [UserOperationResponse] containing information about the executed operation.
+  ///
+  /// Example:
+  /// ```dart
+  /// var response = await sendSignedUserOperation(mySignedUserOperation);
+  /// ```
   Future<UserOperationResponse> sendSignedUserOperation(UserOperation op);
 
-  /// Sends a transaction to the wallet contract.
+  /// Asynchronously sends an Ethereum transaction to the specified address with the provided encoded function data and optional amount.
   ///
-  /// - [to]: The address of the recipient.
-  /// - [encodedFunctionData]: The calldata to send.
-  /// - [amount]: The amount to send (optional).
+  /// Parameters:
+  ///   - `to`: The [EthereumAddress] of the transaction recipient.
+  ///   - `encodedFunctionData`: The [Uint8List] containing the encoded function data for the transaction.
+  ///   - `amount`: Optional [EtherAmount] representing the amount to be sent in the transaction. Defaults to `null`.
   ///
-  /// Returns the [UserOperationResponse] of the transaction.
+  /// Returns:
+  ///   A [Future] that completes with a [UserOperationResponse] containing information about the transaction.
+  ///
+  /// Example:
+  /// ```dart
+  /// var response = await sendTransaction(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   Uint8List.fromList([]),
+  ///   amount: EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  /// ); // tranfers ether to 0x9876543210abcdef9876543210abcdef98765432
+  /// ```
+  /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
+  /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> sendTransaction(
     EthereumAddress to,
     Uint8List encodedFunctionData, {
     EtherAmount? amount,
   });
 
-  /// Signs and sends a user operation to the bundler.
+  /// Asynchronously sends a user operation after signing it and obtaining the required signatures.
   ///
-  /// - [op]: The [UserOperation].
+  /// Parameters:
+  ///   - `op`: The [UserOperation] to be signed and sent.
+  ///   - `id`: Optional identifier (credential Id) when using a passkey signer Defaults to `null`.
   ///
-  /// Returns the [UserOperationResponse] of the transaction.
+  /// Returns:
+  ///   A [Future] that completes with a [UserOperationResponse] containing information about the executed operation.
+  ///
+  /// Example:
+  /// ```dart
+  /// // when using passkey signer, the credentialId idenfies the credential that is associated with the account.
+  /// var response = await sendUserOperation(myUserOperation, id: 'credentialId'); // index is effectively ignored even if provided
+  /// ```
   Future<UserOperationResponse> sendUserOperation(UserOperation op);
 
-  /// Signs a user operation using the provided key.
+  /// Asynchronously signs a user operation with the required signatures.
   ///
-  /// - [userOp]: The [UserOperation].
-  /// - [update]: True if you want to update the user operation (optional).
-  /// - [id]: The id of the transaction (optional).
+  /// Parameters:
+  ///   - `userOp`: The [UserOperation] to be signed.
+  ///   - `update`: Optional parameter indicating whether to update the user operation before signing. Defaults to `true`.
+  ///   - `id`: Optional identifier (credential Id) when using a passkey signer Defaults to `null`.
+  ///   - `index`: Optional index parameter for selecting a signer. Defaults to `null`.
   ///
-  /// Returns a signed [UserOperation].
+  /// Returns:
+  ///   A [Future] that completes with the signed [UserOperation].
+  ///
+  /// Example:
+  /// ```dart
+  /// // when using HD wallet, index can be used to specify which privatekey to use
+  /// var signedOperation = await signUserOperation(myUserOperation, index: 0); // signer 0
+  /// var signedOperation = await signUserOperation(myUserOperation, index: 1); // signer 1
+  /// ```
   Future<UserOperation> signUserOperation(
     UserOperation userOp, {
     bool update = true,

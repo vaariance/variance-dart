@@ -1,4 +1,4 @@
-part of 'package:variance_dart/interfaces.dart';
+part of 'interfaces.dart';
 
 /// Abstract base class for handling Ethereum Name Service (ENS) resolution.
 ///

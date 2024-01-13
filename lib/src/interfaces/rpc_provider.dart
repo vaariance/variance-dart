@@ -1,52 +1,92 @@
-part of 'package:variance_dart/interfaces.dart';
+part of 'interfaces.dart';
 
 /// Abstract base class for interacting with an Bundler RPC provider.
 ///
-/// Implementations of this class are expected to provide functionality for specifically interacting 
+/// Implementations of this class are expected to provide functionality for specifically interacting
 /// with bundlers only.
 abstract class RPCProviderBase implements RpcService {
-  /// Estimates the gas cost of a transaction.
+  /// Asynchronously estimates the gas cost for a transaction to the specified address with the given calldata.
   ///
-  /// - [to]: The address or contract to which the transaction is to be sent.
-  /// - [calldata]: The calldata of the transaction.
+  /// Parameters:
+  ///   - `to`: The [EthereumAddress] of the transaction recipient.
+  ///   - `calldata`: The ABI-encoded data for the transaction.
   ///
-  /// Returns the estimated gas cost in wei.
+  /// Returns:
+  ///   A [Future] that completes with a [BigInt] representing the estimated gas cost.
+  ///
+  /// Example:
+  /// ```dart
+  /// var gasEstimation = await estimateGas(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   '0x0123456789abcdef',
+  /// );
+  /// ```
+  /// This method uses an ethereum jsonRPC to estimate the gas cost for the specified transaction.
   Future<BigInt> estimateGas(
     EthereumAddress to,
     String calldata,
   );
 
-  /// Returns the current block number.
+  /// Asynchronously retrieves the current block number from the Ethereum node.
   ///
-  /// Returns a [Future] that completes with the current block number.
+  /// Returns:
+  ///   A [Future] that completes with an [int] representing the current block number.
+  ///
+  /// Example:
+  /// ```dart
+  /// var blockNumber = await getBlockNumber();
+  /// ```
+  /// This method uses an ethereum jsonRPC to fetch the current block number from the Ethereum node.
   Future<int> getBlockNumber();
 
-  /// Returns the EIP1559 gas price in wei for a network.
+  /// Asynchronously retrieves the EIP-1559 gas prices, including `maxFeePerGas` and `maxPriorityFeePerGas`.
   ///
-  /// Returns a [Future] that completes with a [Map] containing the following keys:
+  /// Returns:
+  ///   A [Future] that completes with a [Map] containing the gas prices in [EtherAmount].
   ///
-  /// - `'maxFeePerGas'`: An [EtherAmount] representing the maximum fee per gas.
-  /// - `'maxPriorityFeePerGas'`: An [EtherAmount] representing the maximum priority fee per gas.
+  /// Example:
+  /// ```dart
+  /// var gasPrices = await getEip1559GasPrice();
+  /// ```
+  /// This method uses an ethereum jsonRPC to fetch EIP-1559 gas prices from the Ethereum node.
   Future<Map<String, EtherAmount>> getEip1559GasPrice();
 
-  /// Returns the gas price in wei for a network.
+  /// Asynchronously retrieves the gas prices, supporting both EIP-1559 and legacy gas models.
   ///
-  /// Returns a [Future] that completes with a [Map] containing the following keys:
+  /// Returns:
+  ///   A [Future] that completes with a [Map] containing the gas prices in [EtherAmount].
   ///
-  /// - `'maxFeePerGas'`: An [EtherAmount] representing the maximum fee per gas.
-  /// - `'maxPriorityFeePerGas'`: An [EtherAmount] representing the maximum priority fee per gas.
+  /// Example:
+  /// ```dart
+  /// var gasPrices = await getGasPrice();
+  /// ```
+  /// This method first attempts to fetch EIP-1559 gas prices and falls back to legacy gas prices if it fails.
   Future<Map<String, EtherAmount>> getGasPrice();
 
-  /// Returns the legacy gas price in wei for a network.
+  /// Asynchronously retrieves the legacy gas price from the Ethereum node.
   ///
-  /// Returns a [Future] that completes with an [EtherAmount] representing the legacy gas price.
+  /// Returns:
+  ///   A [Future] that completes with an [EtherAmount] representing the legacy gas price in [Wei].
+  ///
+  /// Example:
+  /// ```dart
+  /// var legacyGasPrice = await getLegacyGasPrice();
+  /// ```
+  /// This method uses an ethereum jsonRPC to fetch the legacy gas price from the Ethereum node.
   Future<EtherAmount> getLegacyGasPrice();
 
-  /// Sends a transaction to the bundler RPC.
+  /// Asynchronously sends an RPC call to the Ethereum node for the specified function and parameters.
   ///
-  /// - [function]: The method to call.
-  /// - [params]: The parameters for the request (optional).
+  /// Parameters:
+  ///   - `function`: The Ethereum RPC function to call. eg: `eth_getBalance`
+  ///   - `params`: Optional parameters for the RPC call.
   ///
-  /// Returns a [Future] that completes with an RPC response of a generic type [T].
+  /// Returns:
+  ///   A [Future] that completes with the result of the RPC call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var result = await send<String>('eth_getBalance', ['0x9876543210abcdef9876543210abcdef98765432']);
+  /// ```
   Future<T> send<T>(String function, [List<dynamic>? params]);
 }

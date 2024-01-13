@@ -1,49 +1,48 @@
-part of 'package:variance_dart/variance.dart';
+part of '../../variance.dart';
 
 class HDWalletSigner with SecureStorageMixin implements HDInterface {
-  String? _mnemonic;
+  final String _mnemonic;
+
   final String _seed;
 
   late final EthereumAddress zerothAddress;
 
-  HDWalletSigner({required String seed}) : _seed = seed {
-    assert(seed.isNotEmpty, "seed cannot be empty");
-  }
+  @override
+  String dummySignature =
+      "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
 
-  /// Generates a new account in the HD wallet and stores it as zeroth.
+  /// Creates a new HD wallet signer instance by generating a random mnemonic phrase.
   ///
-  /// Returns the HD signer instance.
+  /// Example:
+  /// ```dart
+  /// final walletSigner = HDWalletSigner.createWallet();
+  /// ```
   factory HDWalletSigner.createWallet() {
-    final mnemonic = bip39.generateMnemonic();
-    return HDWalletSigner.recoverAccount(mnemonic);
+    return HDWalletSigner.recoverAccount(bip39.generateMnemonic());
   }
 
-  /// Recovers an account from a mnemonic phrase and stores it in the HD wallet as zeroth.
+  /// Recovers an HD wallet signer instance from a given mnemonic phrase.
   ///
-  /// - [mnemonic]: The mnemonic phrase.
+  /// Parameters:
+  /// - [mnemonic]: The mnemonic phrase used for recovering the HD wallet signer.
   ///
-  /// Returns the HD signer instance.
+  /// Example:
+  /// ```dart
+  /// final mnemonicPhrase = 'word1 word2 word3 ...'; // Replace with an actual mnemonic phrase
+  /// final recoveredSigner = HDWalletSigner.recoverAccount(mnemonicPhrase);
+  /// ```
+
   factory HDWalletSigner.recoverAccount(String mnemonic) {
     final seed = bip39.mnemonicToSeedHex(mnemonic);
-    final signer = HDWalletSigner(seed: seed);
+    final signer = HDWalletSigner._internal(seed: seed, mnemonic: mnemonic);
     signer.zerothAddress = signer._add(seed, 0);
     return signer;
   }
 
-  /// Loads an account from secure storage and stores it in the HD wallet as zeroth.
-  /// if no account is found, it returns `null`.
-  ///
-  /// - [storageMiddleware]: The secure storage middleware.
-  /// - [options]: The authentication options.
-  ///
-  /// Returns a `Future` completing with the HD signer instance.
-  static Future<HDWalletSigner?> loadFromSecureStorage(
-      {required SecureStorageRepository storageMiddleware,
-      SSAuthOperationOptions? options}) {
-    return storageMiddleware
-        .readCredential(CredentialType.hdwallet, options: options)
-        .then((value) =>
-            value != null ? HDWalletSigner.recoverAccount(value) : null);
+  HDWalletSigner._internal({required String seed, required String mnemonic})
+      : _seed = seed,
+        _mnemonic = mnemonic {
+    assert(seed.isNotEmpty, "seed cannot be empty");
   }
 
   @override
@@ -52,7 +51,7 @@ class HDWalletSigner with SecureStorageMixin implements HDInterface {
   }
 
   @override
-  String? exportMnemonic() {
+  String exportMnemonic() {
     return _getMnemonic();
   }
 
@@ -69,14 +68,7 @@ class HDWalletSigner with SecureStorageMixin implements HDInterface {
 
   @override
   String getAddress({int index = 0, bytes}) {
-    return getEthereumAddress(index: index).hex;
-  }
-
-  @override
-  EthereumAddress getEthereumAddress({int index = 0}) {
-    bip44.ExtendedPrivateKey hdKey = _getHdKey(index);
-    final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
-    return privKey.address;
+    return _getEthereumAddress(index: index).hex;
   }
 
   @override
@@ -91,6 +83,15 @@ class HDWalletSigner with SecureStorageMixin implements HDInterface {
       {int? index, String? id}) async {
     final privKey = _getPrivateKey(index ?? 0);
     return privKey.signToEcSignature(hash);
+  }
+
+  @override
+  SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
+      {Authentication? authMiddleware}) {
+    return SecureStorageMiddleware(
+        secureStorage: secureStorage,
+        authMiddleware: authMiddleware,
+        credential: _getMnemonic());
   }
 
   EthereumAddress _add(String seed, int index) {
@@ -111,12 +112,17 @@ class HDWalletSigner with SecureStorageMixin implements HDInterface {
     return hdKey;
   }
 
+  EthereumAddress _getEthereumAddress({int index = 0}) {
+    bip44.ExtendedPrivateKey hdKey = _getHdKey(index);
+    final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
+    return privKey.address;
+  }
+
   bip44.ExtendedPrivateKey _getHdKey(int index) {
     return _deriveHdKey(_seed, index);
   }
 
-  String? _getMnemonic() {
-    require(_mnemonic != null, "exportMnemonic: Not a Valid Wallet");
+  String _getMnemonic() {
     return _mnemonic;
   }
 
@@ -126,12 +132,27 @@ class HDWalletSigner with SecureStorageMixin implements HDInterface {
     return privateKey;
   }
 
-  @override
-  SecureStorageMiddleware withSecureStorage(SecureStorage secureStorage,
-      {Authentication? authMiddleware}) {
-    return SecureStorageMiddleware(
-        secureStorage: secureStorage,
-        authMiddleware: authMiddleware,
-        credential: _getMnemonic());
+  /// Loads an HD wallet signer instance from secure storage using the provided [SecureStorageRepository].
+  ///
+  /// Parameters:
+  /// - [storageMiddleware]: The secure storage repository used to retrieve the HD wallet credentials.
+  /// - [options]: Optional authentication operation options. Defaults to `null`.
+  ///
+  /// Returns a `Future` that resolves to a `HDWalletSigner` instance if successfully loaded, or `null` otherwise.
+  ///
+  /// Example:
+  /// ```dart
+  /// final secureStorageRepo = SecureStorageRepository(); // Replace with an actual instance
+  /// final loadedSigner = await HDWalletSigner.loadFromSecureStorage(
+  ///   storageMiddleware: secureStorageRepo,
+  /// );
+  /// ```
+  static Future<HDWalletSigner?> loadFromSecureStorage(
+      {required SecureStorageRepository storageMiddleware,
+      SSAuthOperationOptions? options}) {
+    return storageMiddleware
+        .readCredential(CredentialType.hdwallet, options: options)
+        .then((value) =>
+            value != null ? HDWalletSigner.recoverAccount(value) : null);
   }
 }

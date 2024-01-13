@@ -4,7 +4,9 @@
 
 * Biometric Auth layer over the secure storage repository
 
-* Deprecate the ChainbaseAPI helpers for ENS resolution to use the new ensdart_v3
+* Retrieve account nonce from Entrypoint instead of account contract using zeroth key.
+
+* fixed userOp hashing and added compulsory dummySignature field to account signer interface.
 
 * Bug Fixes
 

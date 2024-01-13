@@ -1,4 +1,4 @@
-part of 'package:variance_dart/variance.dart';
+part of '../../variance.dart';
 
 class AuthData {
   final String credentialHex;
@@ -50,7 +50,7 @@ class PassKeyPair with SecureStorageMixin {
   }
 
   @override
-  SecureStorageMiddleware withSecureStorage(SecureStorage secureStorage,
+  SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
       {Authentication? authMiddleware}) {
     return SecureStorageMiddleware(
         secureStorage: secureStorage,
@@ -58,6 +58,21 @@ class PassKeyPair with SecureStorageMixin {
         credential: toJson());
   }
 
+  /// Loads a passkey pair from secure storage using the provided [SecureStorageRepository].
+  ///
+  /// Parameters:
+  /// - [storageMiddleware]: The secure storage repository used to retrieve the passkey pair credentials.
+  /// - [options]: Optional authentication operation options. Defaults to `null`.
+  ///
+  /// Returns a `Future` that resolves to a `PassKeyPair` instance if successfully loaded, or `null` otherwise.
+  ///
+  /// Example:
+  /// ```dart
+  /// final secureStorageRepo = SecureStorageRepository(); // Replace with an actual instance
+  /// final loadedPassKeyPair = await PassKeyPair.loadFromSecureStorage(
+  ///   storageMiddleware: secureStorageRepo,
+  /// );
+  /// ```
   static Future<PassKeyPair?> loadFromSecureStorage(
       {required SecureStorageRepository storageMiddleware,
       SSAuthOperationOptions? options}) {
@@ -76,7 +91,15 @@ class PassKeySignature {
   PassKeySignature(this.credentialId, this.rs, this.authData,
       this.clientDataPrefix, this.clientDataSuffix);
 
-  Uint8List toList() {
+  /// Converts the `PassKeySignature` to a `Uint8List` using the specified ABI encoding.
+  ///
+  /// Returns the encoded Uint8List.
+  ///
+  /// Example:
+  /// ```dart
+  /// final Uint8List encodedSig = pkpSig.toUint8List();
+  /// ```
+  Uint8List toUint8List() {
     return abi.encode([
       'uint256',
       'uint256',
@@ -147,6 +170,10 @@ class PassKeySigner implements PasskeyInterface {
   PassKeysOptions get opts => _opts;
 
   @override
+  String dummySignature =
+      "0xe017c9b829f0d550c9a0f1d791d460485b774c5e157d2eaabdf690cba2a62726b3e3a3c5022dc5301d272a752c05053941b1ca608bf6bc8ec7c71dfe15d5305900000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001600000000000000000000000000000000000000000000000000000000000000025205f5f63c4a6cebdc67844b75186367e6d2e4f19b976ab0affefb4e981c22435050000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000247b2274797065223a22776562617574686e2e676574222c226368616c6c656e6765223a2200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001d222c226f726967696e223a226170692e776562617574686e2e696f227d000000";
+
+  @override
   Uint8List clientDataHash(PassKeysOptions options, {String? challenge}) {
     options.challenge = challenge ?? _randomChallenge(options);
     final clientDataJson = jsonEncode({
@@ -205,7 +232,7 @@ class PassKeySigner implements PasskeyInterface {
       {int? index, String? id}) async {
     require(id != null, "credential id expected");
     final signature = await signToPasskeySignature(hash, id!);
-    return signature.toList();
+    return signature.toUint8List();
   }
 
   @override

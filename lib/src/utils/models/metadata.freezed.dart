@@ -254,7 +254,7 @@ class _$TokenMetadataImpl implements _TokenMetadata {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TokenMetadataImpl &&

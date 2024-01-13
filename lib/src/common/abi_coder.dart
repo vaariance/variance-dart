@@ -8,28 +8,42 @@ part of 'common.dart';
 class abi {
   abi._();
 
-  /// Decodes a list of types and values.
+  /// Decodes a list of ABI-encoded types and values.
   ///
-  /// - [types]: A list of string types.
-  /// - [value]: A [Uint8List] containing the ABI-encoded data.
+  /// Parameters:
+  ///   - `types`: A list of string types describing the ABI types to decode.
+  ///   - `value`: A [Uint8List] containing the ABI-encoded data to be decoded.
   ///
-  /// Returns a list of decoded values.
-  static List<T> decode<T>(List<String> types, Uint8List value) {
+  /// Returns:
+  ///   A list of decoded values with the specified type.
+  ///
+  /// Example:
+  /// ```dart
+  /// var decodedValues = abi.decode(['uint256', 'string'], encodedData);
+  /// ```
+  static List decode(List<String> types, Uint8List value) {
     List<AbiType> abiTypes = [];
     for (String type in types) {
       var abiType = parseAbiType(type);
       abiTypes.add(abiType);
     }
     final parsedData = TupleType(abiTypes).decode(value.buffer, 0);
-    return parsedData.data as List<T>;
+    return parsedData.data;
   }
 
-  /// Encodes a list of types and values.
+  /// Encodes a list of types and values into ABI-encoded data.
   ///
-  /// - [types]: A list of string types.
-  /// - [values]: A list of dynamic values to be encoded.
+  /// Parameters:
+  ///   - `types`: A list of string types describing the ABI types.
+  ///   - `values`: A list of dynamic values to be ABI-encoded.
   ///
-  /// Returns a [Uint8List] containing the ABI-encoded types and values.
+  /// Returns:
+  ///   A [Uint8List] containing the ABI-encoded types and values.
+  ///
+  /// Example:
+  /// ```dart
+  /// var encodedData = abi.encode(['uint256', 'string'], [BigInt.from(123), 'Hello']);
+  /// ```
   static Uint8List encode(List<String> types, List<dynamic> values) {
     List<AbiType> abiTypes = [];
     LengthTrackingByteSink result = LengthTrackingByteSink();

@@ -1,4 +1,4 @@
-part of 'package:variance_dart/interfaces.dart';
+part of 'interfaces.dart';
 
 /// Abstract base class representing a user operation.
 ///
@@ -9,9 +9,9 @@ abstract class UserOperationBase {
 
   BigInt get nonce;
 
-  String get initCode;
+  Uint8List get initCode;
 
-  String get callData;
+  Uint8List get callData;
 
   BigInt get callGasLimit;
 
@@ -25,7 +25,7 @@ abstract class UserOperationBase {
 
   String get signature;
 
-  String get paymasterAndData;
+  Uint8List get paymasterAndData;
 
   /// Hashes the user operation for the given chain.
   ///

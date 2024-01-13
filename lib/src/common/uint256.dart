@@ -5,14 +5,47 @@ class Uint256 implements Uint256Base {
 
   final BigInt _value;
 
-  Uint256(this._value);
+  const Uint256(this._value);
 
+  /// Creates a [Uint256] instance from a hexadecimal string [hex].
+  ///
+  /// Example:
+  /// ```dart
+  /// final value = Uint256.fromHex('0x1a'); // Creates Uint256 with value 26
+  /// ```
   factory Uint256.fromHex(String hex) {
     return Uint256(hexToInt(hex));
   }
 
+  /// Creates a [Uint256] instance from an [EtherAmount] value [inWei].
+  ///
+  /// Example:
+  /// ```dart
+  /// final amount = EtherAmount.inWei(BigInt.from(5)).getInWei;
+  /// final value = Uint256.fromWei(amount); // Creates Uint256 with value 5
+  /// ```
   factory Uint256.fromWei(EtherAmount inWei) {
     return Uint256(inWei.getInWei);
+  }
+
+  /// Creates a [Uint256] instance from an integer value [value].
+  ///
+  /// Example:
+  /// ```dart
+  /// final value = Uint256.fromInt(42); // Creates Uint256 with value 42
+  /// ```
+  factory Uint256.fromInt(int value) {
+    return Uint256(BigInt.from(value));
+  }
+
+  /// Creates a [Uint256] instance from a string representation of a number [value].
+  ///
+  /// Example:
+  /// ```dart
+  /// final value = Uint256.fromString('123'); // Creates Uint256 with value 123
+  /// ```
+  factory Uint256.fromString(String value) {
+    return Uint256(BigInt.parse(value));
   }
 
   @override
@@ -65,7 +98,12 @@ class Uint256 implements Uint256Base {
   }
 
   @override
-  double toUnit(int decimals) {
+  BigInt toUnit(int decimals) {
+    return _value * BigInt.from(pow(10, decimals));
+  }
+
+  @override
+  double fromUnit(int decimals) {
     return _value / BigInt.from(pow(10, decimals));
   }
 

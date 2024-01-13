@@ -1,6 +1,7 @@
-part of 'package:variance_dart/variance.dart';
+part of '../../variance.dart';
 
 class BundlerProvider implements BundlerProviderBase {
+  /// Set of Ethereum RPC methods supported by the SmartWallet SDK.
   static final Set<String> methods = {
     'eth_chainId',
     'eth_sendUserOperation',
@@ -111,6 +112,18 @@ class BundlerProvider implements BundlerProviderBase {
     _initialized = true;
   }
 
+  /// Validates if the provided method is a supported RPC method.
+  ///
+  /// Parameters:
+  ///   - `method`: The Ethereum RPC method to validate.
+  ///
+  /// Throws:
+  ///   - A [Exception] if the method is not a valid supported method.
+  ///
+  /// Example:
+  /// ```dart
+  /// validateBundlerMethod('eth_sendUserOperation');
+  /// ```
   static validateBundlerMethod(String method) {
     require(methods.contains(method),
         "validateMethod: method ::'$method':: is not a valid method");

@@ -1,4 +1,4 @@
-part of 'package:variance_dart/interfaces.dart';
+part of 'interfaces.dart';
 
 /// An interface for a multi-signer, allowing signing of data and returning the result.
 ///
@@ -7,46 +7,68 @@ part of 'package:variance_dart/interfaces.dart';
 /// of multi-signers while adhering to a common interface.
 /// interfaces include: [PrivateKeySigner], [PassKeySigner] and [HDWalletSigner]
 abstract class MultiSignerInterface {
-  /// Returns the Hex address associated with the signer.
+  /// The dummy signature is a valid signature that can be used for testing purposes.
+  /// specifically, this will be used to simulate user operation on the entrypoint.
+  /// You must specify a dummy signature that matches your transaction signature standard.
+  String dummySignature = "0x";
+
+  /// Generates an Ethereum address from the key at the specified [index].
   ///
-  /// Optional parameters:
-  /// - [index]: The index or position of the signer. Used for multi-signature scenarios.
-  /// - [id]: An optional identifier associated with the signing process.
+  /// Parameters:
+  /// - [index]: The index to determine which key to use for address generation. Defaults to 0.
+  /// - [bytes]: Optional bytes for key generation. If not provided, it defaults to `null`.
   ///
-  /// hex string length is 40+2 for Ethereum addresses and 64+2 Passkey compliant addresses
-  ///
-  /// Returns a [String] representing a valid hex string.
+  /// Example:
+  /// ```dart
+  /// final address = getAddress();
+  /// ```
   String getAddress({int index = 0, bytes});
 
-  /// Signs the provided [hash] using a multi-signature process.
+  /// Signs the provided [hash] using the personal sign method.
   ///
-  /// - [Uint8List]: The data type of signature expected.
+  /// Parameters:
+  /// - [hash]: The hash to be signed.
+  /// - [index]: The optional index to specify which privatekey to use for signing (required for HD wallets). If not provided, it defaults to `null`.
+  /// - [id]: The optional identifier for the signing key. If not provided, it defaults to `null`. Required for passkey signers.
   ///
-  /// Optional parameters:
-  /// - [index]: The index or position of the signer. Used for multi-signature scenarios.
-  /// - [id]: An optional identifier associated with the signing process.
-  ///
-  /// Returns a Future<T> representing the signed data.
+  /// Example:
+  /// ```dart
+  /// final hashToSign = Uint8List.fromList([0x01, 0x02, 0x03, 0x04]);
+  /// final signature = await personalSign(hashToSign, index: 0, id: 'credentialId'); // credentialId is only required for passkey signers
+  /// ```
+
   Future<Uint8List> personalSign(Uint8List hash, {int? index, String? id});
 
-  /// Signs the provided [hash] and returns the result as a [MsgSignature].
+  /// Signs the provided [hash] using elliptic curve (EC) signatures and returns the r and s values.
   ///
-  /// Optional parameters:
-  /// - [index]: The index or position of the signer. Used for multi-signature scenarios.
-  /// - [id]: An optional identifier associated with the signing process.
+  /// Parameters:
+  /// - [hash]: The hash to be signed.
+  /// - [index]: The optional index to specify which key to use for signing. If not provided, it defaults to `null`.
+  /// - [id]: The optional identifier for the signing key. If not provided, it defaults to `null`. Required for passkey signers.
   ///
-  /// Returns a `Future<MsgSignature>` representing the r and s values.
+  /// Example:
+  /// ```dart
+  /// final hashToSign = Uint8List.fromList([0x01, 0x02, 0x03, 0x04]);
+  /// final signature = await signToEc(hashToSign, index: 0, id: 'credentialId');
+  /// ```
   Future<MsgSignature> signToEc(Uint8List hash, {int? index, String? id});
 }
 
 mixin SecureStorageMixin {
-  /// Wraps a [SecureStorage] instance with additional middleware.
+  /// Creates a `SecureStorageMiddleware` instance with the provided [FlutterSecureStorage].
   ///
-  /// The [secureStorage] parameter represents the underlying secure storage
-  /// implementation to be enhanced. The [authMiddleware] parameter, when provided,
-  /// allows incorporating authentication features into secure storage operations.
+  /// Parameters:
+  /// - [secureStorage]: The FlutterSecureStorage instance to be used for secure storage.
+  /// - [authMiddleware]: Optional authentication middleware. Defaults to `null`.
   ///
-  /// Returns a new instance of [SecureStorage] with the specified middleware.
-  SecureStorageMiddleware withSecureStorage(SecureStorage secureStorage,
+  /// Example:
+  /// ```dart
+  /// final flutterSecureStorage = FlutterSecureStorage();
+  /// final secureStorageMiddleware = this.withSecureStorage(
+  ///   flutterSecureStorage,
+  ///   authMiddleware: myAuthMiddleware,
+  /// );
+  /// ```
+  SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
       {Authentication? authMiddleware});
 }

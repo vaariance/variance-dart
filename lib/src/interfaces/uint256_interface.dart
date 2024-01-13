@@ -1,74 +1,138 @@
-part of '../../interfaces.dart';
+part of 'interfaces.dart';
 
 /// Abstract base class representing a 64-bit length big number, similar to Solidity.
 ///
 /// This interface defines methods and properties for working with 64-bit length big numbers,
 /// with operations such as multiplication, addition, subtraction, division, and various conversions.
 abstract class Uint256Base {
-  /// The value of the Uint256.
   BigInt get value;
 
-  /// Multiplies this Uint256 by [other].
-  ///
-  /// - [other]: The Uint256 to multiply with.
-  ///
-  /// Returns a new Uint256 representing the result of the multiplication.
   Uint256Base operator *(covariant Uint256Base other);
 
-  /// Adds [other] to this Uint256.
-  ///
-  /// - [other]: The Uint256 to add.
-  ///
-  /// Returns a new Uint256 representing the result of the addition.
   Uint256Base operator +(covariant Uint256Base other);
 
-  /// Subtracts [other] from this Uint256.
-  ///
-  /// - [other]: The Uint256 to subtract.
-  ///
-  /// Returns a new Uint256 representing the result of the subtraction.
   Uint256Base operator -(covariant Uint256Base other);
 
-  /// Divides this Uint256 by [other].
-  ///
-  /// - [other]: The Uint256 to divide by.
-  ///
-  /// Returns a new Uint256 representing the result of the division.
   Uint256Base operator /(covariant Uint256Base other);
 
-  /// Converts this Uint256 to an [EtherAmount] in ether.
+  /// Converts the value of this [Uint256] instance to a [BigInt] representing the equivalent amount in ether.
   ///
-  /// Returns an [BigInt] representing the Uint256 value in ether.
+  /// Example 1:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(5000000000));
+  /// final etherValue = value.toEther(); // Converts the value to ether (0.000000000000000005)
+  /// ```
+
+  /// Example 2:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(1000000000000000000));
+  /// final etherValue = value.toEther(); // Converts the value to ether (1.0)
+  /// ```
   BigInt toEther();
 
-  /// Converts this Uint256 to an [EtherAmount] in wei.
+  /// Converts the value of this [Uint256] instance to an [EtherAmount] with the equivalent amount in wei.
   ///
-  /// Returns an [EtherAmount]
+  /// Example 1:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(5000000000));
+  /// final etherAmount = value.toEtherAmount(); // Converts the value to EtherAmount (5 wei)
+  /// ```
+
+  /// Example 2:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(1000000000000000000));
+  /// final etherAmount = value.toEtherAmount(); // Converts the value to EtherAmount (1 ether)
+  /// ```
   EtherAmount toEtherAmount();
 
-  /// Converts this Uint256 to a hexadecimal string.
+  /// Converts the value of this [Uint256] instance to a hexadecimal string with a length of 64 characters, padded with leading zeros.
   ///
-  /// Returns a string representation of the Uint256 value in hexadecimal format.
+  /// Example 1:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(42));
+  /// final hexString = value.toHex(); // Converts the value to hex (0x000000000000000000000000000000000000000000000000000000000000002a)
+  /// ```
+
+  /// Example 2:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(255));
+  /// final hexString = value.toHex(); // Converts the value to hex (0x00000000000000000000000000000000000000000000000000000000000000ff)
+  /// ```
   String toHex();
 
-  /// Converts this Uint256 to an integer.
+  /// Converts the value of this [Uint256] instance to an integer.
   ///
-  /// Returns an integer representation of the Uint256 value.
+  /// Example 1:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(42));
+  /// final intValue = value.toInt(); // Converts the value to an integer (42)
+  /// ```
+
+  /// Example 2:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(123456789));
+  /// final intValue = value.toInt(); // Converts the value to an integer (123456789)
+  /// ```
   int toInt();
 
-  /// Converts this Uint256 to a string.
+  /// Returns the hexadecimal representation of this [Uint256] instance as a string.
   ///
-  /// Returns a string representation of the Uint256 value.
+  /// Example 1:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(42));
+  /// final stringValue = value.toString(); // Converts the value to a string (0x000000000000000000000000000000000000000000000000000000000000002a)
+  /// ```
+
+  /// Example 2:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(255));
+  /// final stringValue = value.toString(); // Converts the value to a string (0x00000000000000000000000000000000000000000000000000000000000000ff)
+  /// ```
   @override
   String toString();
 
-  /// Converts this Uint256 to a [double] giving the [decimals].
+  /// Converts the value of this [Uint256] instance to a [BigInt] with a scale defined by [decimals].
   ///
-  /// Returns an [double]
-  double toUnit(int decimals);
+  /// Example 1:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(42));
+  /// final unitValue = value.toUnit(3); // Converts the value to a unit with 3 decimals (42000)
+  /// ```
 
-  /// Converts this Uint256 to an [EtherAmount] in wei.
+  /// Example 2:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(123456789));
+  /// final unitValue = value.toUnit(6); // Converts the value to a unit with 6 decimals (123456789000000)
+  /// ```
+  BigInt toUnit(int decimals);
+
+  /// Converts the value of this [Uint256] instance from a unit with [decimals] to a double.
   ///
-  /// Returns an [BigInt] representing the Uint256 value in wei.
+  /// Example 1:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(42000));
+  /// final doubleValue = value.fromUnit(3); // Converts the value from a unit with 3 decimals to a double (42.0)
+  /// ```
+
+  /// Example 2:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(123456789000000));
+  /// final doubleValue = value.fromUnit(6); // Converts the value from a unit with 6 decimals to a double (123.456789)
+  /// ```
+  double fromUnit(int decimals);
+
+  /// Converts the value of this [Uint256] instance to a [BigInt] representing the equivalent amount in wei.
+  ///
+  /// Example 1:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(5000000000));
+  /// final weiValue = value.toWei(); // Converts the value to wei (5000000000)
+  /// ```
+
+  /// Example 2:
+  /// ```dart
+  /// final value = Uint256(BigInt.from(1000000000000000000));
+  /// final weiValue = value.toWei(); // Converts the value to wei (1000000000000000000)
+  /// ```
   BigInt toWei();
 }

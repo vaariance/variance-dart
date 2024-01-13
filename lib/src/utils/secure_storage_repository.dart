@@ -1,18 +1,4 @@
-part of 'package:variance_dart/utils.dart';
-
-class SSAuthOperationOptions {
-  final bool requiresAuth;
-  final String authReason;
-  // Namespace for uniquely addressing the secure storage keys.
-  // if provided the secure storage keys will be prefixed with this value, defaults to "vaariance"
-  // namespace ?? "vaariance" + "_" + identifier
-  final String? ssNameSpace;
-
-  const SSAuthOperationOptions(
-      {bool? requiresAuth, String? authReason, this.ssNameSpace})
-      : authReason = authReason ?? "unlock to access secure storage",
-        requiresAuth = requiresAuth ?? false;
-}
+part of '../../utils.dart';
 
 enum CredentialType { hdwallet, privateKey, passkeypair }
 
@@ -24,7 +10,7 @@ class SecureStorageAuthMiddlewareError extends Error {
 
   @override
   String toString() {
-    return 'SecureStorageError: $message';
+    return 'SecureStorageAuthMiddlewareError: $message';
   }
 }
 
@@ -32,7 +18,7 @@ class SecureStorageMiddleware implements SecureStorageRepository {
   final AndroidOptions androidOptions;
   final IOSOptions iosOptions;
 
-  final SecureStorage secureStorage;
+  final FlutterSecureStorage secureStorage;
   final Authentication? authMiddleware;
 
   final String? _credential;
@@ -133,4 +119,18 @@ class SecureStorageMiddleware implements SecureStorageRepository {
     await secureStorage.write(
         key: "${options.ssNameSpace ?? "vaariance"}_$key", value: value);
   }
+}
+
+class SSAuthOperationOptions {
+  final bool requiresAuth;
+  final String authReason;
+  // Namespace for uniquely addressing the secure storage keys.
+  // if provided the secure storage keys will be prefixed with this value, defaults to "vaariance"
+  // namespace ?? "vaariance" + "_" + identifier
+  final String? ssNameSpace;
+
+  const SSAuthOperationOptions(
+      {bool? requiresAuth, String? authReason, this.ssNameSpace})
+      : authReason = authReason ?? "unlock to access secure storage",
+        requiresAuth = requiresAuth ?? false;
 }
