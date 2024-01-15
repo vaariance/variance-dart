@@ -49,8 +49,10 @@ class Contract {
           : "0x",
       if (sender != null) 'from': sender.hex,
     };
-    return _provider.send<String>('eth_call', [calldata]).then(
-        (value) => function.decodeReturnValues(value));
+    return _provider.send<String>('eth_call', [
+      calldata,
+      BlockNum.current().toBlockParam()
+    ]).then((value) => function.decodeReturnValues(value));
   }
 
   /// Asynchronously checks whether a smart contract is deployed at the specified address.
