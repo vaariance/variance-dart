@@ -49,5 +49,5 @@ dev_dependencies:
 topics:
   - wallets
   - ethereum
-  - "4337"
+  - web3
   - account-abstraction

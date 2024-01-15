@@ -74,9 +74,9 @@ class UserOperation implements UserOperationBase {
   ///   - `sender`: The Ethereum address of the sender. Defaults to the smartwallet address.
   ///   - `nonce`: The nonce value. Defaults to [BigInt.zero].
   ///   - `initCode`: The initialization code as a [Uint8List]. Defaults to an empty [Uint8List].
-  ///   - `callGasLimit`: The call gas limit as a [BigInt]. Defaults to [BigInt.from(10000000)].
-  ///   - `verificationGasLimit`: The verification gas limit as a [BigInt]. Defaults to [BigInt.from(10000000)].
-  ///   - `preVerificationGas`: The pre-verification gas as a [BigInt]. Defaults to [BigInt.from(21000)].
+  ///   - `callGasLimit`: The call gas limit as a [BigInt]. Defaults to [BigInt.from(250000)].
+  ///   - `verificationGasLimit`: The verification gas limit as a [BigInt]. Defaults to [BigInt.from(750000)].
+  ///   - `preVerificationGas`: The pre-verification gas as a [BigInt]. Defaults to [BigInt.from(51000)].
   ///   - `maxFeePerGas`: The maximum fee per gas as a [BigInt]. Defaults to [BigInt.one].
   ///   - `maxPriorityFeePerGas`: The maximum priority fee per gas as a [BigInt]. Defaults to [BigInt.one].
   ///
@@ -106,9 +106,9 @@ class UserOperation implements UserOperationBase {
         nonce: nonce ?? BigInt.zero,
         initCode: initCode ?? Uint8List(0),
         callData: callData,
-        callGasLimit: callGasLimit ?? BigInt.from(10000000),
-        verificationGasLimit: verificationGasLimit ?? BigInt.from(10000000),
-        preVerificationGas: preVerificationGas ?? BigInt.from(21000),
+        callGasLimit: callGasLimit ?? BigInt.from(250000),
+        verificationGasLimit: verificationGasLimit ?? BigInt.from(750000),
+        preVerificationGas: preVerificationGas ?? BigInt.from(51000),
         maxFeePerGas: maxFeePerGas ?? BigInt.one,
         maxPriorityFeePerGas: maxPriorityFeePerGas ?? BigInt.one,
         signature: "0x",
@@ -148,7 +148,7 @@ class UserOperation implements UserOperationBase {
       map['verificationGasLimit'] =
           '0x${opGas.verificationGasLimit.toRadixString(16)}';
       map['preVerificationGas'] =
-          '0x${(opGas.preVerificationGas + BigInt.from(35000)).toRadixString(16)}';
+          '0x${BigInt.from(opGas.preVerificationGas.toDouble() * 1.2).toRadixString(16)}';
     }
 
     if (sender != null) map['sender'] = sender.hex;
