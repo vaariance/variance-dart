@@ -1,3 +1,13 @@
+## 0.0.5
+
+* Added missing required blockParam to `eth_call`
+
+* Reduced default callgasLimit and verificationGasLimit to 250K and 750k respectively in `eth_estimateUserOperationGas`
+
+* Prevent redundant eth_call's in fetching nonce/deployment status
+
+* Reduced strict internal op callGasLimit validation from 21k gas 12k gas requirement
+
 ## 0.0.4
 
 * Added a Secure Storage Repository for saving credentials to encrypted android shared-preference and iOS keychain
