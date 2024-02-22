@@ -12,8 +12,11 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   SmartWallet(
       {required Chain chain,
       required MultiSignerInterface signer,
-      required BundlerProviderBase bundler})
-      : _chain = chain.validate() {
+      required BundlerProviderBase bundler,
+      @Deprecated("address will be made final in the future")
+      EthereumAddress? address})
+      : _chain = chain.validate(),
+        _walletAddress = address {
     final rpc = RPCProvider(chain.ethRpcUrl!);
     final fact = _AccountFactory(
         address: chain.accountFactory!, chainId: chain.chainId, rpc: rpc);
@@ -43,15 +46,21 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   ///   chain: Chain.ethereum,
   ///   signer: myMultiSigner,
   ///   bundler: myBundler,
+  ///   address: myWalletAddress,
+  ///   initCallData: Uint8List.fromList([0x01, 0x02, 0x03]),
   /// );
   /// ```
   /// additionally initializes the associated Entrypoint contract for `tx.wait(userOpHash)` calls
   factory SmartWallet.init(
       {required Chain chain,
       required MultiSignerInterface signer,
-      required BundlerProviderBase bundler}) {
-    final instance =
-        SmartWallet(chain: chain, signer: signer, bundler: bundler);
+      required BundlerProviderBase bundler,
+      @Deprecated("address will be made final in the future")
+      EthereumAddress? address,
+      @Deprecated("seperation of factory from wallet soon will be enforced")
+      Uint8List? initCallData}) {
+    final instance = SmartWallet(
+        chain: chain, signer: signer, bundler: bundler, address: address);
 
     instance.plugin('bundler').initializeWithEntrypoint(Entrypoint(
           address: chain.entrypoint,
@@ -82,8 +91,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   Future<Uint256> get nonce => _getNonce();
 
   @override
-  @Deprecated(
-      "pass the wallet address alongside the constructor if known beforehand")
+  @Deprecated("wallet address will be made final in the future")
   set setWalletAddress(EthereumAddress address) => _walletAddress = address;
 
   @override

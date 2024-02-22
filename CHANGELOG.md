@@ -1,3 +1,9 @@
+## 0.0.7
+
+* Deprecate passing wallet address via constructor as fields will be made final
+* Enable global gas settings and fee % multiplier
+* Introduce userOp retry mechanism
+
 ## 0.0.6
 
 * Sunset all goerli chains
