@@ -1,6 +1,6 @@
 part of '../../variance.dart';
 
-class SmartWallet with _PluginManager implements SmartWalletBase {
+class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   final Chain _chain;
 
   EthereumAddress? _walletAddress;
@@ -213,7 +213,9 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   @override
   Future<UserOperationResponse> sendUserOperation(UserOperation op,
           {String? id}) =>
-      signUserOperation(op, id: id).then(sendSignedUserOperation);
+      signUserOperation(op, id: id)
+          .then(sendSignedUserOperation)
+          .catchError((e) => retryOp(() => sendSignedUserOperation(op), e));
 
   @override
   Future<UserOperation> signUserOperation(UserOperation userOp,
@@ -261,20 +263,16 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
       _getNonce()
     ]);
 
-    op = UserOperation.update(op.toMap(),
+    op = op.copyWith(
         sender: _walletAddress,
         nonce: responses[2].value,
-        initCode: responses[0] ? "0x" : null);
-    op.maxFeePerGas =
-        (responses[1] as Map<String, EtherAmount>)["maxFeePerGas"]!.getInWei;
-    op.maxPriorityFeePerGas =
-        (responses[1] as Map<String, EtherAmount>)["maxPriorityFeePerGas"]!
-            .getInWei;
+        initCode: responses[0] ? Uint8List(0) : null);
     op.signature = plugin<MultiSignerInterface>('signer').dummySignature;
 
     return plugin<BundlerProviderBase>('bundler')
         .estimateUserOperationGas(op.toMap(), _chain.entrypoint)
-        .then((opGas) => UserOperation.update(op.toMap(), opGas: opGas))
+        .then((opGas) => op.updateOpGas(opGas, responses[1]))
+        .then((op) => multiply(op))
         .catchError(
             (e) => throw SmartWalletError.estimateError(op, e.toString()));
   }
@@ -282,25 +280,17 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   Future _validateUserOperation(UserOperation op) async {
     if (_walletAddress == null) {
       throw SmartWalletError(
-        'Wallet address must be set: Did you call create?',
+        'Wallet address not set',
       );
     }
-
-    require(op.sender.hex == _walletAddress?.hex,
-        "Operation sender error. ${op.sender} provided.");
+    require(op.sender.hex == _walletAddress?.hex, "invalid sender address.");
     require(
         (_deployed ?? (await deployed))
             ? hexlify(op.initCode).toLowerCase() == "0x"
             : hexlify(op.initCode).toLowerCase() == initCode.toLowerCase(),
-        "Init code mismatch");
-    require(op.callGasLimit >= BigInt.from(12000),
-        "Call gas limit too small expected value greater than 12000");
-    require(op.verificationGasLimit >= BigInt.from(39000),
-        "Verification gas limit too small expected value greater than 39000");
-    require(op.preVerificationGas >= BigInt.from(5000),
-        "Pre verification gas too small expected value greater than 5000");
-    require(op.callData.length >= 4, "Call data too short, min is 4 bytes");
-    require(op.signature.length >= 64, "Signature too short, min is 32 bytes");
+        "InitCode mismatch");
+    require(op.callData.length >= 4, "Calldata too short");
+    require(op.signature.length >= 64, "Signature too short");
   }
 }
 
@@ -309,35 +299,29 @@ class SmartWalletError extends Error {
 
   SmartWalletError(this.message);
 
-  factory SmartWalletError.sendError(UserOperation op, String message) {
-    return SmartWalletError('''
-       \x1B[31m **************************************************
-        Error sending user operation! Failed with error: $message
-        --------------------------------------------------
-        \x1B[33m User operation: ${op.toJson()}. \x1B[31m
-        ************************************************** \x1B[0m
-    ''');
-  }
-
   factory SmartWalletError.estimateError(UserOperation op, String message) {
     return SmartWalletError('''
-        \x1B[31m **************************************************
         Error estimating user operation gas! Failed with error: $message
         --------------------------------------------------
-        \x1B[33m User operation: ${op.toJson()}. \x1B[31m
-        ************************************************** \x1B[0m
+       User operation: ${op.toJson()}.
     ''');
   }
 
   factory SmartWalletError.nonceError(
       EthereumAddress? address, String message) {
     return SmartWalletError('''
-        \x1B[31m **************************************************
-        Error fetching user account nonce for address \x1B[33m ${address?.hex}! \x1B[31m
+        Error fetching user account nonce for address  ${address?.hex}! 
         --------------------------------------------------
         Failed with error: $message  
-        ************************************************** \x1B[0m
       ''');
+  }
+
+  factory SmartWalletError.sendError(UserOperation op, String message) {
+    return SmartWalletError('''
+        Error sending user operation! Failed with error: $message
+        --------------------------------------------------
+       User operation: ${op.toJson()}. 
+    ''');
   }
 
   @override
