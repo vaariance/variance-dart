@@ -18,7 +18,7 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
         _walletAddress = address {
     final rpc = RPCProvider(chain.ethRpcUrl!);
     final fact = _AccountFactory(
-        address: chain.accountFactory, chainId: chain.chainId, rpc: rpc);
+        address: chain.accountFactory!, chainId: chain.chainId, rpc: rpc);
 
     addPlugin('signer', signer);
     addPlugin('bundler', bundler);
@@ -98,12 +98,12 @@ class SmartWallet with _PluginManager implements SmartWalletBase {
   String? get toHex => _walletAddress?.hexEip55;
 
   String get _initCode => _initCalldata != null
-      ? _chain.accountFactory.hexEip55 + hexlify(_initCalldata!).substring(2)
+      ? _chain.accountFactory!.hexEip55 + hexlify(_initCalldata!).substring(2)
       : "0x";
 
   Uint8List get _initCodeBytes {
     if (_initCalldata == null) return Uint8List(0);
-    List<int> extended = _chain.accountFactory.addressBytes.toList();
+    List<int> extended = _chain.accountFactory!.addressBytes.toList();
     extended.addAll(_initCalldata!);
     return Uint8List.fromList(extended);
   }

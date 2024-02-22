@@ -1,3 +1,7 @@
+## 0.0.6
+
+* Sunset all goerli chains
+
 ## 0.0.5
 
 * Added missing required blockParam to `eth_call`

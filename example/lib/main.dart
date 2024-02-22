@@ -18,7 +18,8 @@ Future<void> main() async {
       ethRpcUrl: rpcUrl,
       bundlerUrl: bundlerUrl,
       entrypoint: Constants.entrypoint,
-      accountFactory: Constants.accountFactory,
+      accountFactory:
+          EthereumAddress.fromHex("0xCCaE5F64307D86346B83E55e7865f77906F9c7b4"),
       chainId: 1337,
       explorer: "");
 
