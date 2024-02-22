@@ -12,10 +12,8 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   SmartWallet(
       {required Chain chain,
       required MultiSignerInterface signer,
-      required BundlerProviderBase bundler,
-      EthereumAddress? address})
-      : _chain = chain.validate(),
-        _walletAddress = address {
+      required BundlerProviderBase bundler})
+      : _chain = chain.validate() {
     final rpc = RPCProvider(chain.ethRpcUrl!);
     final fact = _AccountFactory(
         address: chain.accountFactory!, chainId: chain.chainId, rpc: rpc);
@@ -45,26 +43,20 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   ///   chain: Chain.ethereum,
   ///   signer: myMultiSigner,
   ///   bundler: myBundler,
-  ///   address: myWalletAddress,
-  ///   initCallData: Uint8List.fromList([0x01, 0x02, 0x03]),
   /// );
   /// ```
   /// additionally initializes the associated Entrypoint contract for `tx.wait(userOpHash)` calls
   factory SmartWallet.init(
       {required Chain chain,
       required MultiSignerInterface signer,
-      required BundlerProviderBase bundler,
-      EthereumAddress? address,
-      Uint8List? initCallData}) {
-    final instance = SmartWallet(
-        chain: chain, signer: signer, bundler: bundler, address: address);
+      required BundlerProviderBase bundler}) {
+    final instance =
+        SmartWallet(chain: chain, signer: signer, bundler: bundler);
 
-    instance
-      ..dangerouslySetInitCallData(initCallData)
-      ..plugin('bundler').initializeWithEntrypoint(Entrypoint(
-        address: chain.entrypoint,
-        client: instance.plugin('factory').client,
-      ));
+    instance.plugin('bundler').initializeWithEntrypoint(Entrypoint(
+          address: chain.entrypoint,
+          client: instance.plugin('factory').client,
+        ));
 
     return instance;
   }
