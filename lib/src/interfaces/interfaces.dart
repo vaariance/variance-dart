@@ -27,7 +27,6 @@ import '../../variance.dart'
         UserOperationGas,
         UserOperationReceipt,
         UserOperationResponse;
-import '../abis/abis.dart' show Entrypoint;
 
 part 'account_factory.dart';
 part 'bundler_provider.dart';

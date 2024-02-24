@@ -2,17 +2,11 @@ part of 'common.dart';
 
 /// A wrapper for interacting with deployed Ethereum contracts through [RPCProvider].
 class Contract {
-  RPCProviderBase _provider;
+  final RPCProviderBase _provider;
 
   Contract(
     this._provider,
   );
-
-  RPCProviderBase get provider => _provider;
-
-  set setProvider(RPCProviderBase provider) {
-    _provider = provider;
-  }
 
   /// Asynchronously calls a function on a smart contract with the provided parameters.
   ///

@@ -115,34 +115,6 @@ class UserOperation implements UserOperationBase {
         paymasterAndData: Uint8List(0),
       );
 
-  /// Creates a [UserOperation] by updating an existing operation gas params.
-  ///
-  /// Parameters:
-  ///   - `opGas`: Optional parameter of type [UserOperationGas] for specifying gas-related information.
-  ///   - `feePerGas`: Optional parameter of type [Map<String, EtherAmount>] for specifying maxFeePerGas and maxPriorityFeePerGas.
-  ///
-  /// Returns:
-  ///   A [UserOperation] instance created from the provided map.
-  ///
-  /// Example:
-  /// ```dart
-  /// var map = UserOperation.partial(callData: Uint8List(0xabcdef)).toMap();
-  /// var updatedUserOperation = UserOperation.update(
-  ///   map,
-  ///   opGas: UserOperationGas(callGasLimit: BigInt.from(20000000), ...),
-  ///   // Other parameters can be updated as needed.
-  /// );
-  /// ```
-  UserOperation updateOpGas(
-      UserOperationGas? opGas, Map<String, EtherAmount>? feePerGas) {
-    return copyWith(
-        callGasLimit: opGas?.callGasLimit,
-        verificationGasLimit: opGas?.verificationGasLimit,
-        preVerificationGas: opGas?.preVerificationGas,
-        maxFeePerGas: feePerGas?["maxFeePerGas"]!.getInWei,
-        maxPriorityFeePerGas: feePerGas?["maxPriorityFeePerGas"]!.getInWei);
-  }
-
   UserOperation copyWith({
     EthereumAddress? sender,
     BigInt? nonce,
@@ -220,6 +192,27 @@ class UserOperation implements UserOperationBase {
       'signature': signature,
       'paymasterAndData': hexlify(paymasterAndData),
     };
+  }
+
+  @override
+  UserOperation updateOpGas(
+      UserOperationGas? opGas, Map<String, EtherAmount>? feePerGas) {
+    return copyWith(
+        callGasLimit: opGas?.callGasLimit,
+        verificationGasLimit: opGas?.verificationGasLimit,
+        preVerificationGas: opGas?.preVerificationGas,
+        maxFeePerGas: feePerGas?["maxFeePerGas"]!.getInWei,
+        maxPriorityFeePerGas: feePerGas?["maxPriorityFeePerGas"]!.getInWei);
+  }
+
+  Future<void> validate(bool deployed, [String? initCode]) async {
+    require(
+        deployed
+            ? hexlify(this.initCode).toLowerCase() == "0x"
+            : hexlify(this.initCode).toLowerCase() == initCode?.toLowerCase(),
+        "InitCode mismatch");
+    require(callData.length >= 4, "Calldata too short");
+    require(signature.length >= 64, "Signature too short");
   }
 }
 
@@ -317,7 +310,6 @@ class UserOperationReceipt {
 
 class UserOperationResponse {
   final String userOpHash;
-  final Future<FilterEvent?> Function({int millisecond}) wait;
 
-  UserOperationResponse(this.userOpHash, this.wait);
+  UserOperationResponse(this.userOpHash);
 }

@@ -5,6 +5,17 @@ part of 'interfaces.dart';
 /// Implementations of this class are expected to provide functionality for interacting specifically
 /// with bundlers and provides methods for sending user operations to an entrypoint.
 abstract class BundlerProviderBase {
+  /// Set of Ethereum RPC methods supported by a 4337 bundler.
+  static final Set<String> methods = {
+    'eth_chainId',
+    'eth_sendUserOperation',
+    'eth_estimateUserOperationGas',
+    'eth_getUserOperationByHash',
+    'eth_getUserOperationReceipt',
+    'eth_supportedEntryPoints',
+    'pm_sponsorUserOperation'
+  };
+
   /// Asynchronously estimates the gas cost for a user operation using the provided data and entrypoint.
   ///
   /// Parameters:
@@ -55,11 +66,6 @@ abstract class BundlerProviderBase {
   /// This method uses the bundled RPC to fetch the receipt of the specified user operation using its hash.
   Future<UserOperationReceipt> getUserOpReceipt(String userOpHash);
 
-  /// Initializes the provider with an entrypoint.
-  ///
-  /// - [ep]: The entrypoint to initialize with.
-  void initializeWithEntrypoint(Entrypoint ep);
-
   /// Asynchronously sends a user operation to the bundler for execution.
   ///
   /// Parameters:
@@ -91,20 +97,20 @@ abstract class BundlerProviderBase {
   /// ```
   Future<List<String>> supportedEntryPoints();
 
-  /// Asynchronously waits for a FilterEvent within a specified time duration based on an event emmitted by entrypoint.
-  /// Used to wait for [UserOperation] to complete.
+  /// Validates if the provided method is a supported RPC method.
   ///
   /// Parameters:
-  ///   - `millisecond`: The time duration, in milliseconds, to wait for a FilterEvent. Defaults to `0`.
+  ///   - `method`: The Ethereum RPC method to validate.
   ///
-  /// Returns:
-  ///   A [Future] that completes with a [FilterEvent] if one is found within the specified duration, otherwise, returns `null`.
+  /// Throws:
+  ///   - A [Exception] if the method is not a valid supported method.
   ///
   /// Example:
   /// ```dart
-  /// var filterEvent = await wait(millisecond: 5000);
+  /// validateBundlerMethod('eth_sendUserOperation');
   /// ```
-  /// This method waits for a FilterEvent related to the 'UserOperationEvent' within the given time duration.
-
-  Future<FilterEvent?> wait({int millisecond});
+  static validateBundlerMethod(String method) {
+    assert(methods.contains(method),
+        "validateMethod: method ::'$method':: is not a valid method");
+  }
 }

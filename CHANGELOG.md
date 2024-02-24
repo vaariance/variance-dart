@@ -1,3 +1,9 @@
+## 0.0.8
+
+* Add paymaster as a plugin
+* Rename plugins.dart to mixins
+* Improve gas and nonce calculation process.
+
 ## 0.0.7
 
 * Deprecate passing wallet address via constructor as fields will be made final

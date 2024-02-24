@@ -14,7 +14,7 @@ abstract class SmartWalletBase {
   Future<EtherAmount> get balance;
 
   /// Checks if the Smart Wallet has been deployed on the blockchain.
-  Future<bool> get deployed;
+  Future<bool> get isDeployed;
 
   /// Retrieves the init code of the Smart Wallet.
   String? get initCode;
@@ -80,7 +80,7 @@ abstract class SmartWalletBase {
   void dangerouslySetInitCallData(Uint8List? code);
 
   /// Asynchronously creates a simple Ethereum smart account using the provided salt value.
-  /// Uses counterfactactual deployment to create the account and [deployed] should be used to check deployment status.
+  /// Uses counterfactactual deployment to create the account and [isDeployed] should be used to check deployment status.
   /// An `initCode` will be attached on the first transaction.
   ///
   /// Parameters:

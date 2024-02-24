@@ -17,7 +17,7 @@ Future<void> main() async {
   final Chain chain = Chain(
       ethRpcUrl: rpcUrl,
       bundlerUrl: bundlerUrl,
-      entrypoint: Constants.entrypoint,
+      entrypoint: Constants.entrypointv06,
       accountFactory:
           EthereumAddress.fromHex("0xCCaE5F64307D86346B83E55e7865f77906F9c7b4"),
       chainId: 1337,
@@ -81,7 +81,7 @@ Future<void> main() async {
   print("account nonce: ${nonce.toInt()}");
 
   // check if a smart wallet has been deployed
-  final bool deployed = await simpleSmartAccount.deployed;
+  final bool deployed = await simpleSmartAccount.isDeployed;
   print("account deployed: $deployed");
 
   // get the init code of the smart wallet

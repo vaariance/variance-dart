@@ -4,7 +4,6 @@ typedef Percent = double;
 
 class GasSettings {
   Percent? gasMultiplierPercentage;
-  Percent? pvgx;
   BigInt? userDefinedMaxFeePerGas;
   BigInt? userDefinedMaxPriorityFeePerGas;
   bool retryFailedSendUserOp;
@@ -14,9 +13,8 @@ class GasSettings {
     this.userDefinedMaxFeePerGas,
     this.userDefinedMaxPriorityFeePerGas,
     this.retryFailedSendUserOp = false,
-    this.pvgx = 0.2,
-  }) : assert(gasMultiplierPercentage! >= 0 && pvgx! > 0 && pvgx <= 0.2,
-            'Gas multiplier percentage or pvgx is out of permissible bounds.');
+  }) : assert(gasMultiplierPercentage! >= 0,
+            'Gas multiplier percentage should be 0 to 100');
 }
 
 mixin _GasSettings {
@@ -25,26 +23,19 @@ mixin _GasSettings {
   set setGasParams(GasSettings gasParams) => _gasParams = gasParams;
 
   UserOperation multiply(UserOperation op) {
-    op = op.copyWith(
-        preVerificationGas:
-            op.preVerificationGas * BigInt.from(_gasParams.pvgx! + 1),
+    final multiplier =
+        BigInt.from(_gasParams.gasMultiplierPercentage! / 100 + 1);
+
+    return op.copyWith(
+        callGasLimit: op.callGasLimit * multiplier,
+        verificationGasLimit: op.verificationGasLimit * multiplier,
+        preVerificationGas: op.preVerificationGas * multiplier,
         maxFeePerGas: _gasParams.userDefinedMaxFeePerGas,
         maxPriorityFeePerGas: _gasParams.userDefinedMaxPriorityFeePerGas);
-
-    final multiplier = _gasParams.gasMultiplierPercentage! > 0
-        ? BigInt.from(_gasParams.gasMultiplierPercentage! + 1)
-        : BigInt.one;
-
-    op = op.copyWith(
-      callGasLimit: op.callGasLimit * multiplier,
-      verificationGasLimit: op.verificationGasLimit * multiplier,
-      preVerificationGas: op.preVerificationGas * multiplier,
-    );
-
-    return op;
   }
 
-  dynamic retryOp(Function callback, dynamic err) {
+  Future<UserOperationResponse> retryOp(
+      Future<UserOperationResponse> Function() callback, dynamic err) {
     if (_gasParams.retryFailedSendUserOp) {
       return callback();
     }
@@ -77,12 +68,30 @@ mixin _PluginManager {
   /// Gets a plugin by name.
   ///
   /// Parameters:
-  ///   - `name`: The name of the plugin to retrieve.
+  ///   - `name`: Optional. The name of the plugin to retrieve.
   ///
   /// Returns:
   ///   The plugin with the specified name.
-  T plugin<T>(String name) {
+  T plugin<T>([String? name]) {
+    if (name == null) {
+      for (var plugin in _plugins.values) {
+        if (plugin is T) {
+          return plugin;
+        }
+      }
+    }
     return _plugins[name] as T;
+  }
+
+  /// checks if a plugin exists
+  ///
+  /// Parameters:
+  ///   - `name`: The name of the plugin to check
+  ///
+  /// Returns:
+  ///   true if the plugin exists
+  bool hasPlugin(String name) {
+    return _plugins.containsKey(name);
   }
 
   /// Removes an unwanted plugin by name.

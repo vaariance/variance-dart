@@ -41,4 +41,25 @@ abstract class UserOperationBase {
   ///
   /// Returns a [Map] representing the user operation.
   Map<String, dynamic> toMap();
+
+  /// Creates a [UserOperation] by updating an existing operation gas params.
+  ///
+  /// Parameters:
+  ///   - `opGas`: Optional parameter of type [UserOperationGas] for specifying gas-related information.
+  ///   - `feePerGas`: Optional parameter of type [Map<String, EtherAmount>] for specifying maxFeePerGas and maxPriorityFeePerGas.
+  ///
+  /// Returns:
+  ///   A [UserOperation] instance created from the provided map.
+  ///
+  /// Example:
+  /// ```dart
+  /// var map = UserOperation.partial(callData: Uint8List(0xabcdef)).toMap();
+  /// var updatedUserOperation = UserOperation.update(
+  ///   map,
+  ///   opGas: UserOperationGas(callGasLimit: BigInt.from(20000000), ...),
+  ///   // Other parameters can be updated as needed.
+  /// );
+  /// ```
+  UserOperation updateOpGas(
+      UserOperationGas? opGas, Map<String, EtherAmount>? feePerGas);
 }
