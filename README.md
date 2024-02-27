@@ -50,16 +50,16 @@ const String rpcUrl = 'http://localhost:8545';
 const String bundlerUrl = 'http://localhost:3000/rpc';
 
 chain = Chain(
-    ethRpcUrl: rpcUrl,
+    jsonRpcUrl: rpcUrl,
     bundlerUrl: bundlerUrl,
-    entrypoint: Constants.entrypoint,
+    entrypoint: EntryPoint.v06,
     accountFactory: Constants.accountFactory,
     chainId: 1337,
     explorer: "");
 
 // using pre configured chain
 chain = Chains.getChain(Network.localhost)
-    ..ethRpcUrl = rpcUrl
+    ..jsonRpcUrl = rpcUrl
     ..bundlerUrl = bundlerUrl;
 ```
 

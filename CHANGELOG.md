@@ -1,3 +1,7 @@
+## 0.0.9
+
+* Add support for entrypoint v0.7 in parrallel.
+
 ## 0.0.8
 
 * Add paymaster as a plugin

@@ -18,6 +18,7 @@ import '../../utils.dart'
 import '../../variance.dart'
     show
         Chain,
+        EntryPoint,
         PassKeyPair,
         PassKeySignature,
         PassKeysOptions,

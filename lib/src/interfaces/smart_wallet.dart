@@ -36,11 +36,6 @@ abstract class SmartWalletBase {
   /// Parameters:
   ///   - `callData` (required): The call data as a [Uint8List].
   ///   - `customNonce`: An optional custom nonce value.
-  ///   - `callGasLimit`: An optional custom call gas limit as a [BigInt].
-  ///   - `verificationGasLimit`: An optional custom verification gas limit as a [BigInt].
-  ///   - `preVerificationGas`: An optional custom pre-verification gas as a [BigInt].
-  ///   - `maxFeePerGas`: An optional custom maximum fee per gas as a [BigInt].
-  ///   - `maxPriorityFeePerGas`: An optional custom maximum priority fee per gas as a [BigInt].
   ///
   /// Returns:
   ///   A [UserOperation] instance with the specified parameters.
@@ -50,18 +45,11 @@ abstract class SmartWalletBase {
   /// var userOperation = buildUserOperation(
   ///   callData: Uint8List(0xabcdef),
   ///   customNonce: BigInt.from(42),
-  ///   callGasLimit: BigInt.from(20000000),
-  ///   // Other optional parameters can be provided as needed.
   /// );
   /// ```
   UserOperation buildUserOperation({
     required Uint8List callData,
     BigInt? customNonce,
-    BigInt? callGasLimit,
-    BigInt? verificationGasLimit,
-    BigInt? preVerificationGas,
-    BigInt? maxFeePerGas,
-    BigInt? maxPriorityFeePerGas,
   });
 
   /// Sets the account initialization calldata for a [SmartWalletBase] in a potentially unsafe manner.

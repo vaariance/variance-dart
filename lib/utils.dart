@@ -12,6 +12,7 @@ import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth_android/local_auth_android.dart';
 import 'package:local_auth_ios/types/auth_messages_ios.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart' show BlockNum, EthereumAddress;
 import 'package:webcrypto/webcrypto.dart';
 

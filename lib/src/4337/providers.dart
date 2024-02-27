@@ -12,7 +12,7 @@ class BundlerProvider implements BundlerProviderBase {
 
   @override
   Future<UserOperationGas> estimateUserOperationGas(
-      Map<String, dynamic> userOp, EthereumAddress entrypoint) async {
+      Map<String, dynamic> userOp, EntryPoint entrypoint) async {
     require(_initialized, "estimateUserOpGas: Wallet Provider not initialized");
     final opGas = await _rpc.send<Map<String, dynamic>>(
         'eth_estimateUserOperationGas', [userOp, entrypoint.hex]);
@@ -37,7 +37,7 @@ class BundlerProvider implements BundlerProviderBase {
 
   @override
   Future<UserOperationResponse> sendUserOperation(
-      Map<String, dynamic> userOp, EthereumAddress entrypoint) async {
+      Map<String, dynamic> userOp, EntryPoint entrypoint) async {
     require(_initialized, "sendUserOp: Wallet Provider not initialized");
     final opHash = await _rpc
         .send<String>('eth_sendUserOperation', [userOp, entrypoint.hex]);

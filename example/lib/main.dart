@@ -15,9 +15,9 @@ Future<void> main() async {
 
   // configure your chain
   final Chain chain = Chain(
-      ethRpcUrl: rpcUrl,
+      jsonRpcUrl: rpcUrl,
       bundlerUrl: bundlerUrl,
-      entrypoint: Constants.entrypointv06,
+      entrypoint: EntryPoint.v06,
       accountFactory:
           EthereumAddress.fromHex("0xCCaE5F64307D86346B83E55e7865f77906F9c7b4"),
       chainId: 1337,

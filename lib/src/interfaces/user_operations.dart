@@ -13,15 +13,23 @@ abstract class UserOperationBase {
 
   Uint8List get callData;
 
+  @Deprecated("packed in accountGasLimits from v0.7")
   BigInt get callGasLimit;
 
+  @Deprecated("packed in accountGasLimits from v0.7")
   BigInt get verificationGasLimit;
+
+  Uint8List get accountGasLimits;
 
   BigInt get preVerificationGas;
 
+  @Deprecated("packed in gasFees from v0.7")
   BigInt get maxFeePerGas;
 
+  @Deprecated("packed in gasFees from v0.7")
   BigInt get maxPriorityFeePerGas;
+
+  Uint8List get gasFees;
 
   String get signature;
 

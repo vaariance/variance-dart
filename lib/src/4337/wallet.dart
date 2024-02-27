@@ -20,17 +20,17 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
     // since the wallet factory will use builder pattern to add plugins
     // the following can be moved into the factory.
     // which would allow the smartwallet to reamin testable.
-    final ethRpc = RPCProvider(chain.ethRpcUrl!);
+    final jsonRpc = RPCProvider(chain.jsonRpcUrl!);
     final bundlerRpc = RPCProvider(chain.bundlerUrl!);
 
     final bundler = BundlerProvider(chain, bundlerRpc);
     final fact = _AccountFactory(
-        address: chain.accountFactory!, chainId: chain.chainId, rpc: ethRpc);
+        address: chain.accountFactory!, chainId: chain.chainId, rpc: jsonRpc);
 
     addPlugin('signer', signer);
     addPlugin('bundler', bundler);
-    addPlugin('ethRpc', ethRpc);
-    addPlugin('contract', Contract(ethRpc));
+    addPlugin('jsonRpc', jsonRpc);
+    addPlugin('contract', Contract(jsonRpc));
     addPlugin('factory', fact);
 
     if (chain.paymasterUrl != null) {
@@ -114,13 +114,13 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
     return Uint8List.fromList(extended);
   }
 
-  Future<BigInt> get _initCodeGas =>
-      plugin('ethRpc').estimateGas(_chain.entrypoint, _initCode);
+  Future<BigInt> get _initCodeGas => plugin<RPCProviderBase>('jsonRpc')
+      .estimateGas(_chain.entrypoint.address, _initCode);
 
   @override
   Future<SmartWallet> createSimpleAccount(Uint256 salt, {int? index}) async {
-    EthereumAddress signer =
-        EthereumAddress.fromHex(plugin('signer').getAddress(index: index ?? 0));
+    EthereumAddress signer = EthereumAddress.fromHex(
+        plugin<MSI>('signer').getAddress(index: index ?? 0));
     _initCalldata = _getInitCallData('createAccount', [signer, salt.value]);
     await getSimpleAccountAddress(signer, salt)
         .then((addr) => {_walletAddress = addr});
@@ -150,35 +150,27 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   @override
   Future<EthereumAddress> getSimpleAccountAddress(
           EthereumAddress signer, Uint256 salt) =>
-      plugin('factory').getAddress(signer, salt.value);
+      plugin<AccountFactoryBase>('factory').getAddress(signer, salt.value);
 
   @override
   Future<EthereumAddress> getSimplePassKeyAccountAddress(
           PassKeyPair pkp, Uint256 salt) =>
-      plugin('factory').getPasskeyAccountAddress(pkp.credentialHexBytes,
-          pkp.publicKey[0].value, pkp.publicKey[1].value, salt.value);
+      plugin<AccountFactoryBase>('factory').getPasskeyAccountAddress(
+          pkp.credentialHexBytes,
+          pkp.publicKey[0].value,
+          pkp.publicKey[1].value,
+          salt.value);
 
   @override
   UserOperation buildUserOperation({
     required Uint8List callData,
     BigInt? customNonce,
-    BigInt? callGasLimit,
-    BigInt? verificationGasLimit,
-    BigInt? preVerificationGas,
-    BigInt? maxFeePerGas,
-    BigInt? maxPriorityFeePerGas,
   }) =>
       UserOperation.partial(
-        callData: callData,
-        initCode: _initCodeBytes,
-        sender: _walletAddress,
-        nonce: customNonce,
-        callGasLimit: callGasLimit,
-        verificationGasLimit: verificationGasLimit,
-        preVerificationGas: preVerificationGas,
-        maxFeePerGas: maxFeePerGas,
-        maxPriorityFeePerGas: maxPriorityFeePerGas,
-      );
+          callData: callData,
+          initCode: _initCodeBytes,
+          sender: _walletAddress,
+          nonce: customNonce);
 
   @override
   Future<UserOperationResponse> send(
@@ -208,7 +200,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
 
   @override
   Future<UserOperationResponse> sendSignedUserOperation(UserOperation op) =>
-      plugin('bundler')
+      plugin<BundlerProviderBase>('bundler')
           .sendUserOperation(op.toMap(), _chain.entrypoint)
           .catchError(
               (e) => throw SmartWalletError.sendError(op, e.toString()));
@@ -228,14 +220,14 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
     final opHash = userOp.hash(_chain);
 
     if (hasPlugin('paymaster')) {
-      userOp = await plugin<Paymaster>().intercept(userOp);
+      userOp = await plugin<Paymaster>('paymaster').intercept(userOp);
     }
 
-    Uint8List signature = await plugin('signer').personalSign(opHash,
+    Uint8List signature = await plugin<MSI>('signer').personalSign(opHash,
         index: index,
         id: id ??
-            (plugin('signer') is PasskeyInterface
-                ? plugin('signer').defaultId
+            (plugin<MSI>('signer') is PasskeyInterface
+                ? plugin<PasskeyInterface>('signer').defaultId
                 : id));
 
     userOp.signature = hexlify(signature);
@@ -257,18 +249,32 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
               throw SmartWalletError.nonceError(_walletAddress, e.toString())));
 
   Future<UserOperation> _updateUserOperation(UserOperation op) =>
-      Future.wait<dynamic>([_getNonce(), plugin('ethRpc').getGasPrice()])
+      Future.wait<dynamic>(
+              [_getNonce(), plugin<RPCProviderBase>('jsonRpc').getGasPrice()])
           .then((responses) {
         op = op.copyWith(
             nonce: op.nonce > BigInt.zero ? op.nonce : responses[0].value,
             initCode: responses[0] > BigInt.zero ? Uint8List(0) : null,
-            signature: plugin('signer').dummySignature);
-        return _updateUserOperationGas(op, feePerGas: responses[1]);
+            signature: plugin<MSI>('signer').dummySignature);
+        return _updateUserOperationGas(op,
+            feePerGas: _formatGasFees(responses[1]));
       });
+
+  // supporting v07 migration
+  Map<String, T> _formatGasFees<T>(Map<String, EtherAmount> feePerGas) {
+    if (_chain.entrypoint == EntryPoint.v07) {
+      final gasFees = <String, T>{};
+      final high128 = feePerGas['maxPriorityFeePerGas']!.getInWei;
+      final low128 = feePerGas['maxFeePerGas']!.getInWei;
+      gasFees['gasFees'] = packUints(high128, low128) as T;
+      return gasFees;
+    }
+    return feePerGas as Map<String, T>;
+  }
 
   Future<UserOperation> _updateUserOperationGas(UserOperation op,
           {Map<String, EtherAmount>? feePerGas}) =>
-      plugin('bundler')
+      plugin<BundlerProviderBase>('bundler')
           .estimateUserOperationGas(op.toMap(), _chain.entrypoint)
           .then((opGas) => op.updateOpGas(opGas, feePerGas))
           .then((op) => multiply(op))
@@ -311,3 +317,5 @@ class SmartWalletError extends Error {
     return message;
   }
 }
+
+typedef MSI = MultiSignerInterface;

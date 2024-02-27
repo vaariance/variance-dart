@@ -14,19 +14,29 @@ class UserOperation implements UserOperationBase {
   final Uint8List callData;
 
   @override
+  @Deprecated("now packed in accountGasLimits from v0.7")
   final BigInt callGasLimit;
 
   @override
+  @Deprecated("now packed in accountGasLimits from v0.7")
   final BigInt verificationGasLimit;
+
+  @override
+  final Uint8List accountGasLimits;
 
   @override
   final BigInt preVerificationGas;
 
   @override
+  @Deprecated("now packed in gasFees from v0.7")
   BigInt maxFeePerGas;
 
   @override
+  @Deprecated("now packed in gasFees from v0.7")
   BigInt maxPriorityFeePerGas;
+
+  @override
+  final Uint8List gasFees;
 
   @override
   String signature;
@@ -42,8 +52,10 @@ class UserOperation implements UserOperationBase {
     required this.callGasLimit,
     required this.verificationGasLimit,
     required this.preVerificationGas,
+    required this.accountGasLimits,
     required this.maxFeePerGas,
     required this.maxPriorityFeePerGas,
+    required this.gasFees,
     required this.signature,
     required this.paymasterAndData,
   });
@@ -57,11 +69,25 @@ class UserOperation implements UserOperationBase {
       nonce: BigInt.parse(map['nonce'] as String),
       initCode: hexToBytes(map['initCode'] as String),
       callData: hexToBytes(map['callData'] as String),
-      callGasLimit: BigInt.parse(map['callGasLimit'] as String),
-      verificationGasLimit: BigInt.parse(map['verificationGasLimit'] as String),
+      callGasLimit: map['callGasLimit'] != null
+          ? BigInt.parse(map['callGasLimit'] as String)
+          : BigInt.zero,
+      verificationGasLimit: map['verificationGasLimit'] != null
+          ? BigInt.parse(map['verificationGasLimit'] as String)
+          : BigInt.zero,
+      accountGasLimits: map['accountGasLimits'] != null
+          ? hexToBytes(map['accountGasLimits'] as String)
+          : Uint8List(0),
       preVerificationGas: BigInt.parse(map['preVerificationGas'] as String),
-      maxFeePerGas: BigInt.parse(map['maxFeePerGas'] as String),
-      maxPriorityFeePerGas: BigInt.parse(map['maxPriorityFeePerGas'] as String),
+      maxFeePerGas: map['maxFeePerGas'] != null
+          ? BigInt.parse(map['maxFeePerGas'] as String)
+          : BigInt.zero,
+      maxPriorityFeePerGas: map['maxPriorityFeePerGas'] != null
+          ? BigInt.parse(map['maxPriorityFeePerGas'] as String)
+          : BigInt.zero,
+      gasFees: map['gasFees'] != null
+          ? hexToBytes(map['gasFees'] as String)
+          : Uint8List(0),
       signature: map['signature'] as String,
       paymasterAndData: hexToBytes(map['paymasterAndData'] as String),
     );
@@ -90,17 +116,18 @@ class UserOperation implements UserOperationBase {
   ///   // Other parameters can be set as needed.
   /// );
   /// ```
-  factory UserOperation.partial({
-    required Uint8List callData,
-    EthereumAddress? sender,
-    BigInt? nonce,
-    Uint8List? initCode,
-    BigInt? callGasLimit,
-    BigInt? verificationGasLimit,
-    BigInt? preVerificationGas,
-    BigInt? maxFeePerGas,
-    BigInt? maxPriorityFeePerGas,
-  }) =>
+  factory UserOperation.partial(
+          {required Uint8List callData,
+          EthereumAddress? sender,
+          BigInt? nonce,
+          Uint8List? initCode,
+          BigInt? callGasLimit,
+          BigInt? verificationGasLimit,
+          Uint8List? accountGasLimits,
+          BigInt? preVerificationGas,
+          BigInt? maxFeePerGas,
+          BigInt? maxPriorityFeePerGas,
+          Uint8List? gasFees}) =>
       UserOperation(
         sender: sender ?? Constants.zeroAddress,
         nonce: nonce ?? BigInt.zero,
@@ -109,8 +136,10 @@ class UserOperation implements UserOperationBase {
         callGasLimit: callGasLimit ?? BigInt.from(250000),
         verificationGasLimit: verificationGasLimit ?? BigInt.from(750000),
         preVerificationGas: preVerificationGas ?? BigInt.from(51000),
+        accountGasLimits: accountGasLimits ?? Uint8List(0),
         maxFeePerGas: maxFeePerGas ?? BigInt.one,
         maxPriorityFeePerGas: maxPriorityFeePerGas ?? BigInt.one,
+        gasFees: gasFees ?? Uint8List(0),
         signature: "0x",
         paymasterAndData: Uint8List(0),
       );
@@ -122,9 +151,11 @@ class UserOperation implements UserOperationBase {
     Uint8List? callData,
     BigInt? callGasLimit,
     BigInt? verificationGasLimit,
+    Uint8List? accountGasLimits,
     BigInt? preVerificationGas,
     BigInt? maxFeePerGas,
     BigInt? maxPriorityFeePerGas,
+    Uint8List? gasFees,
     String? signature,
     Uint8List? paymasterAndData,
   }) {
@@ -135,9 +166,11 @@ class UserOperation implements UserOperationBase {
       callData: callData ?? this.callData,
       callGasLimit: callGasLimit ?? this.callGasLimit,
       verificationGasLimit: verificationGasLimit ?? this.verificationGasLimit,
+      accountGasLimits: accountGasLimits ?? this.accountGasLimits,
       preVerificationGas: preVerificationGas ?? this.preVerificationGas,
       maxFeePerGas: maxFeePerGas ?? this.maxFeePerGas,
       maxPriorityFeePerGas: maxPriorityFeePerGas ?? this.maxPriorityFeePerGas,
+      gasFees: gasFees ?? this.gasFees,
       signature: signature ?? this.signature,
       paymasterAndData: paymasterAndData ?? this.paymasterAndData,
     );
@@ -145,31 +178,54 @@ class UserOperation implements UserOperationBase {
 
   @override
   Uint8List hash(Chain chain) {
-    final encoded = keccak256(abi.encode([
-      'address',
-      'uint256',
-      'bytes32',
-      'bytes32',
-      'uint256',
-      'uint256',
-      'uint256',
-      'uint256',
-      'uint256',
-      'bytes32',
-    ], [
-      sender,
-      nonce,
-      keccak256(initCode),
-      keccak256(callData),
-      callGasLimit,
-      verificationGasLimit,
-      preVerificationGas,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      keccak256(paymasterAndData),
-    ]));
+    Uint8List encoded;
+    if (chain.entrypoint == EntryPoint.v07) {
+      encoded = keccak256(abi.encode([
+        'address',
+        'uint256',
+        'bytes32',
+        'bytes32',
+        'bytes32',
+        'uint256',
+        'bytes32',
+        'bytes32',
+      ], [
+        sender,
+        nonce,
+        keccak256(initCode),
+        keccak256(callData),
+        accountGasLimits,
+        preVerificationGas,
+        gasFees,
+        keccak256(paymasterAndData),
+      ]));
+    } else {
+      encoded = keccak256(abi.encode([
+        'address',
+        'uint256',
+        'bytes32',
+        'bytes32',
+        'uint256',
+        'uint256',
+        'uint256',
+        'uint256',
+        'uint256',
+        'bytes32',
+      ], [
+        sender,
+        nonce,
+        keccak256(initCode),
+        keccak256(callData),
+        callGasLimit,
+        verificationGasLimit,
+        preVerificationGas,
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+        keccak256(paymasterAndData),
+      ]));
+    }
     return keccak256(abi.encode(['bytes32', 'address', 'uint256'],
-        [encoded, chain.entrypoint, BigInt.from(chain.chainId)]));
+        [encoded, chain.entrypoint.address, BigInt.from(chain.chainId)]));
   }
 
   @override
@@ -179,30 +235,46 @@ class UserOperation implements UserOperationBase {
 
   @override
   Map<String, String> toMap() {
-    return <String, String>{
+    Map<String, String> op = {
       'sender': sender.hexEip55,
       'nonce': '0x${nonce.toRadixString(16)}',
       'initCode': hexlify(initCode),
       'callData': hexlify(callData),
       'callGasLimit': '0x${callGasLimit.toRadixString(16)}',
-      'verificationGasLimit': '0x${verificationGasLimit.toRadixString(16)}',
-      'preVerificationGas': '0x${preVerificationGas.toRadixString(16)}',
-      'maxFeePerGas': '0x${maxFeePerGas.toRadixString(16)}',
-      'maxPriorityFeePerGas': '0x${maxPriorityFeePerGas.toRadixString(16)}',
       'signature': signature,
       'paymasterAndData': hexlify(paymasterAndData),
     };
+    if (accountGasLimits.isEmpty || accountGasLimits == Uint8List(0)) {
+      op['verificationGasLimit'] =
+          '0x${verificationGasLimit.toRadixString(16)}';
+      op['preVerificationGas'] = '0x${preVerificationGas.toRadixString(16)}';
+    } else {
+      op['accountGasLimits'] = hexlify(accountGasLimits);
+    }
+
+    if (gasFees.isEmpty || gasFees == Uint8List(0)) {
+      op['maxFeePerGas'] = '0x${maxFeePerGas.toRadixString(16)}';
+      op['maxPriorityFeePerGas'] =
+          '0x${maxPriorityFeePerGas.toRadixString(16)}';
+    } else {
+      op['gasFees'] = hexlify(gasFees);
+    }
+
+    return op;
   }
 
   @override
   UserOperation updateOpGas(
-      UserOperationGas? opGas, Map<String, EtherAmount>? feePerGas) {
+      UserOperationGas? opGas, Map<String, dynamic>? feePerGas) {
     return copyWith(
         callGasLimit: opGas?.callGasLimit,
         verificationGasLimit: opGas?.verificationGasLimit,
+        accountGasLimits: opGas?.accountGasLimits,
         preVerificationGas: opGas?.preVerificationGas,
-        maxFeePerGas: feePerGas?["maxFeePerGas"]!.getInWei,
-        maxPriorityFeePerGas: feePerGas?["maxPriorityFeePerGas"]!.getInWei);
+        maxFeePerGas: (feePerGas?["maxFeePerGas"] as EtherAmount?)?.getInWei,
+        maxPriorityFeePerGas:
+            (feePerGas?["maxPriorityFeePerGas"] as EtherAmount?)?.getInWei,
+        gasFees: feePerGas?["gasFees"] as Uint8List?);
   }
 
   Future<void> validate(bool deployed, [String? initCode]) async {
@@ -242,27 +314,36 @@ class UserOperationByHash {
 }
 
 class UserOperationGas {
-  final BigInt preVerificationGas;
+  final BigInt callGasLimit;
   final BigInt verificationGasLimit;
+  final Uint8List accountGasLimits;
+  final BigInt preVerificationGas;
   BigInt? validAfter;
   BigInt? validUntil;
-  final BigInt callGasLimit;
   UserOperationGas({
-    required this.preVerificationGas,
+    required this.callGasLimit,
     required this.verificationGasLimit,
+    required this.accountGasLimits,
+    required this.preVerificationGas,
     this.validAfter,
     this.validUntil,
-    required this.callGasLimit,
   });
   factory UserOperationGas.fromMap(Map<String, dynamic> map) {
     return UserOperationGas(
+      callGasLimit: map['callGasLimit'] != null
+          ? BigInt.parse(map['callGasLimit'])
+          : BigInt.zero,
+      verificationGasLimit: map['callGasLimit'] != null
+          ? BigInt.parse(map['verificationGasLimit'])
+          : BigInt.zero,
+      accountGasLimits: map['accountGasLimits'] != null
+          ? hexToBytes(map['accountGasLimits'])
+          : Uint8List(0),
       preVerificationGas: BigInt.parse(map['preVerificationGas']),
-      verificationGasLimit: BigInt.parse(map['verificationGasLimit']),
       validAfter:
           map['validAfter'] != null ? BigInt.parse(map['validAfter']) : null,
       validUntil:
           map['validUntil'] != null ? BigInt.parse(map['validUntil']) : null,
-      callGasLimit: BigInt.parse(map['callGasLimit']),
     );
   }
 }
