@@ -21,7 +21,7 @@ class Chain {
   /// asserts that [jsonRpcUrl] and [bundlerUrl] is provided
   Chain validate() {
     require(isURL(jsonRpcUrl),
-        "Chain Config Error: please provide a valid eth rpc url");
+        "Chain Config Error: please provide a valid eth json rpc url");
     require(isURL(bundlerUrl),
         "Chain Config Error: please provide a valid bundler url");
     require(accountFactory != null,

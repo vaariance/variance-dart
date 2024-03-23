@@ -240,14 +240,14 @@ class UserOperation implements UserOperationBase {
       'nonce': '0x${nonce.toRadixString(16)}',
       'initCode': hexlify(initCode),
       'callData': hexlify(callData),
-      'callGasLimit': '0x${callGasLimit.toRadixString(16)}',
+      'preVerificationGas': '0x${preVerificationGas.toRadixString(16)}',
       'signature': signature,
       'paymasterAndData': hexlify(paymasterAndData),
     };
     if (accountGasLimits.isEmpty || accountGasLimits == Uint8List(0)) {
+      op['callGasLimit'] = '0x${callGasLimit.toRadixString(16)}';
       op['verificationGasLimit'] =
           '0x${verificationGasLimit.toRadixString(16)}';
-      op['preVerificationGas'] = '0x${preVerificationGas.toRadixString(16)}';
     } else {
       op['accountGasLimits'] = hexlify(accountGasLimits);
     }

@@ -3,92 +3,26 @@ part of '../../variance.dart';
 class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   final Chain _chain;
 
-  EthereumAddress? _walletAddress;
+  final EthereumAddress _walletAddress;
 
-  Uint8List? _initCalldata;
+  Uint8List _initCalldata;
 
-  SmartWallet(
-      {required Chain chain,
-      required MultiSignerInterface signer,
-      @Deprecated(
-          "Bundler instance will be constructed by by factory from chain params")
-      required BundlerProviderBase bundler,
-      @Deprecated("to be removed: address will be made final in the future")
-      EthereumAddress? address})
-      : _chain = chain.validate(),
-        _walletAddress = address {
-    // since the wallet factory will use builder pattern to add plugins
-    // the following can be moved into the factory.
-    // which would allow the smartwallet to reamin testable.
-    final jsonRpc = RPCProvider(chain.jsonRpcUrl!);
-    final bundlerRpc = RPCProvider(chain.bundlerUrl!);
-
-    final bundler = BundlerProvider(chain, bundlerRpc);
-    final fact = _AccountFactory(
-        address: chain.accountFactory!, chainId: chain.chainId, rpc: jsonRpc);
-
-    addPlugin('signer', signer);
-    addPlugin('bundler', bundler);
-    addPlugin('jsonRpc', jsonRpc);
-    addPlugin('contract', Contract(jsonRpc));
-    addPlugin('factory', fact);
-
-    if (chain.paymasterUrl != null) {
-      final paymasterRpc = RPCProvider(chain.paymasterUrl!);
-      final paymaster = Paymaster(chain, paymasterRpc);
-      addPlugin('paymaster', paymaster);
-    }
-  }
-
-  /// Initializes a [SmartWallet] instance for a specific chain with the provided parameters.
-  ///
-  /// Parameters:
-  ///   - `chain`: The blockchain [Chain] associated with the smart wallet.
-  ///   - `signer`: The [MultiSignerInterface] responsible for signing transactions.
-  ///   - `bundler`: The [BundlerProviderBase] that provides bundling services.
-  ///   - `address`: Optional Ethereum address associated with the smart wallet.
-  ///   - `initCallData`: Optional initialization calldata of the factory create method as a [Uint8List].
-  ///
-  /// Returns:
-  ///   A fully initialized [SmartWallet] instance.
-  ///
-  /// Example:
-  /// ```dart
-  /// var smartWallet = SmartWallet.init(
-  ///   chain: Chain.ethereum,
-  ///   signer: myMultiSigner,
-  ///   bundler: myBundler,
-  ///   address: myWalletAddress,
-  ///   initCallData: Uint8List.fromList([0x01, 0x02, 0x03]),
-  /// );
-  /// ```
-  factory SmartWallet.init(
-      {required Chain chain,
-      required MultiSignerInterface signer,
-      @Deprecated(
-          "Bundler instance will be constructed by by factory from chain params")
-      required BundlerProviderBase bundler,
-      @Deprecated("address will be made final in the future")
-      EthereumAddress? address,
-      @Deprecated("seperation of factory from wallet soon will be enforced")
-      Uint8List? initCallData}) {
-    final instance = SmartWallet(
-        chain: chain, signer: signer, bundler: bundler, address: address);
-    return instance;
-  }
+  SmartWallet(this._chain, this._walletAddress, this._initCalldata);
 
   @override
-  EthereumAddress? get address => _walletAddress;
+  EthereumAddress get address => _walletAddress;
 
   @override
   Future<EtherAmount> get balance =>
-      plugin("contract").getBalance(_walletAddress);
+      plugin<Contract>("contract").getBalance(_walletAddress);
 
   @override
-  Future<bool> get isDeployed => plugin("contract").deployed(_walletAddress);
+  Future<bool> get isDeployed =>
+      plugin<Contract>("contract").deployed(_walletAddress);
 
   @override
-  String get initCode => _initCode;
+  String get initCode =>
+      _chain.accountFactory!.hexEip55 + hexlify(_initCalldata).substring(2);
 
   @override
   Future<BigInt> get initCodeGas => _initCodeGas;
@@ -97,69 +31,21 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   Future<Uint256> get nonce => _getNonce();
 
   @override
-  @Deprecated("wallet address will be made final in the future")
-  set setWalletAddress(EthereumAddress address) => _walletAddress = address;
-
-  @override
-  String? get toHex => _walletAddress?.hexEip55;
-
-  String get _initCode => _initCalldata != null
-      ? _chain.accountFactory!.hexEip55 + hexlify(_initCalldata!).substring(2)
-      : "0x";
+  String? get toHex => _walletAddress.hexEip55;
 
   Uint8List get _initCodeBytes {
-    if (_initCalldata == null) return Uint8List(0);
     List<int> extended = _chain.accountFactory!.addressBytes.toList();
-    extended.addAll(_initCalldata!);
+    extended.addAll(_initCalldata);
     return Uint8List.fromList(extended);
   }
 
   Future<BigInt> get _initCodeGas => plugin<RPCProviderBase>('jsonRpc')
-      .estimateGas(_chain.entrypoint.address, _initCode);
+      .estimateGas(_chain.entrypoint.address, initCode);
 
   @override
-  Future<SmartWallet> createSimpleAccount(Uint256 salt, {int? index}) async {
-    EthereumAddress signer = EthereumAddress.fromHex(
-        plugin<MSI>('signer').getAddress(index: index ?? 0));
-    _initCalldata = _getInitCallData('createAccount', [signer, salt.value]);
-    await getSimpleAccountAddress(signer, salt)
-        .then((addr) => {_walletAddress = addr});
-    return this;
-  }
-
-  @override
-  Future<SmartWallet> createSimplePasskeyAccount(
-      PassKeyPair pkp, Uint256 salt) async {
-    _initCalldata = _getInitCallData('createPasskeyAccount', [
-      pkp.credentialHexBytes,
-      pkp.publicKey[0].value,
-      pkp.publicKey[1].value,
-      salt.value
-    ]);
-
-    await getSimplePassKeyAccountAddress(pkp, salt)
-        .then((addr) => {_walletAddress = addr});
-    return this;
-  }
-
-  @override
-  void dangerouslySetInitCallData(Uint8List? code) {
+  void dangerouslySetInitCallData(Uint8List code) {
     _initCalldata = code;
   }
-
-  @override
-  Future<EthereumAddress> getSimpleAccountAddress(
-          EthereumAddress signer, Uint256 salt) =>
-      plugin<AccountFactoryBase>('factory').getAddress(signer, salt.value);
-
-  @override
-  Future<EthereumAddress> getSimplePassKeyAccountAddress(
-          PassKeyPair pkp, Uint256 salt) =>
-      plugin<AccountFactoryBase>('factory').getPasskeyAccountAddress(
-          pkp.credentialHexBytes,
-          pkp.publicKey[0].value,
-          pkp.publicKey[1].value,
-          salt.value);
 
   @override
   UserOperation buildUserOperation({
@@ -202,8 +88,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   Future<UserOperationResponse> sendSignedUserOperation(UserOperation op) =>
       plugin<BundlerProviderBase>('bundler')
           .sendUserOperation(op.toMap(), _chain.entrypoint)
-          .catchError(
-              (e) => throw SmartWalletError.sendError(op, e.toString()));
+          .catchError((e) => throw SendError(e.toString(), op));
 
   @override
   Future<UserOperationResponse> sendUserOperation(UserOperation op,
@@ -223,12 +108,8 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
       userOp = await plugin<Paymaster>('paymaster').intercept(userOp);
     }
 
-    Uint8List signature = await plugin<MSI>('signer').personalSign(opHash,
-        index: index,
-        id: id ??
-            (plugin<MSI>('signer') is PasskeyInterface
-                ? plugin<PasskeyInterface>('signer').defaultId
-                : id));
+    Uint8List signature =
+        await plugin<MSI>('signer').personalSign(opHash, index: index);
 
     userOp.signature = hexlify(signature);
     userOp.validate(userOp.nonce > BigInt.zero, initCode);
@@ -236,17 +117,14 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
     return userOp;
   }
 
-  Uint8List _getInitCallData(String functionName, List params) =>
-      plugin('factory').self.function(functionName).encodeCall(params);
-
   Future<Uint256> _getNonce() => isDeployed.then((deployed) => !deployed
       ? Future.value(Uint256.zero)
-      : plugin("contract")
-          .call(_chain.entrypoint, ContractAbis.get('getNonce'), "getNonce",
+      : plugin<Contract>("contract")
+          .call(_chain.entrypoint.address, ContractAbis.get('getNonce'),
+              "getNonce",
               params: [_walletAddress, BigInt.zero])
           .then((value) => Uint256(value[0]))
-          .catchError((e) =>
-              throw SmartWalletError.nonceError(_walletAddress, e.toString())));
+          .catchError((e) => throw NonceError(e.toString(), _walletAddress)));
 
   Future<UserOperation> _updateUserOperation(UserOperation op) =>
       Future.wait<dynamic>(
@@ -278,44 +156,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
           .estimateUserOperationGas(op.toMap(), _chain.entrypoint)
           .then((opGas) => op.updateOpGas(opGas, feePerGas))
           .then((op) => multiply(op))
-          .catchError(
-              (e) => throw SmartWalletError.estimateError(op, e.toString()));
-}
-
-class SmartWalletError extends Error {
-  final String message;
-
-  SmartWalletError(this.message);
-
-  factory SmartWalletError.estimateError(UserOperation op, String message) {
-    return SmartWalletError('''
-        Error estimating user operation gas! Failed with error: $message
-        --------------------------------------------------
-       User operation: ${op.toJson()}.
-    ''');
-  }
-
-  factory SmartWalletError.nonceError(
-      EthereumAddress? address, String message) {
-    return SmartWalletError('''
-        Error fetching user account nonce for address  ${address?.hex}! 
-        --------------------------------------------------
-        Failed with error: $message  
-      ''');
-  }
-
-  factory SmartWalletError.sendError(UserOperation op, String message) {
-    return SmartWalletError('''
-        Error sending user operation! Failed with error: $message
-        --------------------------------------------------
-       User operation: ${op.toJson()}. 
-    ''');
-  }
-
-  @override
-  String toString() {
-    return message;
-  }
+          .catchError((e) => throw EstimateError(e.toString(), op));
 }
 
 typedef MSI = MultiSignerInterface;

@@ -1,4 +1,4 @@
-part of 'common.dart';
+part of '../../variance.dart';
 
 /// A wrapper for interacting with deployed Ethereum contracts through [RPCProvider].
 class Contract {
@@ -270,7 +270,7 @@ class Contract {
   /// ); // transfer to 0x1234567890abcdef1234567890abcdef12345678 with 1000000000000000000 wei
   /// ```
   /// This method uses the 'execute' function ABI to encode the smart wallet operation.
-  static Uint8List execute(EthereumAddress? walletAddress,
+  static Uint8List execute(EthereumAddress walletAddress,
       {required EthereumAddress to,
       EtherAmount? amount,
       Uint8List? innerCallData}) {
@@ -279,11 +279,6 @@ class Contract {
       amount?.getInWei ?? EtherAmount.zero().getInWei,
       innerCallData ?? Uint8List.fromList([])
     ];
-
-    if (walletAddress == null) {
-      throw SmartWalletError(
-          "Invlaid Operation, SmartWallet Address is undefined! (contract.execute)");
-    }
 
     return encodeFunctionCall(
       'execute',
@@ -321,7 +316,7 @@ class Contract {
   /// ```
   /// This method uses the 'executeBatch' function ABI to encode the smart wallet batch operation.
   static Uint8List executeBatch(
-      {required EthereumAddress? walletAddress,
+      {required EthereumAddress walletAddress,
       required List<EthereumAddress> recipients,
       List<EtherAmount>? amounts,
       List<Uint8List>? innerCalls}) {
@@ -332,11 +327,6 @@ class Contract {
     ];
     if (innerCalls == null || innerCalls.isEmpty) {
       require(amounts != null && amounts.isNotEmpty, "malformed batch request");
-    }
-
-    if (walletAddress == null) {
-      throw SmartWalletError(
-          "Invlaid Operation, SmartWallet Address is undefined! (contract.executeBatch)");
     }
 
     return encodeFunctionCall(

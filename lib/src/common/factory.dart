@@ -1,4 +1,4 @@
-part of 'package:variance_dart/variance.dart';
+part of '../../variance.dart';
 
 class _AccountFactory extends AccountFactory implements AccountFactoryBase {
   _AccountFactory(

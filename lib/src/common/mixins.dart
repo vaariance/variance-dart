@@ -1,4 +1,4 @@
-part of 'package:variance_dart/variance.dart';
+part of '../../variance.dart';
 
 typedef Percent = double;
 
