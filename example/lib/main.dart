@@ -59,7 +59,7 @@ Future<void> main() async {
   final walletClient = SmartWallet(
     chain: chain,
     signer: hd,
-    bundler: BundlerProvider(chain, RPCProvider(chain.bundlerUrl!)),
+    bundler: BundlerProvider(chain, JsonRPCProvider(chain.bundlerUrl!)),
   );
 
   // create a simple account based on hd

@@ -17,17 +17,6 @@ class Chain {
       this.jsonRpcUrl,
       this.bundlerUrl,
       this.paymasterUrl});
-
-  /// asserts that [jsonRpcUrl] and [bundlerUrl] is provided
-  Chain validate() {
-    require(isURL(jsonRpcUrl),
-        "Chain Config Error: please provide a valid eth json rpc url");
-    require(isURL(bundlerUrl),
-        "Chain Config Error: please provide a valid bundler url");
-    require(accountFactory != null,
-        "Chain Config Error: please provide account factory address");
-    return this;
-  }
 }
 
 //predefined Chains you can use

@@ -1,7 +1,8 @@
 part of '../../variance.dart';
 
-class _AccountFactory extends AccountFactory implements AccountFactoryBase {
-  _AccountFactory(
-      {required super.address, super.chainId, required RPCProviderBase rpc})
+class _SimpleAccountFactory extends AccountFactory
+    implements AccountFactoryBase {
+  _SimpleAccountFactory(
+      {required super.address, super.chainId, required RPCBase rpc})
       : super(client: Web3Client.custom(rpc));
 }

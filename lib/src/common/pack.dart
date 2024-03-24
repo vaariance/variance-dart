@@ -16,12 +16,15 @@ part of '../../variance.dart';
 /// print(packedBytes);
 /// ```
 Uint8List packUints(BigInt high128, BigInt low128) {
-  if (high128 >= BigInt.two.pow(128) || low128 >= BigInt.two.pow(128)) {
-    throw ArgumentError('Values exceed the range of 128-bit unsigned integers');
-  }
+  final shiftedHigh = high128 << 128;
+  final combined = shiftedHigh + low128;
+  return hexToBytes(combined.toRadixString(16).padLeft(64, '0'));
+}
 
-  final high = high128.toRadixString(16).padLeft(32, '0');
-  final low = low128.toRadixString(16).padLeft(32, '0');
-  final packedBytes = hexToBytes('$high$low');
-  return packedBytes;
+List<BigInt> unpackUints(Uint8List bytes) {
+  final hex = bytesToHex(bytes);
+  final value = BigInt.parse(hex, radix: 16);
+  final mask =
+      BigInt.from(0xFFFFFFFFFFFFFFFF) << 64 | BigInt.from(0xFFFFFFFFFFFFFFFF);
+  return [value >> 128, value & mask];
 }

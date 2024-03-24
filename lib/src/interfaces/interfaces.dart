@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:web3_signers/web3_signers.dart' show PassKeyPair, Uint256;
-import 'package:web3dart/json_rpc.dart' show RpcService;
 import 'package:web3dart/web3dart.dart';
 
 import '../../variance.dart'

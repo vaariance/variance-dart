@@ -24,7 +24,7 @@ class PaymasterResponse {
 }
 
 class Paymaster {
-  final RPCProviderBase _rpc;
+  final RPCBase _rpc;
   final Chain _chain;
   Map<String, String>? _context;
 
@@ -32,7 +32,9 @@ class Paymaster {
     _context = context;
   }
 
-  Paymaster(this._chain, this._rpc, [this._context]);
+  Paymaster(this._chain, [this._context])
+      : assert(isURL(_chain.paymasterUrl), "invalid paymaster Url"),
+        _rpc = RPCBase(_chain.paymasterUrl!);
 
   Future<UserOperation> intercept(UserOperation operation) async {
     final paymasterResponse = await sponsorUserOperation(

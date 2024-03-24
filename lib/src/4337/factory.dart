@@ -1,123 +1,92 @@
- part of '../../variance.dart'; 
+part of '../../variance.dart';
 
-  class SmartWalletFactory implements SmartWalletFactoryBase {
+class SmartWalletFactory implements SmartWalletFactoryBase {
+  final Chain _chain;
+  final MSI _signer;
 
-    // createSimpleAccount
-    // createP256Account
-    // createVendorAccount
-    // createSafeAccount
-    // _createAccount
-    
+  late final JsonRPCProvider _jsonRpc;
+  late final BundlerProvider _bundler;
+  late final Contract _contract;
+
+  SmartWalletFactory(this._chain, this._signer)
+      : assert(_chain.accountFactory != null, "account factory not set"),
+        _jsonRpc = JsonRPCProvider(_chain),
+        _bundler = BundlerProvider(_chain) {
+    _contract = Contract(_jsonRpc.rpc);
   }
-  
-  SmartWallet(
-      {required Chain chain,
-      required MultiSignerInterface signer,
-      @Deprecated(
-          "Bundler instance will be constructed by by factory from chain params")
-      required BundlerProviderBase bundler,
-      @Deprecated("to be removed: address will be made final in the future")
-      EthereumAddress? address})
-      : _chain = chain.validate(),
-        _walletAddress = address {
-    // since the wallet factory will use builder pattern to add plugins
-    // the following can be moved into the factory.
-    // which would allow the smartwallet to reamin testable.
-    final jsonRpc = RPCProvider(chain.jsonRpcUrl!);
-    final bundlerRpc = RPCProvider(chain.bundlerUrl!);
 
-    final bundler = BundlerProvider(chain, bundlerRpc);
-    final fact = _AccountFactory(
-        address: chain.accountFactory!, chainId: chain.chainId, rpc: jsonRpc);
+  _SimpleAccountFactory get _simpleAccountfactory => _SimpleAccountFactory(
+      address: _chain.accountFactory!,
+      chainId: _chain.chainId,
+      rpc: _jsonRpc.rpc);
 
-    addPlugin('signer', signer);
-    addPlugin('bundler', bundler);
-    addPlugin('jsonRpc', jsonRpc);
-    addPlugin('contract', Contract(jsonRpc));
-    addPlugin('factory', fact);
+  Future<SmartWallet> createSimpleAccount(Uint256 salt, {int? index}) async {
+    final signer = _signer.getAddress(index: index ?? 0);
+    final address = await _simpleAccountfactory.getAddress(
+        EthereumAddress.fromHex(signer), salt.value);
+    final initCode = _getInitCode('createAccount', [signer, salt.value]);
+    return _createAccount(_chain, address, initCode);
+  }
 
-    if (chain.paymasterUrl != null) {
-      final paymasterRpc = RPCProvider(chain.paymasterUrl!);
-      final paymaster = Paymaster(chain, paymasterRpc);
-      addPlugin('paymaster', paymaster);
+  Future<SmartWallet> createP256Account<T>(T keyPair, Uint256 salt) {
+    switch (keyPair.runtimeType) {
+      case PassKeyPair _:
+        return _createPasskeyAccount(keyPair as PassKeyPair, salt);
+      case P256Credential _:
+        return _createSecureEnclaveAccount(keyPair as P256Credential, salt);
+      default:
+        throw ArgumentError("unsupported key pair type");
     }
   }
 
-  /// Initializes a [SmartWallet] instance for a specific chain with the provided parameters.
-  ///
-  /// Parameters:
-  ///   - `chain`: The blockchain [Chain] associated with the smart wallet.
-  ///   - `signer`: The [MultiSignerInterface] responsible for signing transactions.
-  ///   - `bundler`: The [BundlerProviderBase] that provides bundling services.
-  ///   - `address`: Optional Ethereum address associated with the smart wallet.
-  ///   - `initCallData`: Optional initialization calldata of the factory create method as a [Uint8List].
-  ///
-  /// Returns:
-  ///   A fully initialized [SmartWallet] instance.
-  ///
-  /// Example:
-  /// ```dart
-  /// var smartWallet = SmartWallet.init(
-  ///   chain: Chain.ethereum,
-  ///   signer: myMultiSigner,
-  ///   bundler: myBundler,
-  ///   address: myWalletAddress,
-  ///   initCallData: Uint8List.fromList([0x01, 0x02, 0x03]),
-  /// );
-  /// ```
-  factory SmartWallet.init(
-      {required Chain chain,
-      required MultiSignerInterface signer,
-      @Deprecated(
-          "Bundler instance will be constructed by by factory from chain params")
-      required BundlerProviderBase bundler,
-      @Deprecated("address will be made final in the future")
-      EthereumAddress? address,
-      @Deprecated("seperation of factory from wallet soon will be enforced")
-      Uint8List? initCallData}) {
-    final instance = SmartWallet(
-        chain: chain, signer: signer, bundler: bundler, address: address);
-    return instance;
+  Future<SmartWallet> createSafeAccount() {
+    // TODO: implement createSafeAccount
+    throw UnimplementedError();
   }
 
-@override
-Future<SmartWallet> createSimplePasskeyAccount(
-    PassKeyPair pkp, Uint256 salt) async {
-  _initCalldata = _getInitCallData('createPasskeyAccount', [
-    pkp.credentialHexBytes,
-    pkp.publicKey[0].value,
-    pkp.publicKey[1].value,
-    salt.value
-  ]);
+  Future<SmartWallet> createVendorAccount(
+    EthereumAddress address,
+    Uint8List initCode,
+  ) async {
+    return _createAccount(_chain, address, initCode);
+  }
 
-  await getSimplePassKeyAccountAddress(pkp, salt)
-      .then((addr) => {_walletAddress = addr});
-  return this;
-}
-
-@override
-Future<SmartWallet> createSimpleAccount(Uint256 salt, {int? index}) async {
-  EthereumAddress signer = EthereumAddress.fromHex(
-      plugin<MSI>('signer').getAddress(index: index ?? 0));
-  _initCalldata = _getInitCallData('createAccount', [signer, salt.value]);
-  await getSimpleAccountAddress(signer, salt)
-      .then((addr) => {_walletAddress = addr});
-  return this;
-}
-
-@override
-Future<EthereumAddress> getSimpleAccountAddress(
-        EthereumAddress signer, Uint256 salt) =>
-    plugin<AccountFactoryBase>('factory').getAddress(signer, salt.value);
-
-@override
-Future<EthereumAddress> getSimplePassKeyAccountAddress(
-        PassKeyPair pkp, Uint256 salt) =>
-    plugin<AccountFactoryBase>('factory').getPasskeyAccountAddress(
-        pkp.credentialHexBytes,
-        pkp.publicKey[0].value,
-        pkp.publicKey[1].value,
+  Future<SmartWallet> _createPasskeyAccount(
+      PassKeyPair pkp, Uint256 salt) async {
+    final initCode = _getInitCode('createPasskeyAccount', [
+      hexToBytes(pkp.credentialHex),
+      pkp.publicKey.item1.value,
+      pkp.publicKey.item2.value,
+      salt.value
+    ]);
+    final address = await _simpleAccountfactory.getPasskeyAccountAddress(
+        hexToBytes(pkp.credentialHex),
+        pkp.publicKey.item1.value,
+        pkp.publicKey.item2.value,
         salt.value);
+    return _createAccount(_chain, address, initCode);
+  }
 
-Uint8List _getInitCallData(String functionName, List params) =>
-    plugin('factory').self.function(functionName).encodeCall(params);
+  Future<SmartWallet> _createSecureEnclaveAccount(
+      P256Credential p256, Uint256 salt) {
+    // TODO: implement _createSimpleSecureEnclaveAccount
+    throw UnimplementedError();
+  }
+
+  SmartWallet _createAccount(
+      Chain chain, EthereumAddress address, Uint8List initCalldata) {
+    return SmartWallet(chain, address, initCalldata)
+      ..addPlugin('signer', _signer)
+      ..addPlugin('bundler', _bundler)
+      ..addPlugin('jsonRpc', _jsonRpc)
+      ..addPlugin('contract', _contract);
+  }
+
+  Uint8List _getInitCode(String functionName, List params) {
+    final initCalldata =
+        _simpleAccountfactory.self.function(functionName).encodeCall(params);
+    List<int> extended = _chain.accountFactory!.addressBytes.toList();
+    extended.addAll(initCalldata);
+    return Uint8List.fromList(extended);
+  }
+}

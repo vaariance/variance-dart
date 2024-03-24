@@ -48,3 +48,19 @@ class SendError extends Error {
     ''';
   }
 }
+
+class InvalidAccountFactoryAddress extends Error {
+  final EthereumAddress? address;
+  final String message = 'Invalid account factory address!';
+
+  InvalidAccountFactoryAddress(this.address);
+
+  @override
+  String toString() {
+    return '''
+        $message
+        --------------------------------------------------
+        Provided factory address: $address
+    ''';
+  }
+}

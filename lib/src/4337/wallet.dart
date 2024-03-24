@@ -5,9 +5,9 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
 
   final EthereumAddress _walletAddress;
 
-  Uint8List _initCalldata;
+  Uint8List _initCode;
 
-  SmartWallet(this._chain, this._walletAddress, this._initCalldata);
+  SmartWallet(this._chain, this._walletAddress, this._initCode);
 
   @override
   EthereumAddress get address => _walletAddress;
@@ -21,8 +21,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
       plugin<Contract>("contract").deployed(_walletAddress);
 
   @override
-  String get initCode =>
-      _chain.accountFactory!.hexEip55 + hexlify(_initCalldata).substring(2);
+  String get initCode => hexlify(_initCode);
 
   @override
   Future<BigInt> get initCodeGas => _initCodeGas;
@@ -33,18 +32,12 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   @override
   String? get toHex => _walletAddress.hexEip55;
 
-  Uint8List get _initCodeBytes {
-    List<int> extended = _chain.accountFactory!.addressBytes.toList();
-    extended.addAll(_initCalldata);
-    return Uint8List.fromList(extended);
-  }
-
-  Future<BigInt> get _initCodeGas => plugin<RPCProviderBase>('jsonRpc')
+  Future<BigInt> get _initCodeGas => plugin<JsonRPCProviderBase>('jsonRpc')
       .estimateGas(_chain.entrypoint.address, initCode);
 
   @override
-  void dangerouslySetInitCallData(Uint8List code) {
-    _initCalldata = code;
+  void dangerouslySetInitCode(Uint8List code) {
+    _initCode = code;
   }
 
   @override
@@ -54,7 +47,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   }) =>
       UserOperation.partial(
           callData: callData,
-          initCode: _initCodeBytes,
+          initCode: _initCode,
           sender: _walletAddress,
           nonce: customNonce);
 
@@ -91,19 +84,17 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
           .catchError((e) => throw SendError(e.toString(), op));
 
   @override
-  Future<UserOperationResponse> sendUserOperation(UserOperation op,
-          {String? id}) =>
-      signUserOperation(op, id: id)
+  Future<UserOperationResponse> sendUserOperation(UserOperation op) =>
+      signUserOperation(op)
           .then(sendSignedUserOperation)
           .catchError((e) => retryOp(() => sendSignedUserOperation(op), e));
 
   @override
   Future<UserOperation> signUserOperation(UserOperation userOp,
-      {bool update = true, String? id, int? index}) async {
+      {bool update = true, int? index}) async {
     if (update) userOp = await _updateUserOperation(userOp);
 
     final opHash = userOp.hash(_chain);
-
     if (hasPlugin('paymaster')) {
       userOp = await plugin<Paymaster>('paymaster').intercept(userOp);
     }
@@ -113,7 +104,6 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
 
     userOp.signature = hexlify(signature);
     userOp.validate(userOp.nonce > BigInt.zero, initCode);
-
     return userOp;
   }
 
@@ -127,28 +117,16 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
           .catchError((e) => throw NonceError(e.toString(), _walletAddress)));
 
   Future<UserOperation> _updateUserOperation(UserOperation op) =>
-      Future.wait<dynamic>(
-              [_getNonce(), plugin<RPCProviderBase>('jsonRpc').getGasPrice()])
-          .then((responses) {
+      Future.wait<dynamic>([
+        _getNonce(),
+        plugin<JsonRPCProviderBase>('jsonRpc').getGasPrice()
+      ]).then((responses) {
         op = op.copyWith(
             nonce: op.nonce > BigInt.zero ? op.nonce : responses[0].value,
             initCode: responses[0] > BigInt.zero ? Uint8List(0) : null,
             signature: plugin<MSI>('signer').dummySignature);
-        return _updateUserOperationGas(op,
-            feePerGas: _formatGasFees(responses[1]));
+        return _updateUserOperationGas(op, feePerGas: responses[1]);
       });
-
-  // supporting v07 migration
-  Map<String, T> _formatGasFees<T>(Map<String, EtherAmount> feePerGas) {
-    if (_chain.entrypoint == EntryPoint.v07) {
-      final gasFees = <String, T>{};
-      final high128 = feePerGas['maxPriorityFeePerGas']!.getInWei;
-      final low128 = feePerGas['maxFeePerGas']!.getInWei;
-      gasFees['gasFees'] = packUints(high128, low128) as T;
-      return gasFees;
-    }
-    return feePerGas as Map<String, T>;
-  }
 
   Future<UserOperation> _updateUserOperationGas(UserOperation op,
           {Map<String, EtherAmount>? feePerGas}) =>
@@ -158,5 +136,3 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
           .then((op) => multiply(op))
           .catchError((e) => throw EstimateError(e.toString(), op));
 }
-
-typedef MSI = MultiSignerInterface;

@@ -1,11 +1,11 @@
 part of '../../variance.dart';
 
-/// A wrapper for interacting with deployed Ethereum contracts through [RPCProvider].
+/// A wrapper for interacting with deployed Ethereum contracts through [JsonRPCProvider].
 class Contract {
-  final RPCProviderBase _provider;
+  final RPCBase _rpc;
 
   Contract(
-    this._provider,
+    this._rpc,
   );
 
   /// Asynchronously calls a function on a smart contract with the provided parameters.
@@ -43,7 +43,7 @@ class Contract {
           : "0x",
       if (sender != null) 'from': sender.hex,
     };
-    return _provider.send<String>('eth_call', [
+    return _rpc.send<String>('eth_call', [
       calldata,
       BlockNum.current().toBlockParam()
     ]).then((value) => function.decodeReturnValues(value));
@@ -71,7 +71,7 @@ class Contract {
     if (address == null) {
       return Future.value(false);
     }
-    final isDeployed = _provider
+    final isDeployed = _rpc
         .send<String>('eth_getCode', [address.hex, atBlock.toBlockParam()])
         .then(hexToBytes)
         .then((value) => value.isNotEmpty);
@@ -100,7 +100,7 @@ class Contract {
     if (address == null) {
       return Future.value(EtherAmount.zero());
     }
-    return _provider
+    return _rpc
         .send<String>('eth_getBalance', [address.hex, atBlock.toBlockParam()])
         .then(BigInt.parse)
         .then((value) => EtherAmount.fromBigInt(EtherUnit.wei, value));

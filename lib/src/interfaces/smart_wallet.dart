@@ -62,7 +62,7 @@ abstract class SmartWalletBase {
   /// ```dart
   /// dangerouslySetInitCallData(Uint8List.fromList([0x01, 0x02, 0x03]));
   /// ```
-  void dangerouslySetInitCallData(Uint8List code);
+  void dangerouslySetInitCode(Uint8List code);
 
   /// Asynchronously transfers native Token (ETH) to the specified recipient with the given amount.
   ///
@@ -180,7 +180,6 @@ abstract class SmartWalletBase {
   /// Parameters:
   ///   - `userOp`: The [UserOperation] to be signed.
   ///   - `update`: Optional parameter indicating whether to update the user operation before signing. Defaults to `true`.
-  ///   - `id`: Optional identifier (credential Id) when using a passkey signer Defaults to `null`.
   ///   - `index`: Optional index parameter for selecting a signer. Defaults to `null`.
   ///
   /// Returns:
@@ -195,6 +194,6 @@ abstract class SmartWalletBase {
   Future<UserOperation> signUserOperation(
     UserOperation userOp, {
     bool update = true,
-    String? id,
+    int? index,
   });
 }

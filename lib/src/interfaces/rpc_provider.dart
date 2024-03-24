@@ -4,7 +4,7 @@ part of 'interfaces.dart';
 ///
 /// Implementations of this class are expected to provide functionality for specifically interacting
 /// with bundlers only.
-abstract class RPCProviderBase implements RpcService {
+abstract class JsonRPCProviderBase {
   /// Asynchronously estimates the gas cost for a transaction to the specified address with the given calldata.
   ///
   /// Parameters:
@@ -74,19 +74,4 @@ abstract class RPCProviderBase implements RpcService {
   /// ```
   /// This method uses an ethereum jsonRPC to fetch the legacy gas price from the Ethereum node.
   Future<EtherAmount> getLegacyGasPrice();
-
-  /// Asynchronously sends an RPC call to the Ethereum node for the specified function and parameters.
-  ///
-  /// Parameters:
-  ///   - `function`: The Ethereum RPC function to call. eg: `eth_getBalance`
-  ///   - `params`: Optional parameters for the RPC call.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with the result of the RPC call.
-  ///
-  /// Example:
-  /// ```dart
-  /// var result = await send<String>('eth_getBalance', ['0x9876543210abcdef9876543210abcdef98765432']);
-  /// ```
-  Future<T> send<T>(String function, [List<dynamic>? params]);
 }
