@@ -44,13 +44,13 @@ class BundlerProvider implements BundlerProviderBase {
   }
 
   @override
-  Future<UserOperationResponse> sendUserOperation(
-      Map<String, dynamic> userOp, EntryPoint entrypoint) async {
+  Future<UserOperationResponse> sendUserOperation(Map<String, dynamic> userOp,
+      EntryPoint entrypoint, RPCBase fallback) async {
     Logger.conditionalWarning(
         !_initialized, "sendUserOp may fail: chainId mismatch");
     final opHash = await _rpc
         .send<String>('eth_sendUserOperation', [userOp, entrypoint.hex]);
-    return UserOperationResponse(opHash);
+    return UserOperationResponse(opHash, entrypoint, fallback);
   }
 
   @override

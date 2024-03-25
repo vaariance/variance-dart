@@ -333,8 +333,56 @@ class UserOperationReceipt {
   }
 }
 
+class UserOperationEventFilter extends FilterOptions {
+  UserOperationEventFilter.events({
+    required super.contract,
+    required super.event,
+    super.fromBlock,
+    super.toBlock,
+    required String userOpHash,
+  }) : super.events() {
+    if (userOpHash.isNotEmpty) {
+      topics?.add([userOpHash]);
+    }
+  }
+}
+
 class UserOperationResponse {
   final String userOpHash;
+  final EntryPoint _entrypoint;
+  final RPCBase _rpc;
 
-  UserOperationResponse(this.userOpHash);
+  UserOperationResponse(this.userOpHash, this._entrypoint, this._rpc);
+
+  Future<FilterEvent?> wait([int millisecond = 3000]) async {
+    final end = DateTime.now().millisecondsSinceEpoch + millisecond;
+
+    return await Isolate.run(() async {
+      final client = Web3Client.custom(_rpc);
+      final entrypoint =
+          Entrypoint(address: _entrypoint.address, client: client);
+
+      final block = await client.getBlockNumber();
+      while (DateTime.now().millisecondsSinceEpoch < end) {
+        final filterEvent = await client
+            .events(
+              UserOperationEventFilter.events(
+                contract: entrypoint.self,
+                event: entrypoint.self.event('UserOperationEvent'),
+                userOpHash: userOpHash,
+                fromBlock: BlockNum.exact(block - 100),
+              ),
+            )
+            .take(1)
+            .first;
+        if (filterEvent.transactionHash != null) {
+          return filterEvent;
+        }
+
+        await Future.delayed(Duration(milliseconds: millisecond));
+      }
+
+      return null;
+    });
+  }
 }

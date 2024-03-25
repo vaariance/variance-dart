@@ -8,6 +8,7 @@ import '../../variance.dart'
         Chain,
         EntryPoint,
         InvalidBundlerMethod,
+        RPCBase,
         UserOperation,
         UserOperationByHash,
         UserOperationGas,

@@ -80,7 +80,8 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   @override
   Future<UserOperationResponse> sendSignedUserOperation(UserOperation op) =>
       plugin<BundlerProviderBase>('bundler')
-          .sendUserOperation(op.toMap(), _chain.entrypoint)
+          .sendUserOperation(
+              op.toMap(), _chain.entrypoint, plugin('jsonRpc').rpc)
           .catchError((e) => throw SendError(e.toString(), op));
 
   @override
