@@ -4,26 +4,20 @@ part of 'interfaces.dart';
 ///
 /// This class defines the common interface for interacting with an Ethereum smart contract
 /// responsible for creating and managing accounts.
-abstract class AccountFactoryBase {
+abstract class SimpleAccountFactoryBase {
   /// Retrieves the Ethereum address associated with a standard account.
   Future<EthereumAddress> getAddress(
     EthereumAddress owner,
     BigInt salt, {
     BlockNum? atBlock,
   });
+}
 
-  /// Retrieves the Ethereum address associated with a passkey account.
-  Future<EthereumAddress> getPasskeyAccountAddress(
-    Uint8List credentialHex,
-    BigInt x,
-    BigInt y,
-    BigInt salt, {
+abstract class P256AccountFactoryBase {
+  /// Retrieves the Ethereum address associated with a standard p256 account.
+  Future<EthereumAddress> getP256AccountAddress(
+    BigInt salt,
+    Uint8List creation, {
     BlockNum? atBlock,
   });
-
-  /// Retrieves the Ethereum address associated with the simpleAccount contract.
-  Future<EthereumAddress> simpleAccount({BlockNum? atBlock});
-
-  /// Retrieves the Ethereum address associated with the simplePasskeyAccount contract.
-  Future<EthereumAddress> simplePasskeyAccount({BlockNum? atBlock});
 }

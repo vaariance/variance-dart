@@ -110,7 +110,6 @@ abstract class BundlerProviderBase {
   /// validateBundlerMethod('eth_sendUserOperation');
   /// ```
   static validateBundlerMethod(String method) {
-    assert(methods.contains(method),
-        "validateMethod: method ::'$method':: is not a valid method");
+    assert(methods.contains(method), InvalidBundlerMethod(method));
   }
 }

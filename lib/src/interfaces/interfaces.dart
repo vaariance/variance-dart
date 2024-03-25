@@ -7,6 +7,7 @@ import '../../variance.dart'
     show
         Chain,
         EntryPoint,
+        InvalidBundlerMethod,
         UserOperation,
         UserOperationByHash,
         UserOperationGas,

@@ -33,7 +33,8 @@ class Paymaster {
   }
 
   Paymaster(this._chain, [this._context])
-      : assert(isURL(_chain.paymasterUrl), "invalid paymaster Url"),
+      : assert(isURL(_chain.paymasterUrl),
+            InvalidPaymasterUrl(_chain.paymasterUrl)),
         _rpc = RPCBase(_chain.paymasterUrl!);
 
   Future<UserOperation> intercept(UserOperation operation) async {

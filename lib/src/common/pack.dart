@@ -21,6 +21,19 @@ Uint8List packUints(BigInt high128, BigInt low128) {
   return hexToBytes(combined.toRadixString(16).padLeft(64, '0'));
 }
 
+/// Unpacks two 128-bit unsigned integers from a 32-byte array.
+///
+/// Parameters:
+/// - [bytes]: The 32-byte array containing the packed bytes.
+///
+/// Returns a list containing the unpacked high and low 128-bit unsigned integers.
+///
+/// Example:
+/// ```dart
+/// final bytes = Uint8List.fromList([0x01, 0x02, 0x03, 0x04]);
+/// final unpacked = unpackUints(bytes);
+/// print(unpacked);
+/// ```
 List<BigInt> unpackUints(Uint8List bytes) {
   final hex = bytesToHex(bytes);
   final value = BigInt.parse(hex, radix: 16);

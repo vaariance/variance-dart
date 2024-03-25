@@ -4,7 +4,7 @@ class BundlerProvider implements BundlerProviderBase {
   final RPCBase _rpc;
 
   BundlerProvider(Chain chain)
-      : assert(isURL(chain.bundlerUrl), "invalid bundler Url"),
+      : assert(isURL(chain.bundlerUrl), InvalidBundlerUrl(chain.bundlerUrl)),
         _rpc = RPCBase(chain.bundlerUrl!) {
     _rpc
         .send<String>('eth_chainId')
@@ -65,7 +65,7 @@ class JsonRPCProvider implements JsonRPCProviderBase {
   final RPCBase rpc;
 
   JsonRPCProvider(Chain chain)
-      : assert(isURL(chain.jsonRpcUrl), "invalid jsonRpc Url"),
+      : assert(isURL(chain.jsonRpcUrl), InvalidJsonRpcUrl(chain.jsonRpcUrl)),
         rpc = RPCBase(chain.jsonRpcUrl!);
 
   @override

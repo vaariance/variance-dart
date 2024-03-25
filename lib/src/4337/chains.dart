@@ -52,69 +52,21 @@ class Chains {
       jsonRpcUrl: "https://arb1.arbitrum.io/rpc",
       entrypoint: EntryPoint.v06,
     ),
-    Network.mantle: Chain(
-      chainId: 5000,
-      explorer: "https://explorer.mantle.xyz/",
-      jsonRpcUrl: "https://rpc.mantle.xyz/",
-      entrypoint: EntryPoint.v06,
-    ),
     Network.linea: Chain(
         chainId: 59144,
         explorer: "https://lineascan.build/",
         jsonRpcUrl: "https://rpc.linea.build",
         entrypoint: EntryPoint.v06),
-    Network.avalanche: Chain(
-      chainId: 43114,
-      explorer: "https://snowtrace.io/",
-      jsonRpcUrl: "https://api.avax.network/ext/bc/C/rpc",
-      entrypoint: EntryPoint.v06,
-    ),
-    Network.gnosis: Chain(
-      chainId: 100,
-      explorer: "https://gnosisscan.io/",
-      jsonRpcUrl: "https://rpc.ankr.com/gnosis",
-      entrypoint: EntryPoint.v06,
-    ),
-    Network.celo: Chain(
-      chainId: 42220,
-      explorer: "https://celoscan.io/",
-      jsonRpcUrl: "https://forno.celo.org",
-      entrypoint: EntryPoint.v06,
-    ),
-    Network.fantom: Chain(
-      chainId: 250,
-      explorer: "https://ftmscan.com/",
-      jsonRpcUrl: "https://rpc.fantom.network",
-      entrypoint: EntryPoint.v06,
-    ),
     Network.opBnB: Chain(
       chainId: 204,
       explorer: "http://opbnbscan.com/",
       jsonRpcUrl: "https://opbnb-mainnet-rpc.bnbchain.org",
       entrypoint: EntryPoint.v06,
     ),
-    Network.arbitrumNova: Chain(
-      chainId: 42170,
-      explorer: "https://nova.arbiscan.io/",
-      jsonRpcUrl: "https://nova.arbitrum.io/rpc",
-      entrypoint: EntryPoint.v06,
-    ),
-    Network.polygonzkEvm: Chain(
-      chainId: 1101,
-      explorer: "https://zkevm.polygonscan.com/",
-      jsonRpcUrl: "https://polygonzkevm-mainnet.g.alchemy.com/v2/demo",
-      entrypoint: EntryPoint.v06,
-    ),
     Network.scroll: Chain(
       chainId: 534352,
       explorer: "https://scrollscan.com/",
       jsonRpcUrl: "https://rpc.scroll.io/",
-      entrypoint: EntryPoint.v06,
-    ),
-    Network.mode: Chain(
-      chainId: 34443,
-      explorer: "https://explorer.mode.network/",
-      jsonRpcUrl: "https://mainnet.mode.network/",
       entrypoint: EntryPoint.v06,
     ),
     Network.sepolia: Chain(
@@ -133,18 +85,6 @@ class Chains {
       chainId: 84531,
       explorer: "https://sepolia.basescan.org",
       jsonRpcUrl: "https://api-sepolia.basescan.org/api",
-      entrypoint: EntryPoint.v06,
-    ),
-    Network.fuji: Chain(
-      chainId: 43113,
-      explorer: "https://testnet.snowtrace.io/",
-      jsonRpcUrl: "https://api.avax-test.network/ext/bc/C/rpc",
-      entrypoint: EntryPoint.v06,
-    ),
-    Network.katla: Chain(
-      chainId: 167008,
-      explorer: "https://explorer.katla.taiko.xyz/",
-      jsonRpcUrl: "https://rpc.katla.taiko.xyz",
       entrypoint: EntryPoint.v06,
     ),
     Network.localhost: Chain(
@@ -193,24 +133,14 @@ enum Network {
   optimism,
   base,
   arbitrumOne,
-  mantle,
   linea,
-  avalanche,
-  gnosis,
-  celo,
-  fantom,
   opBnB,
-  arbitrumNova,
-  polygonzkEvm,
   scroll,
-  mode,
 
   // testnet
   sepolia,
   mumbai,
   baseTestent,
-  fuji,
-  katla,
 
   // localhost
   localhost

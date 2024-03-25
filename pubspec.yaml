@@ -27,8 +27,6 @@ dev_dependencies:
   web3dart_builders: ^0.0.7
   build_runner: ^2.4.6
   flutter_lints: ^3.0.0
-  freezed: ^2.4.5
-  json_serializable: ^6.7.1
   mockito: ^5.4.2
 
 topics:

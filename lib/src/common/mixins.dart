@@ -14,7 +14,7 @@ class GasSettings {
     this.userDefinedMaxPriorityFeePerGas,
     this.retryFailedSendUserOp = false,
   }) : assert(gasMultiplierPercentage! >= 0,
-            'Gas multiplier percentage should be 0 to 100');
+            RangeOutOfBounds("Wrong Gas multiplier percentage", 0, 100));
 }
 
 mixin _GasSettings {

@@ -134,5 +134,5 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
           .estimateUserOperationGas(op.toMap(), _chain.entrypoint)
           .then((opGas) => op.updateOpGas(opGas, feePerGas))
           .then((op) => multiply(op))
-          .catchError((e) => throw EstimateError(e.toString(), op));
+          .catchError((e) => throw GasEstimationError(e.toString(), op));
 }
