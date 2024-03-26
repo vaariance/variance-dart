@@ -1,12 +1,12 @@
 part of '../../variance.dart';
 
 class BundlerProvider implements BundlerProviderBase {
-  final RPCBase _rpc;
+  final RPCBase rpc;
 
   BundlerProvider(Chain chain)
       : assert(isURL(chain.bundlerUrl), InvalidBundlerUrl(chain.bundlerUrl)),
-        _rpc = RPCBase(chain.bundlerUrl!) {
-    _rpc
+        rpc = RPCBase(chain.bundlerUrl!) {
+    rpc
         .send<String>('eth_chainId')
         .then(BigInt.parse)
         .then((value) => value.toInt() == chain.chainId)
@@ -20,7 +20,7 @@ class BundlerProvider implements BundlerProviderBase {
       Map<String, dynamic> userOp, EntryPointAddress entrypoint) async {
     Logger.conditionalWarning(
         !_initialized, "estimateUserOpGas may fail: chainId mismatch");
-    final opGas = await _rpc.send<Map<String, dynamic>>(
+    final opGas = await rpc.send<Map<String, dynamic>>(
         'eth_estimateUserOperationGas', [userOp, entrypoint.hex]);
     return UserOperationGas.fromMap(opGas);
   }
@@ -29,7 +29,7 @@ class BundlerProvider implements BundlerProviderBase {
   Future<UserOperationByHash> getUserOperationByHash(String userOpHash) async {
     Logger.conditionalWarning(
         !_initialized, "getUserOpByHash may fail: chainId mismatch");
-    final opExtended = await _rpc
+    final opExtended = await rpc
         .send<Map<String, dynamic>>('eth_getUserOperationByHash', [userOpHash]);
     return UserOperationByHash.fromMap(opExtended);
   }
@@ -38,7 +38,7 @@ class BundlerProvider implements BundlerProviderBase {
   Future<UserOperationReceipt> getUserOpReceipt(String userOpHash) async {
     Logger.conditionalWarning(
         !_initialized, "getUserOpReceipt may fail: chainId mismatch");
-    final opReceipt = await _rpc.send<Map<String, dynamic>>(
+    final opReceipt = await rpc.send<Map<String, dynamic>>(
         'eth_getUserOperationReceipt', [userOpHash]);
     return UserOperationReceipt.fromMap(opReceipt);
   }
@@ -48,7 +48,7 @@ class BundlerProvider implements BundlerProviderBase {
       EntryPointAddress entrypoint, RPCBase fallback) async {
     Logger.conditionalWarning(
         !_initialized, "sendUserOp may fail: chainId mismatch");
-    final opHash = await _rpc
+    final opHash = await rpc
         .send<String>('eth_sendUserOperation', [userOp, entrypoint.hex]);
     return UserOperationResponse(opHash, entrypoint, fallback);
   }
@@ -56,7 +56,7 @@ class BundlerProvider implements BundlerProviderBase {
   @override
   Future<List<String>> supportedEntryPoints() async {
     final entrypointList =
-        await _rpc.send<List<dynamic>>('eth_supportedEntryPoints');
+        await rpc.send<List<dynamic>>('eth_supportedEntryPoints');
     return List.castFrom(entrypointList);
   }
 }

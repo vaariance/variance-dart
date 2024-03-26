@@ -133,7 +133,7 @@ class Contract {
     return encodeFunctionCall(
       'approve',
       address,
-      ContractAbis.get('ERC20'),
+      ContractAbis.get('ERC20_Approve'),
       [spender, amount.getInWei],
     );
   }
@@ -165,7 +165,7 @@ class Contract {
     return encodeFunctionCall(
       'transfer',
       address,
-      ContractAbis.get('ERC20'),
+      ContractAbis.get('ERC20_Transfer'),
       [recipient, amount.getInWei],
     );
   }
@@ -192,7 +192,7 @@ class Contract {
   static Uint8List encodeERC721ApproveCall(
       EthereumAddress contractAddress, EthereumAddress to, BigInt tokenId) {
     return encodeFunctionCall("approve", contractAddress,
-        ContractAbis.get("ERC721"), [to.hex, tokenId]);
+        ContractAbis.get("ERC721_Approve"), [to.hex, tokenId]);
   }
 
   /// Encodes an ERC-721 token safe transfer function call.
@@ -218,8 +218,11 @@ class Contract {
   /// This method uses the ERC-721 contract ABI  to return a `calldata` for 'safeTransferFrom' function call.
   static Uint8List encodeERC721SafeTransferCall(EthereumAddress contractAddress,
       EthereumAddress from, EthereumAddress to, BigInt tokenId) {
-    return encodeFunctionCall("safeTransferFrom", contractAddress,
-        ContractAbis.get("ERC721"), [from.hex, to.hex, tokenId]);
+    return encodeFunctionCall(
+        "safeTransferFrom",
+        contractAddress,
+        ContractAbis.get("ERC721_SafeTransferFrom"),
+        [from.hex, to.hex, tokenId]);
   }
 
   /// Encodes a function call for a smart contract.
