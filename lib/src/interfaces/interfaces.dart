@@ -6,7 +6,7 @@ import 'package:web3dart/web3dart.dart';
 import '../../variance.dart'
     show
         Chain,
-        EntryPoint,
+        EntryPointAddress,
         InvalidBundlerMethod,
         RPCBase,
         UserOperation,
@@ -15,7 +15,7 @@ import '../../variance.dart'
         UserOperationReceipt,
         UserOperationResponse;
 
-part 'account_factory.dart';
+part 'account_factories.dart';
 part 'bundler_provider.dart';
 
 part 'rpc_provider.dart';

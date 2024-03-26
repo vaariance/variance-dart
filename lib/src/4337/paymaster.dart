@@ -50,7 +50,7 @@ class Paymaster {
   }
 
   Future<PaymasterResponse> sponsorUserOperation(Map<String, dynamic> userOp,
-      EntryPoint entrypoint, Map<String, String>? context) async {
+      EntryPointAddress entrypoint, Map<String, String>? context) async {
     final response = await _rpc.send<Map<String, dynamic>>(
         'pm_sponsorUserOperation', [userOp, entrypoint.hex, context]);
     return PaymasterResponse.fromMap(response);

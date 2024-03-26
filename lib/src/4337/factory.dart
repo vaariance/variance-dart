@@ -16,25 +16,20 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     _contract = Contract(_jsonRpc.rpc);
   }
 
-  _SimpleAccountFactory get _simpleAccountfactory => _SimpleAccountFactory(
-      address: _chain.accountFactory!,
-      chainId: _chain.chainId,
-      rpc: _jsonRpc.rpc);
-
   _P256AccountFactory get _p256Accountfactory => _P256AccountFactory(
       address: _chain.accountFactory!,
       chainId: _chain.chainId,
       rpc: _jsonRpc.rpc);
 
-  // SafeAccountFactory
+  _SafeProxyFactory get _safeProxyFactory => _SafeProxyFactory(
+      address: _chain.accountFactory!,
+      chainId: _chain.chainId,
+      rpc: _jsonRpc.rpc);
 
-  Future<SmartWallet> createSimpleAccount(Uint256 salt, {int? index}) async {
-    final signer = _signer.getAddress(index: index ?? 0);
-    final address = await _simpleAccountfactory.getAddress(
-        EthereumAddress.fromHex(signer), salt.value);
-    final initCode = _getInitCode('createAccount', [signer, salt.value]);
-    return _createAccount(_chain, address, initCode);
-  }
+  _SimpleAccountFactory get _simpleAccountfactory => _SimpleAccountFactory(
+      address: _chain.accountFactory!,
+      chainId: _chain.chainId,
+      rpc: _jsonRpc.rpc);
 
   Future<SmartWallet> createP256Account<T>(T keyPair, Uint256 salt,
       [EthereumAddress? recoveryAddress]) {
@@ -51,9 +46,30 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     }
   }
 
-  Future<SmartWallet> createSafeAccount() {
-    // TODO: implement createSafeAccount
-    throw UnimplementedError();
+  Future<SmartWallet> createSafeAccount(Uint256 salt, {int? index}) async {
+    final signer = _signer.getAddress(index: index ?? 0);
+    final initializer =
+        _safeProxyFactory.getInitializer(EthereumAddress.fromHex(signer));
+    final creation = await _safeProxyFactory.proxyCreationCode();
+    final address =
+        _safeProxyFactory.getPredictedSafe(initializer, salt, creation);
+    final initCallData = _safeProxyFactory.self
+        .function("createProxyWithNonce")
+        .encodeCall(
+            [_safeProxyFactory.safeSingletonAddress, initializer, salt.value]);
+    final initCode = _getInitCode(initCallData);
+    return _createAccount(_chain, address, initCode);
+  }
+
+  Future<SmartWallet> createSimpleAccount(Uint256 salt, {int? index}) async {
+    final signer = _signer.getAddress(index: index ?? 0);
+    final address = await _simpleAccountfactory.getAddress(
+        EthereumAddress.fromHex(signer), salt.value);
+    final initCalldata = _simpleAccountfactory.self
+        .function('createAccount')
+        .encodeCall([signer, salt.value]);
+    final initCode = _getInitCode(initCalldata);
+    return _createAccount(_chain, address, initCode);
   }
 
   Future<SmartWallet> createVendorAccount(
@@ -61,6 +77,15 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     Uint8List initCode,
   ) async {
     return _createAccount(_chain, address, initCode);
+  }
+
+  SmartWallet _createAccount(
+      Chain chain, EthereumAddress address, Uint8List initCalldata) {
+    return SmartWallet(chain, address, initCalldata)
+      ..addPlugin('signer', _signer)
+      ..addPlugin('bundler', _bundler)
+      ..addPlugin('jsonRpc', _jsonRpc)
+      ..addPlugin('contract', _contract);
   }
 
   Future<SmartWallet> _createPasskeyAccount(PassKeyPair pkp, Uint256 salt,
@@ -77,7 +102,10 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       pkp.publicKey.item2.value,
     ]);
 
-    final initCode = _getInitCode('createP256Account', [creation, salt.value]);
+    final initCalldata = _p256Accountfactory.self
+        .function('createP256Account')
+        .encodeCall([creation, salt.value]);
+    final initCode = _getInitCode(initCalldata);
     final address =
         await _p256Accountfactory.getP256AccountAddress(salt.value, creation);
     return _createAccount(_chain, address, initCode);
@@ -98,24 +126,16 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       p256.publicKey.item2.value,
     ]);
 
-    final initCode = _getInitCode('createP256Account', [creation, salt.value]);
+    final initCalldata = _p256Accountfactory.self
+        .function('createP256Account')
+        .encodeCall([creation, salt.value]);
+    final initCode = _getInitCode(initCalldata);
     final address =
         await _p256Accountfactory.getP256AccountAddress(salt.value, creation);
     return _createAccount(_chain, address, initCode);
   }
 
-  SmartWallet _createAccount(
-      Chain chain, EthereumAddress address, Uint8List initCalldata) {
-    return SmartWallet(chain, address, initCalldata)
-      ..addPlugin('signer', _signer)
-      ..addPlugin('bundler', _bundler)
-      ..addPlugin('jsonRpc', _jsonRpc)
-      ..addPlugin('contract', _contract);
-  }
-
-  Uint8List _getInitCode(String functionName, List params) {
-    final initCalldata =
-        _simpleAccountfactory.self.function(functionName).encodeCall(params);
+  Uint8List _getInitCode(Uint8List initCalldata) {
     List<int> extended = _chain.accountFactory!.addressBytes.toList();
     extended.addAll(initCalldata);
     return Uint8List.fromList(extended);

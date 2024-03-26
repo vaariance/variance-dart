@@ -20,7 +20,7 @@ abstract class BundlerProviderBase {
   ///
   /// Parameters:
   ///   - `userOp`: A map containing the user operation data.
-  ///   - `entrypoint`: The [EntryPoint] representing the entrypoint for the operation.
+  ///   - `entrypoint`: The [EntryPointAddress] representing the entrypoint for the operation.
   ///
   /// Returns:
   ///   A [Future] that completes with a [UserOperationGas] instance representing the estimated gas values.
@@ -34,7 +34,7 @@ abstract class BundlerProviderBase {
   /// ```
   /// This method uses the bundled RPC to estimate the gas cost for the provided user operation data.
   Future<UserOperationGas> estimateUserOperationGas(
-      Map<String, dynamic> userOp, EntryPoint entrypoint);
+      Map<String, dynamic> userOp, EntryPointAddress entrypoint);
 
   /// Asynchronously retrieves information about a user operation using its hash.
   ///
@@ -70,7 +70,7 @@ abstract class BundlerProviderBase {
   ///
   /// Parameters:
   ///   - `userOp`: A map containing the user operation data.
-  ///   - `entrypoint`: The [EntryPoint] representing the entrypoint for the operation.
+  ///   - `entrypoint`: The [EntryPointAddress] representing the entrypoint for the operation.
   ///
   /// Returns:
   ///   A [Future] that completes with a [UserOperationResponse] containing information about the executed operation.
@@ -84,7 +84,7 @@ abstract class BundlerProviderBase {
   /// ```
   /// This method uses the bundled RPC to send the specified user operation for execution and returns the response.
   Future<UserOperationResponse> sendUserOperation(
-      Map<String, dynamic> userOp, EntryPoint entrypoint, RPCBase rpc);
+      Map<String, dynamic> userOp, EntryPointAddress entrypoint, RPCBase rpc);
 
   /// Asynchronously retrieves a list of supported entrypoints from the bundler.
   ///

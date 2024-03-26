@@ -146,7 +146,7 @@ class UserOperation implements UserOperationBase {
   @override
   Uint8List hash(Chain chain) {
     Uint8List encoded;
-    if (chain.entrypoint == EntryPoint.v07) {
+    if (chain.entrypoint == EntryPointAddress.v07) {
       encoded = keccak256(abi.encode([
         'address',
         'uint256',
@@ -349,7 +349,7 @@ class UserOperationEventFilter extends FilterOptions {
 
 class UserOperationResponse {
   final String userOpHash;
-  final EntryPoint _entrypoint;
+  final EntryPointAddress _entrypoint;
   final RPCBase _rpc;
 
   UserOperationResponse(this.userOpHash, this._entrypoint, this._rpc);

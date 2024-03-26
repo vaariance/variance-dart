@@ -21,8 +21,14 @@ class ContractAbis {
       case 'executeBatch':
         abi =
             '[{"inputs":[{"internalType":"address[]","name":"dest","type":"address[]"},{"internalType":"uint256[]","name":"value","type":"uint256[]"},{"internalType":"bytes[]","name":"func","type":"bytes[]"}],"name":"executeBatch","outputs":[],"stateMutability":"nonpayable","type":"function"}]';
+      case 'enableModules':
+        abi =
+            '[{"type":"function","name":"enableModules","inputs":[{"name":"modules","type":"address[]","internalType":"address[]"}],"outputs":[],"stateMutability":"nonpayable"}]';
+      case 'setup':
+        abi =
+            '[{"type":"function","name":"setup","inputs":[{"name":"_owners","type":"address[]","internalType":"address[]"},{"name":"_threshold","type":"uint256","internalType":"uint256"},{"name":"to","type":"address","internalType":"address"},{"name":"data","type":"bytes","internalType":"bytes"},{"name":"fallbackHandler","type":"address","internalType":"address"},{"name":"paymentToken","type":"address","internalType":"address"},{"name":"payment","type":"uint256","internalType":"uint256"},{"name":"paymentReceiver","type":"address","internalType":"address payable"}],"outputs":[],"stateMutability":"nonpayable"}]';
       default:
-        throw 'ABI of $name is not available, but you can add it yourself';
+        throw 'ABI of $name is not available by default. Please provide the ABI manually.';
     }
     return ContractAbi.fromJson(abi, name);
   }

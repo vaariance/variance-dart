@@ -17,7 +17,7 @@ class BundlerProvider implements BundlerProviderBase {
 
   @override
   Future<UserOperationGas> estimateUserOperationGas(
-      Map<String, dynamic> userOp, EntryPoint entrypoint) async {
+      Map<String, dynamic> userOp, EntryPointAddress entrypoint) async {
     Logger.conditionalWarning(
         !_initialized, "estimateUserOpGas may fail: chainId mismatch");
     final opGas = await _rpc.send<Map<String, dynamic>>(
@@ -45,7 +45,7 @@ class BundlerProvider implements BundlerProviderBase {
 
   @override
   Future<UserOperationResponse> sendUserOperation(Map<String, dynamic> userOp,
-      EntryPoint entrypoint, RPCBase fallback) async {
+      EntryPointAddress entrypoint, RPCBase fallback) async {
     Logger.conditionalWarning(
         !_initialized, "sendUserOp may fail: chainId mismatch");
     final opHash = await _rpc
