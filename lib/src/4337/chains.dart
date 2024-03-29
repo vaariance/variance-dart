@@ -112,20 +112,14 @@ class Constants {
       EthereumAddress.fromHex("0x0000000000000000000000000000000000000000");
   static final EthereumAddress safeProxyFactoryAddress =
       EthereumAddress.fromHex("0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67");
+  static final EthereumAddress safe4337ModuleAddress =
+      EthereumAddress.fromHex("0xa581c4A4DB7175302464fF3C06380BC3270b4037");
+  static final EthereumAddress safeSingletonAddress =
+      EthereumAddress.fromHex("0x41675C099F32341bf84BFc5382aF534df5C7461a");
+  static final EthereumAddress safeModuleSetupAddress =
+      EthereumAddress.fromHex("0x8EcD4ec46D4D2a6B64fE960B3D64e8B94B2234eb");
 
   Constants._();
-}
-
-enum EntryPointAddress {
-  v06(0.6, "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"),
-  v07(0.7, "0x0000000071727De22E5E9d8BAf0edAc6f37da032");
-
-  final double version;
-  final String hex;
-
-  const EntryPointAddress(this.version, this.hex);
-
-  EthereumAddress get address => EthereumAddress.fromHex(hex);
 }
 
 enum Network {
@@ -146,4 +140,35 @@ enum Network {
 
   // localhost
   localhost
+}
+
+class EntryPointAddress {
+  static EntryPointAddress get v06 =>
+      EntryPointAddress(0.6, Constants.entrypointv06);
+  static EntryPointAddress get v07 =>
+      EntryPointAddress(0.7, Constants.entrypointv07);
+
+  final double version;
+  final EthereumAddress address;
+
+  const EntryPointAddress(this.version, this.address);
+}
+
+class Safe4337ModuleAddress {
+  static Safe4337ModuleAddress v06 =
+      Safe4337ModuleAddress(0.6, Constants.safe4337ModuleAddress);
+
+  final double version;
+  final EthereumAddress address;
+
+  const Safe4337ModuleAddress(this.version, this.address);
+
+  factory Safe4337ModuleAddress.fromVersion(double version) {
+    switch (version) {
+      case 0.6:
+        return Safe4337ModuleAddress.v06;
+      default:
+        throw Exception("Unsupported version: $version");
+    }
+  }
 }

@@ -2,10 +2,10 @@ part of '../../variance.dart';
 
 /// A wrapper for interacting with deployed Ethereum contracts through [JsonRPCProvider].
 class Contract {
-  final RPCBase _rpc;
+  final RPCBase rpc;
 
   Contract(
-    this._rpc,
+    this.rpc,
   );
 
   /// Asynchronously calls a function on a smart contract with the provided parameters.
@@ -43,7 +43,7 @@ class Contract {
           : "0x",
       if (sender != null) 'from': sender.hex,
     };
-    return _rpc.send<String>('eth_call', [
+    return rpc.send<String>('eth_call', [
       calldata,
       BlockNum.current().toBlockParam()
     ]).then((value) => function.decodeReturnValues(value));
@@ -71,7 +71,7 @@ class Contract {
     if (address == null) {
       return Future.value(false);
     }
-    final isDeployed = _rpc
+    final isDeployed = rpc
         .send<String>('eth_getCode', [address.hex, atBlock.toBlockParam()])
         .then(hexToBytes)
         .then((value) => value.isNotEmpty);
@@ -100,7 +100,7 @@ class Contract {
     if (address == null) {
       return Future.value(EtherAmount.zero());
     }
-    return _rpc
+    return rpc
         .send<String>('eth_getBalance', [address.hex, atBlock.toBlockParam()])
         .then(BigInt.parse)
         .then((value) => EtherAmount.fromBigInt(EtherUnit.wei, value));
@@ -276,17 +276,21 @@ class Contract {
   static Uint8List execute(EthereumAddress walletAddress,
       {required EthereumAddress to,
       EtherAmount? amount,
-      Uint8List? innerCallData}) {
+      Uint8List? innerCallData,
+      bool isSafe = false}) {
     final params = [
       to,
       amount?.getInWei ?? EtherAmount.zero().getInWei,
-      innerCallData ?? Uint8List.fromList([])
+      innerCallData ?? Uint8List(0)
     ];
 
+    if (isSafe) params.add(BigInt.zero);
+    final method = isSafe ? 'executeUserOpWithErrorString' : 'execute';
+
     return encodeFunctionCall(
-      'execute',
+      method,
       walletAddress,
-      ContractAbis.get('execute'),
+      ContractAbis.get(method),
       params,
     );
   }
@@ -322,11 +326,17 @@ class Contract {
       {required EthereumAddress walletAddress,
       required List<EthereumAddress> recipients,
       List<EtherAmount>? amounts,
-      List<Uint8List>? innerCalls}) {
+      List<Uint8List>? innerCalls,
+      bool isSafe = false}) {
+    if (isSafe) {
+      throw UnimplementedError(
+          "Batch Transactions with Safe are not yet implemented.");
+    }
+
     final params = [
       recipients,
       amounts?.map<BigInt>((e) => e.getInWei) ?? [],
-      innerCalls ?? Uint8List.fromList([]),
+      innerCalls ?? Uint8List(0),
     ];
     if (innerCalls == null || innerCalls.isEmpty) {
       require(amounts != null && amounts.isNotEmpty, "malformed batch request");

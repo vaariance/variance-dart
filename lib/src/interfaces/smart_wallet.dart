@@ -28,6 +28,9 @@ abstract class SmartWalletBase {
   /// Converts the Smart Wallet address to its hexadecimal representation.
   String? get toHex;
 
+  /// Retrieves the dummy signature required for gas estimation from the Smart Wallet.
+  String get dummySignature;
+
   /// Builds a [UserOperation] instance with the specified parameters.
   ///
   /// Parameters:
@@ -62,6 +65,7 @@ abstract class SmartWalletBase {
   /// ```dart
   /// dangerouslySetInitCallData(Uint8List.fromList([0x01, 0x02, 0x03]));
   /// ```
+  @Deprecated("Not recommended to modify the initcode")
   void dangerouslySetInitCode(Uint8List code);
 
   /// Asynchronously transfers native Token (ETH) to the specified recipient with the given amount.
@@ -191,9 +195,8 @@ abstract class SmartWalletBase {
   /// var signedOperation = await signUserOperation(myUserOperation, index: 0); // signer 0
   /// var signedOperation = await signUserOperation(myUserOperation, index: 1); // signer 1
   /// ```
-  Future<UserOperation> signUserOperation(
-    UserOperation userOp, {
-    bool update = true,
-    int? index,
-  });
+  Future<UserOperation> signUserOperation(UserOperation op, {int? index});
+
+  Future<UserOperation> prepareUserOperation(UserOperation op,
+      {bool update = true});
 }

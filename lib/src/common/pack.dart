@@ -41,3 +41,19 @@ List<BigInt> unpackUints(Uint8List bytes) {
       BigInt.from(0xFFFFFFFFFFFFFFFF) << 64 | BigInt.from(0xFFFFFFFFFFFFFFFF);
   return [value >> 128, value & mask];
 }
+
+Map<String, dynamic> packUserOperation(UserOperation userOp) {
+  return {
+    'sender': userOp.sender.hex,
+    'nonce': '0x${userOp.nonce.toRadixString(16)}',
+    'initCode': hexlify(userOp.initCode),
+    'callData': hexlify(userOp.callData),
+    'accountGasLimits':
+        hexlify(packUints(userOp.verificationGasLimit, userOp.callGasLimit)),
+    'preVerificationGas': '0x${userOp.preVerificationGas.toRadixString(16)}',
+    'gasFees':
+        hexlify(packUints(userOp.maxPriorityFeePerGas, userOp.maxFeePerGas)),
+    'signature': userOp.signature,
+    'paymasterAndData': hexlify(userOp.paymasterAndData),
+  };
+}

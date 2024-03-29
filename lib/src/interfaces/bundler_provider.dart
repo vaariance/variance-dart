@@ -64,7 +64,7 @@ abstract class BundlerProviderBase {
   /// var userOpReceipt = await getUserOpReceipt('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef');
   /// ```
   /// This method uses the bundled RPC to fetch the receipt of the specified user operation using its hash.
-  Future<UserOperationReceipt> getUserOpReceipt(String userOpHash);
+  Future<UserOperationReceipt?> getUserOpReceipt(String userOpHash);
 
   /// Asynchronously sends a user operation to the bundler for execution.
   ///
@@ -84,7 +84,7 @@ abstract class BundlerProviderBase {
   /// ```
   /// This method uses the bundled RPC to send the specified user operation for execution and returns the response.
   Future<UserOperationResponse> sendUserOperation(
-      Map<String, dynamic> userOp, EntryPointAddress entrypoint, RPCBase rpc);
+      Map<String, dynamic> userOp, EntryPointAddress entrypoint);
 
   /// Asynchronously retrieves a list of supported entrypoints from the bundler.
   ///

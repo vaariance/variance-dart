@@ -26,4 +26,5 @@ part 'src/common/contract.dart';
 part 'src/common/factories.dart';
 part 'src/common/mixins.dart';
 part 'src/common/pack.dart';
+part 'src/4337/safe.dart';
 part 'src/errors/wallet_errors.dart';

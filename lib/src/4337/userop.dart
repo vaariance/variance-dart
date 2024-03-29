@@ -146,7 +146,7 @@ class UserOperation implements UserOperationBase {
   @override
   Uint8List hash(Chain chain) {
     Uint8List encoded;
-    if (chain.entrypoint == EntryPointAddress.v07) {
+    if (chain.entrypoint.version >= EntryPointAddress.v07.version) {
       encoded = keccak256(abi.encode([
         'address',
         'uint256',
@@ -230,7 +230,7 @@ class UserOperation implements UserOperationBase {
     );
   }
 
-  Future<void> validate(bool deployed, [String? initCode]) async {
+  void validate(bool deployed, [String? initCode]) {
     require(
         deployed
             ? hexlify(this.initCode).toLowerCase() == "0x"
@@ -333,56 +333,44 @@ class UserOperationReceipt {
   }
 }
 
-class UserOperationEventFilter extends FilterOptions {
-  UserOperationEventFilter.events({
-    required super.contract,
-    required super.event,
-    super.fromBlock,
-    super.toBlock,
-    required String userOpHash,
-  }) : super.events() {
-    if (userOpHash.isNotEmpty) {
-      topics?.add([userOpHash]);
-    }
-  }
-}
-
 class UserOperationResponse {
   final String userOpHash;
-  final EntryPointAddress _entrypoint;
-  final RPCBase _rpc;
+  final Future<UserOperationReceipt?> Function(String) _callback;
 
-  UserOperationResponse(this.userOpHash, this._entrypoint, this._rpc);
+  UserOperationResponse(this.userOpHash, this._callback);
 
-  Future<FilterEvent?> wait([int millisecond = 3000]) async {
-    final end = DateTime.now().millisecondsSinceEpoch + millisecond;
+  Future<UserOperationReceipt?> wait(
+      [Duration timeout = const Duration(seconds: 15),
+      Duration pollInterval = const Duration(seconds: 2)]) async {
+    assert(
+        timeout.inSeconds > 0,
+        RangeError.value(
+            timeout.inSeconds, "timeout", "wait timeout must be >= 0 sec"));
+    assert(
+        pollInterval.inSeconds > 0,
+        RangeError.value(pollInterval.inSeconds, "pollInterval",
+            "pollInterval must be >= 0 sec"));
+    assert(
+        pollInterval < timeout,
+        RangeError.value(
+            timeout.inSeconds, "timeout", "timeout must be > pollInterval"));
 
     return await Isolate.run(() async {
-      final client = Web3Client.custom(_rpc);
-      final entrypoint =
-          Entrypoint(address: _entrypoint.address, client: client);
+      Duration count = Duration.zero;
 
-      final block = await client.getBlockNumber();
-      while (DateTime.now().millisecondsSinceEpoch < end) {
-        final filterEvent = await client
-            .events(
-              UserOperationEventFilter.events(
-                contract: entrypoint.self,
-                event: entrypoint.self.event('UserOperationEvent'),
-                userOpHash: userOpHash,
-                fromBlock: BlockNum.exact(block - 100),
-              ),
-            )
-            .take(1)
-            .first;
-        if (filterEvent.transactionHash != null) {
-          return filterEvent;
+      while (count < timeout) {
+        await Future.delayed(pollInterval);
+
+        final receipt = await _callback(userOpHash);
+        if (receipt != null) {
+          return receipt;
         }
 
-        await Future.delayed(Duration(milliseconds: millisecond));
+        count += pollInterval;
       }
 
-      return null;
+      throw TimeoutException(
+          "can't find useroperation with hash $userOpHash", timeout);
     });
   }
 }

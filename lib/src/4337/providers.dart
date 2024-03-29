@@ -21,7 +21,7 @@ class BundlerProvider implements BundlerProviderBase {
     Logger.conditionalWarning(
         !_initialized, "estimateUserOpGas may fail: chainId mismatch");
     final opGas = await rpc.send<Map<String, dynamic>>(
-        'eth_estimateUserOperationGas', [userOp, entrypoint.hex]);
+        'eth_estimateUserOperationGas', [userOp, entrypoint.address.hex]);
     return UserOperationGas.fromMap(opGas);
   }
 
@@ -35,7 +35,7 @@ class BundlerProvider implements BundlerProviderBase {
   }
 
   @override
-  Future<UserOperationReceipt> getUserOpReceipt(String userOpHash) async {
+  Future<UserOperationReceipt?> getUserOpReceipt(String userOpHash) async {
     Logger.conditionalWarning(
         !_initialized, "getUserOpReceipt may fail: chainId mismatch");
     final opReceipt = await rpc.send<Map<String, dynamic>>(
@@ -44,13 +44,13 @@ class BundlerProvider implements BundlerProviderBase {
   }
 
   @override
-  Future<UserOperationResponse> sendUserOperation(Map<String, dynamic> userOp,
-      EntryPointAddress entrypoint, RPCBase fallback) async {
+  Future<UserOperationResponse> sendUserOperation(
+      Map<String, dynamic> userOp, EntryPointAddress entrypoint) async {
     Logger.conditionalWarning(
         !_initialized, "sendUserOp may fail: chainId mismatch");
-    final opHash = await rpc
-        .send<String>('eth_sendUserOperation', [userOp, entrypoint.hex]);
-    return UserOperationResponse(opHash, entrypoint, fallback);
+    final opHash = await rpc.send<String>(
+        'eth_sendUserOperation', [userOp, entrypoint.address.hex]);
+    return UserOperationResponse(opHash, getUserOpReceipt);
   }
 
   @override

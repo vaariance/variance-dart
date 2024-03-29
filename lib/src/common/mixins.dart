@@ -6,13 +6,11 @@ class GasSettings {
   Percent? gasMultiplierPercentage;
   BigInt? userDefinedMaxFeePerGas;
   BigInt? userDefinedMaxPriorityFeePerGas;
-  bool retryFailedSendUserOp;
 
   GasSettings({
     this.gasMultiplierPercentage = 0,
     this.userDefinedMaxFeePerGas,
     this.userDefinedMaxPriorityFeePerGas,
-    this.retryFailedSendUserOp = false,
   }) : assert(gasMultiplierPercentage! >= 0,
             RangeOutOfBounds("Wrong Gas multiplier percentage", 0, 100));
 }
@@ -32,14 +30,6 @@ mixin _GasSettings {
         preVerificationGas: op.preVerificationGas * multiplier,
         maxFeePerGas: _gasParams.userDefinedMaxFeePerGas,
         maxPriorityFeePerGas: _gasParams.userDefinedMaxPriorityFeePerGas);
-  }
-
-  Future<UserOperationResponse> retryOp(
-      Future<UserOperationResponse> Function() callback, dynamic err) {
-    if (_gasParams.retryFailedSendUserOp) {
-      return callback();
-    }
-    throw err;
   }
 }
 

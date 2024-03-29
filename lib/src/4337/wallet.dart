@@ -32,10 +32,14 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   @override
   String? get toHex => _walletAddress.hexEip55;
 
+  @override
+  String get dummySignature => plugin<MSI>('signer').dummySignature;
+
   Future<BigInt> get _initCodeGas => plugin<JsonRPCProviderBase>('jsonRpc')
       .estimateGas(_chain.entrypoint.address, initCode);
 
   @override
+  @Deprecated("Not recommended to modify the initcode")
   void dangerouslySetInitCode(Uint8List code) {
     _initCode = code;
   }
@@ -55,8 +59,8 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   Future<UserOperationResponse> send(
           EthereumAddress recipient, EtherAmount amount) =>
       sendUserOperation(buildUserOperation(
-          callData:
-              Contract.execute(_walletAddress, to: recipient, amount: amount)));
+          callData: Contract.execute(_walletAddress,
+              to: recipient, amount: amount, isSafe: hasPlugin("safe"))));
 
   @override
   Future<UserOperationResponse> sendTransaction(
@@ -64,7 +68,10 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
           {EtherAmount? amount}) =>
       sendUserOperation(buildUserOperation(
           callData: Contract.execute(_walletAddress,
-              to: to, amount: amount, innerCallData: encodedFunctionData)));
+              to: to,
+              amount: amount,
+              innerCallData: encodedFunctionData,
+              isSafe: hasPlugin("safe"))));
 
   @override
   Future<UserOperationResponse> sendBatchedTransaction(
@@ -75,37 +82,43 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
               walletAddress: _walletAddress,
               recipients: recipients,
               amounts: amounts,
-              innerCalls: calls)));
+              innerCalls: calls,
+              isSafe: hasPlugin("safe"))));
 
   @override
   Future<UserOperationResponse> sendSignedUserOperation(UserOperation op) =>
       plugin<BundlerProviderBase>('bundler')
-          .sendUserOperation(
-              op.toMap(), _chain.entrypoint, plugin('jsonRpc').rpc)
+          .sendUserOperation(op.toMap(), _chain.entrypoint)
           .catchError((e) => throw SendError(e.toString(), op));
 
   @override
   Future<UserOperationResponse> sendUserOperation(UserOperation op) =>
-      signUserOperation(op)
-          .then(sendSignedUserOperation)
-          .catchError((e) => retryOp(() => sendSignedUserOperation(op), e));
+      prepareUserOperation(op)
+          .then(signUserOperation)
+          .then(sendSignedUserOperation);
 
   @override
-  Future<UserOperation> signUserOperation(UserOperation userOp,
-      {bool update = true, int? index}) async {
-    if (update) userOp = await _updateUserOperation(userOp);
-
-    final opHash = userOp.hash(_chain);
+  Future<UserOperation> prepareUserOperation(UserOperation op,
+      {bool update = true}) async {
+    if (update) op = await _updateUserOperation(op);
     if (hasPlugin('paymaster')) {
-      userOp = await plugin<Paymaster>('paymaster').intercept(userOp);
+      op = await plugin<Paymaster>('paymaster').intercept(op);
     }
+    op.validate(op.nonce > BigInt.zero, initCode);
 
+    return op;
+  }
+
+  @override
+  Future<UserOperation> signUserOperation(UserOperation op,
+      {int? index}) async {
+    final opHash = hasPlugin("safe")
+        ? await plugin<_SafePlugin>("safe").getUserOperationHash(op)
+        : op.hash(_chain);
     Uint8List signature =
         await plugin<MSI>('signer').personalSign(opHash, index: index);
-
-    userOp.signature = hexlify(signature);
-    userOp.validate(userOp.nonce > BigInt.zero, initCode);
-    return userOp;
+    op.signature = hexlify(signature);
+    return op;
   }
 
   Future<Uint256> _getNonce() => isDeployed.then((deployed) => !deployed
@@ -125,7 +138,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
         op = op.copyWith(
             nonce: op.nonce > BigInt.zero ? op.nonce : responses[0].value,
             initCode: responses[0] > BigInt.zero ? Uint8List(0) : null,
-            signature: plugin<MSI>('signer').dummySignature);
+            signature: dummySignature);
         return _updateUserOperationGas(op, feePerGas: responses[1]);
       });
 

@@ -8,7 +8,6 @@ import '../../variance.dart'
         Chain,
         EntryPointAddress,
         InvalidBundlerMethod,
-        RPCBase,
         UserOperation,
         UserOperationByHash,
         UserOperationGas,
@@ -21,4 +20,5 @@ part 'bundler_provider.dart';
 part 'rpc_provider.dart';
 part 'smart_wallet_factory.dart';
 part 'smart_wallet.dart';
+part 'safe_module.dart';
 part 'user_operations.dart';

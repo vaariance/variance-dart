@@ -9,28 +9,22 @@ class _P256AccountFactory extends P256AccountFactory
 
 class _SafeProxyFactory extends SafeProxyFactory
     implements SafeProxyFactoryBase {
-  final EthereumAddress safe4337ModuleAddress =
-      EthereumAddress.fromHex("0xa581c4A4DB7175302464fF3C06380BC3270b4037");
-  final EthereumAddress safeSingletonAddress =
-      EthereumAddress.fromHex("0x41675C099F32341bf84BFc5382aF534df5C7461a");
-  final EthereumAddress safeModuleSetupAddress =
-      EthereumAddress.fromHex("0x8EcD4ec46D4D2a6B64fE960B3D64e8B94B2234eb");
-
   _SafeProxyFactory(
       {required super.address, super.chainId, required RPCBase rpc})
       : super(client: Web3Client.custom(rpc));
 
-  Uint8List getInitializer(EthereumAddress owner) {
+  Uint8List getInitializer(Iterable<EthereumAddress> owners, int threshold,
+      Safe4337ModuleAddress module) {
     return Contract.encodeFunctionCall(
-        "setup", safeSingletonAddress, ContractAbis.get("setup"), [
-      [owner],
-      BigInt.one,
-      safeModuleSetupAddress,
-      Contract.encodeFunctionCall("enableModules", safeModuleSetupAddress,
-          ContractAbis.get("enableModules"), [
-        [safe4337ModuleAddress]
+        "setup", Constants.safeSingletonAddress, ContractAbis.get("setup"), [
+      owners.toList(),
+      BigInt.from(threshold),
+      Constants.safeModuleSetupAddress,
+      Contract.encodeFunctionCall("enableModules",
+          Constants.safeModuleSetupAddress, ContractAbis.get("enableModules"), [
+        [module.address]
       ]),
-      safe4337ModuleAddress,
+      module.address,
       Constants.zeroAddress,
       BigInt.zero,
       Constants.zeroAddress,
@@ -40,7 +34,7 @@ class _SafeProxyFactory extends SafeProxyFactory
   EthereumAddress getPredictedSafe(
       Uint8List initializer, Uint256 salt, Uint8List creationCode) {
     final deploymentData = Uint8List.fromList(
-      [...creationCode, ...safeSingletonAddress.addressBytes],
+      [...creationCode, ...Constants.safeSingletonAddress.addressBytes],
     );
 
     final hash = keccak256(
