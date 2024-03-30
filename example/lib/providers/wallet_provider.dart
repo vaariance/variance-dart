@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:variance_dart/variance.dart';
@@ -10,14 +11,14 @@ import 'package:web3dart/crypto.dart' as w3d;
 class WalletProvider extends ChangeNotifier {
   final Chain _chain;
 
-  PassKeyPair? _keyPair;
-
   late SmartWallet _wallet;
 
   SmartWallet get wallet => _wallet;
 
   WalletProvider()
       : _chain = Chains.getChain(Network.baseTestent)
+          ..accountFactory = EthereumAddress.fromHex(
+              "0x402A266e92993EbF04a5B3fd6F0e2b21bFC83070")
           ..bundlerUrl =
               "https://base-sepolia.g.alchemy.com/v2/RWbMhXe00ZY-SjGQF72kyCVQJ_nQopba"
           ..jsonRpcUrl =
@@ -25,17 +26,27 @@ class WalletProvider extends ChangeNotifier {
 
   Future registerWithPassKey(String name,
       {bool? requiresUserVerification}) async {
-    final signer =
+    final pkpSigner =
         PassKeySigner("webauthn.io", "webauthn", "https://webauthn.io");
-    final SmartWalletFactory walletFactory = SmartWalletFactory(_chain, signer);
+    final hwdSigner = HardwareSigner.withTag(name);
 
-    _keyPair = await signer.register(name);
+    final SmartWalletFactory walletFactory =
+        SmartWalletFactory(_chain, pkpSigner);
 
     try {
       final salt = Uint256.fromHex(
           hexlify(w3d.keccak256(Uint8List.fromList(utf8.encode(name)))));
-      _wallet =
-          await walletFactory.createP256Account<PassKeyPair>(_keyPair!, salt);
+
+      if (Platform.isAndroid) {
+        final keypair = await pkpSigner.register(name);
+        _wallet =
+            await walletFactory.createP256Account<PassKeyPair>(keypair, salt);
+      } else if (Platform.isIOS) {
+        final keypair = await hwdSigner.generateKeyPair();
+        _wallet = await walletFactory.createP256Account<P256Credential>(
+            keypair, salt);
+      }
+
       log("wallet created ${_wallet.address.hex} ");
     } catch (e) {
       log("something happened: $e");
