@@ -10,6 +10,7 @@ import 'package:web3dart/crypto.dart' as w3d;
 
 class WalletProvider extends ChangeNotifier {
   final Chain _chain;
+
   SmartWallet? _wallet;
   SmartWallet? get wallet => _wallet;
 

@@ -27,10 +27,10 @@ class _WalletHomeState extends State<WalletHome> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: VarianceColors.primary,
-        body: Padding(
+    return Scaffold(
+      backgroundColor: VarianceColors.primary,
+      body: SafeArea(
+        child: Padding(
           padding: EdgeInsets.symmetric(vertical: 19.h, horizontal: 16.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,12 +98,12 @@ class _WalletHomeState extends State<WalletHome> {
             ],
           ),
         ),
-        floatingActionButton: FloatingActionButton.large(
-          child: const Icon(Icons.qr_code_2_sharp),
-          onPressed: () {
-            showModalBottomSheetContent(context);
-          },
-        ),
+      ),
+      floatingActionButton: FloatingActionButton.large(
+        child: const Icon(Icons.qr_code_2_sharp),
+        onPressed: () {
+          showModalBottomSheetContent(context);
+        },
       ),
     );
   }
