@@ -166,6 +166,8 @@ class Constants {
       EthereumAddress.fromHex("0x0000000071727De22E5E9d8BAf0edAc6f37da032");
   static EthereumAddress zeroAddress =
       EthereumAddress.fromHex("0x0000000000000000000000000000000000000000");
+  static final EthereumAddress simpleAccountFactoryAddress =
+      EthereumAddress.fromHex("0x9406Cc6185a346906296840746125a0E44976454");
   static final EthereumAddress safeProxyFactoryAddress =
       EthereumAddress.fromHex("0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67");
   static final EthereumAddress safe4337ModuleAddress =

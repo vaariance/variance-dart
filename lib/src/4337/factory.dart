@@ -54,15 +54,15 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   Future<SmartWallet> createP256Account<T>(T keyPair, Uint256 salt,
       [EthereumAddress? recoveryAddress]) {
     switch (keyPair.runtimeType) {
-      case PassKeyPair _:
+      case const (PassKeyPair):
         return _createPasskeyAccount(
             keyPair as PassKeyPair, salt, recoveryAddress);
-      case P256Credential _:
+      case const (P256Credential):
         return _createSecureEnclaveAccount(
             keyPair as P256Credential, salt, recoveryAddress);
       default:
         throw ArgumentError.value(keyPair, 'keyPair',
-            'createP256Account: An instance of `PassKeyPair` or `P256Credential` is expected');
+            'createP256Account: An instance of `PassKeyPair` or `P256Credential` is expected, but got: ${keyPair.runtimeType}');
     }
   }
 
@@ -101,11 +101,11 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
 
   @override
   Future<SmartWallet> createSimpleAccount(Uint256 salt, [int? index]) async {
-    final signer = _signer.getAddress(index: index ?? 0);
+    final signer =
+        EthereumAddress.fromHex(_signer.getAddress(index: index ?? 0));
 
     // Get the predicted address of the simple account
-    final address = await _simpleAccountfactory.getAddress(
-        EthereumAddress.fromHex(signer), salt.value);
+    final address = await _simpleAccountfactory.getAddress(signer, salt.value);
 
     // Encode the call data for the `createAccount` function
     // This function is used to create the simple account with the given signer address and salt
@@ -191,7 +191,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
 
     final initCalldata = _p256Accountfactory.self
         .function('createP256Account')
-        .encodeCall([creation, salt.value]);
+        .encodeCall([salt.value, creation]);
     final initCode = _getInitCode(initCalldata);
     final address =
         await _p256Accountfactory.getP256AccountAddress(salt.value, creation);
@@ -224,14 +224,14 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       'uint256'
     ], [
       recoveryAddress ?? Constants.zeroAddress,
-      Uint8List(0),
+      Uint8List(32),
       p256.publicKey.item1.value,
       p256.publicKey.item2.value,
     ]);
 
     final initCalldata = _p256Accountfactory.self
         .function('createP256Account')
-        .encodeCall([creation, salt.value]);
+        .encodeCall([salt.value, creation]);
     final initCode = _getInitCode(initCalldata);
     final address =
         await _p256Accountfactory.getP256AccountAddress(salt.value, creation);

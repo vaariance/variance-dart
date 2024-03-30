@@ -32,17 +32,17 @@ class WalletProvider extends ChangeNotifier {
     final SmartWalletFactory walletFactory =
         SmartWalletFactory(_chain, pkpSigner);
 
-    try {
-      final salt = Uint256.fromHex(
-          hexlify(w3d.keccak256(Uint8List.fromList(utf8.encode(name)))));
+    final salt = Uint256.fromHex(
+        hexlify(w3d.keccak256(Uint8List.fromList(utf8.encode(name)))));
 
+    try {
+      // uses passkeys on android, secure enclave on iOS
       if (Platform.isAndroid) {
         final keypair = await pkpSigner.register(name);
         _wallet =
             await walletFactory.createP256Account<PassKeyPair>(keypair, salt);
       } else if (Platform.isIOS) {
         final keypair = await hwdSigner.generateKeyPair();
-        print(keypair.toJson());
         _wallet = await walletFactory.createP256Account<P256Credential>(
             keypair, salt);
       }
@@ -56,11 +56,18 @@ class WalletProvider extends ChangeNotifier {
   Future<void> registerWithHDWallet() async {
     final signer = EOAWallet.createWallet();
     log("mnemonic: ${signer.exportMnemonic()}");
+
     final SmartWalletFactory walletFactory = SmartWalletFactory(_chain, signer);
 
+    final salt = Uint256.fromHex(hexlify(w3d.keccak256(
+        Uint8List.fromList(utf8.encode(signer.getAddress().substring(2))))));
+
+    _chain.accountFactory = Constants.safeProxyFactoryAddress;
+    final safe = await walletFactory.createSafeAccount(salt);
+    log("safe created ${safe.address.hex} ");
+
     try {
-      final salt = Uint256.fromHex(hexlify(w3d.keccak256(
-          Uint8List.fromList(utf8.encode(signer.getAddress().substring(2))))));
+      _chain.accountFactory = Constants.simpleAccountFactoryAddress;
       _wallet = await walletFactory.createSimpleAccount(salt);
       log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
