@@ -1,0 +1,39 @@
+name: variancedemo
+description: A new Flutter project.
+
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.1.5 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.7
+  provider: ^6.1.1
+  google_fonts: ^6.1.0
+  flutter_screenutil: ^5.9.0
+  qr_flutter: ^4.1.0
+  web3dart: ^2.7.2
+  shared_preferences: ^2.2.2
+  path_provider: ^2.1.1
+  web3_signers: ^0.0.6-r2
+  variance_dart:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+
+dependency_overrides:
+  stream_channel: ^2.1.2
