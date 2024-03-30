@@ -1,13 +1,56 @@
 part of '../../variance.dart';
 
+/// Represents an Ethereum-based blockchain chain.
 class Chain {
+  /// The unique identifier of the chain.
   final int chainId;
+
+  /// The URL of the block explorer for this chain.
   final String explorer;
+
+  /// The address of the EntryPoint contract on this chain.
   final EntryPointAddress entrypoint;
+
+  /// The address of the AccountFactory contract on this chain.
   EthereumAddress? accountFactory;
+
+  /// The URL of the JSON-RPC endpoint for this chain.
   String? jsonRpcUrl;
+
+  /// The URL of the bundler service for this chain.
   String? bundlerUrl;
+
+  /// The URL of the paymaster service for this chain.
+  ///
+  /// This is an optional parameter and can be left null if the paymaster URL
+  /// is not known or needed.
   String? paymasterUrl;
+
+  /// Creates a new instance of the [Chain] class.
+  ///
+  /// [chainId] is the unique identifier of the chain.
+  /// [explorer] is the URL of the block explorer for this chain.
+  /// [entrypoint] is the address of the EntryPoint contract on this chain.
+  /// [accountFactory] is the address of the AccountFactory contract on this
+  ///   chain.
+  /// [jsonRpcUrl] is the URL of the JSON-RPC endpoint for this chain.
+  /// [bundlerUrl] is the URL of the bundler service for this chain.
+  /// [paymasterUrl] is the optional URL of the paymaster service for this
+  ///   chain.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// final chain = Chain(
+  ///   chainId: 1,
+  ///   explorer: 'https://etherscan.io',
+  ///   entrypoint: EntryPointAddress('0x...'),
+  ///   accountFactory: EthereumAddress('0x...'),
+  ///   jsonRpcUrl: 'https://mainnet.infura.io/v3/...',
+  ///   bundlerUrl: 'https://bundler.example.com',
+  ///   paymasterUrl: 'https://paymaster.example.com',
+  /// );
+  /// ```
 
   Chain(
       {required this.chainId,
@@ -98,6 +141,19 @@ class Chains {
 
   const Chains._();
 
+  /// Returns the [Chain] instance for the given [Network].
+  ///
+  /// [network] is the target network for which the [Chain] instance is required.
+  ///
+  /// This method retrieves the [Chain] instance from a predefined map of
+  /// networks and their corresponding chain configurations.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// final mainnetChain = Chain.getChain(Network.ethereum);
+  /// final sepoliaChain = Chain.getChain(Network.sepolia);
+  /// ```
   static Chain getChain(Network network) {
     return chains[network]!;
   }
@@ -142,27 +198,64 @@ enum Network {
   localhost
 }
 
+/// Represents the address of an EntryPoint contract on the Ethereum blockchain.
 class EntryPointAddress {
-  static EntryPointAddress get v06 =>
-      EntryPointAddress(0.6, Constants.entrypointv06);
-  static EntryPointAddress get v07 =>
-      EntryPointAddress(0.7, Constants.entrypointv07);
+  /// Returns the EntryPoint address for version 0.6 of the EntryPoint contract.
+  static EntryPointAddress get v06 => EntryPointAddress(
+        0.6,
+        Constants.entrypointv06,
+      );
 
+  /// Returns the EntryPoint address for version 0.7 of the EntryPoint contract.
+  static EntryPointAddress get v07 => EntryPointAddress(
+        0.7,
+        Constants.entrypointv07,
+      );
+
+  /// The version of the EntryPoint contract.
   final double version;
+
+  /// The Ethereum address of the EntryPoint contract.
   final EthereumAddress address;
 
+  /// Creates a new instance of the [EntryPointAddress] class.
+  ///
+  /// [version] is the version of the EntryPoint contract.
+  /// [address] is the Ethereum address of the EntryPoint contract.
   const EntryPointAddress(this.version, this.address);
 }
 
+/// Represents the address of the Safe4337Module contract on the Ethereum blockchain.
 class Safe4337ModuleAddress {
-  static Safe4337ModuleAddress v06 =
-      Safe4337ModuleAddress(0.6, Constants.safe4337ModuleAddress);
+  /// The address of the Safe4337Module contract for version 0.6.
+  static Safe4337ModuleAddress v06 = Safe4337ModuleAddress(
+    0.6,
+    Constants.safe4337ModuleAddress,
+  );
 
+  /// The version of the Safe4337Module contract.
   final double version;
+
+  /// The Ethereum address of the Safe4337Module contract.
   final EthereumAddress address;
 
+  /// Creates a new instance of the [Safe4337ModuleAddress] class.
+  ///
+  /// [version] is the version of the Safe4337Module contract.
+  /// [address] is the Ethereum address of the Safe4337Module contract.
   const Safe4337ModuleAddress(this.version, this.address);
 
+  /// Creates a new instance of the [Safe4337ModuleAddress] class from a given version.
+  ///
+  /// [version] is the version of the Safe4337Module contract.
+  ///
+  /// If the provided version is not supported, an [Exception] will be thrown.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// final moduleAddress = Safe4337ModuleAddress.fromVersion(0.6);
+  /// ```
   factory Safe4337ModuleAddress.fromVersion(double version) {
     switch (version) {
       case 0.6:

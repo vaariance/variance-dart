@@ -7,29 +7,37 @@ part of 'interfaces.dart';
 /// creating different implementations of Smart Wallets while adhering to a
 /// common interface.
 abstract class SmartWalletBase {
-  /// The Ethereum address associated with the Smart Wallet.
+  /// The Ethereum address of the Smart Wallet.
   EthereumAddress? get address;
 
-  /// Retrieves the balance of the Smart Wallet.
+  /// Returns the balance of the Smart Wallet.
+  ///
+  /// The balance is retrieved by interacting with the 'contract' plugin.
   Future<EtherAmount> get balance;
-
-  /// Checks if the Smart Wallet has been deployed on the blockchain.
-  Future<bool> get isDeployed;
-
-  /// Retrieves the init code of the Smart Wallet.
-  String? get initCode;
-
-  /// Retrieves the gas required to deploy the Smart Wallet.
-  Future<BigInt> get initCodeGas;
-
-  /// Retrieves the nonce of the Smart Wallet.
-  Future<Uint256> get nonce;
-
-  /// Converts the Smart Wallet address to its hexadecimal representation.
-  String? get toHex;
 
   /// Retrieves the dummy signature required for gas estimation from the Smart Wallet.
   String get dummySignature;
+
+  /// Returns the initialization code for deploying the Smart Wallet contract.
+  String? get initCode;
+
+  /// Returns the estimated gas required for deploying the Smart Wallet contract.
+  ///
+  /// The gas estimation is performed by interacting with the 'jsonRpc' plugin.
+  Future<BigInt> get initCodeGas;
+
+  /// Checks if the Smart Wallet is deployed on the blockchain.
+  ///
+  /// The deployment status is checked by interacting with the 'contract' plugin.
+  Future<bool> get isDeployed;
+
+  /// Returns the nonce for the Smart Wallet from the entrypoint.
+  ///
+  /// The nonce is retrieved by calling the `_getNonce` method.
+  Future<Uint256> get nonce;
+
+  /// Returns the hexadecimal representation of the Smart Wallet address in EIP-55 format.
+  String? get toHex;
 
   /// Builds a [UserOperation] instance with the specified parameters.
   ///
@@ -52,7 +60,10 @@ abstract class SmartWalletBase {
     BigInt? customNonce,
   });
 
-  /// Sets the account initialization calldata for a [SmartWalletBase] in a potentially unsafe manner.
+  /// Sets the initialization code for deploying the Smart Wallet contract.
+  ///
+  /// This method is marked as `@Deprecated` and should not be used in production code.
+  /// It is recommended to set the initialization code during the construction of the [SmartWallet] instance.
   ///
   /// **Warning:**
   /// This method allows setting the initialization calldata directly, which may lead to unexpected behavior
@@ -67,6 +78,17 @@ abstract class SmartWalletBase {
   /// ```
   @Deprecated("Not recommended to modify the initcode")
   void dangerouslySetInitCode(Uint8List code);
+
+  /// Prepares a user operation by updating it with the latest nonce and gas prices,
+  /// intercepting it with a paymaster (if enabled), and validating it.
+  ///
+  /// [op] is the user operation to prepare.
+  /// [update] is a flag indicating whether to update the user operation with the
+  /// latest nonce and gas prices. Defaults to `true`.
+  ///
+  /// Returns a [Future] that resolves to the prepared [UserOperation] object.
+  Future<UserOperation> prepareUserOperation(UserOperation op,
+      {bool update = true});
 
   /// Asynchronously transfers native Token (ETH) to the specified recipient with the given amount.
   ///
@@ -196,7 +218,4 @@ abstract class SmartWalletBase {
   /// var signedOperation = await signUserOperation(myUserOperation, index: 1); // signer 1
   /// ```
   Future<UserOperation> signUserOperation(UserOperation op, {int? index});
-
-  Future<UserOperation> prepareUserOperation(UserOperation op,
-      {bool update = true});
 }

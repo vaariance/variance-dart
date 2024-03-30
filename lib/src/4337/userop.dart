@@ -1,5 +1,6 @@
 part of '../../variance.dart';
 
+/// A class that implements the user operation struct defined in EIP4337.
 class UserOperation implements UserOperationBase {
   @override
   final EthereumAddress sender;
@@ -230,6 +231,7 @@ class UserOperation implements UserOperationBase {
     );
   }
 
+  @override
   void validate(bool deployed, [String? initCode]) {
     require(
         deployed

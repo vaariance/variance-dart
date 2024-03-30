@@ -1,7 +1,13 @@
 import 'package:web3dart/web3dart.dart';
 
+/// Contract ABIs
+/// Getters for contract ABIs for onchain operations
 class ContractAbis {
-  static ContractAbi get(String name, {ContractAbi? abi}) {
+  /// Get contract ABI
+  /// - `name`: name of the contract
+  ///
+  /// Returns ABI of the contract.
+  static ContractAbi get(String name) {
     String abi;
     switch (name) {
       case 'ERC20_BalanceOf':

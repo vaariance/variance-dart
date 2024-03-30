@@ -7,163 +7,150 @@ Variance is a Dart SDK designed to simplify interaction with Ethereum-based bloc
 - **ABI Encoding/Decoding:** Easily encode and decode ABI data for Ethereum smart contract and Entrypoint interactions.
 - **Transaction Handling:** Simplify the process of creating and sending UserOperations.
 - **Token Operations:** Work with ERC20 and ERC721 tokens, including transfer and approval functionalities.
-- **Secure Storage:** Securely store and manage sensitive data such as private keys and credentials.
-- **Web3 Functionality:** Interact with Ethereum nodes and bundlers using web3 functions like `eth_call`, `eth_sendTransaction`, `eth_sendUserOperation`, etc.
-- **PassKeyPair and HDWalletSigner:** Manage smart accounts signers using Passkeys or Seed Phrases.
+- **Web3 Functionality:** Interact with Ethereum nodes and bundlers using abstracted methods over, `eth_sendTransaction`, and `eth_sendUserOperation`.
+- **SecP256r1 Signatures:** Sign transactions with SecP256r1 signatures.
 
 ## Getting Started
 
 ### Installation
 
-```yml
-// Add this line to your pubspec.yaml file
-
-dependencies:
-  variance_dart: ^0.0.4
-```
-
-Then run:
+open your terminal and run the following command:
 
 ```sh
-flutter pub get
+flutter pub get variance_dart
+flutter pub get web3_signers
 ```
 
 ### Usage
 
 ```dart
 // Import the package
-import 'package:variance_dart/utils.dart';
+import 'package:web3_signers/web3_signers.dart';
 import 'package:variance_dart/variance.dart';
 
 // optionally
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:web3dart/web3dart.dart';
 ```
 
-configure your chains: there are 2 ways to get the chain configuration. either manually or using the already supported configurations.
+### Chain Configuration
 
 ```dart
-Chain chain;
-
-// manually
 const String rpcUrl = 'http://localhost:8545';
 const String bundlerUrl = 'http://localhost:3000/rpc';
+const Uint256 salt = const Uint256.zero;
 
-chain = Chain(
-    jsonRpcUrl: rpcUrl,
-    bundlerUrl: bundlerUrl,
-    entrypoint: EntryPoint.v06,
-    accountFactory: Constants.accountFactory,
-    chainId: 1337,
-    explorer: "");
-
-// using pre configured chain
-chain = Chains.getChain(Network.localhost)
+final Chain chain = Chains.getChain(Network.localhost)
     ..jsonRpcUrl = rpcUrl
     ..bundlerUrl = bundlerUrl;
 ```
 
-In order to create a smart wallet client you need to set up a signer, which will sign useroperation hashes to be verified onchain.
-there are  3 available signers:
+> There are 8 available networks: ethereum, polygon, optimism, base, arbitrumOne, linea, opBnB and scroll. 3 available testnets: sepolia, mumbai and baseTestent. You can also develop on localHost.
 
-- passkeys
-- hd wallet
-- simple credential (privatekey)
-
-> Variance SDK can be used to create both EOA and Smart Wallets. the `HD wallet signer` itself is a fully featured EOA wallet that can be used to build any EOA wallet like metamask. it can also be used as an account signer for a smart wallet.
+Additionally, you can specify a different Entrypoint address. By default, the entrypoin v0.6 is used.
 
 ```dart
-// create smart wallet signer based of seed phrase
-final HDWalletSigner hd = HDWalletSigner.createWallet();
-print("mnemonic: ${hd.exportMnemonic()}");
-
-// create a smart wallet signer based on passkeys
-// this operation requires biometrics verification from the user
-final PassKeyPair pkp =
-    await PassKeySigner("myapp.xyz", "myapp", "https://myapp.xyz")
-        .register("<user name>", true);
-print("pkp: ${pkp.toJson()}");
+final EntryPointAddress entrypointAddress = EntryPointAddress.v07;
+chain.entrypoint = entrypointAddress;
 ```
 
-Optionally the credentials returned from the signer instances can be securely saved on device android encrypted shared preferences or ios keychain using the `SecureStorageMiddleware`.
+Also if wish to use paymasters with your smart wallet you can do so by specifying the endpoint of the paymaster. By default the paymaster is set to null. This would add a paymaster Plugin to the smart wallet.
 
 ```dart
-// save a signer credential to device
-await hd
-    .withSecureStorage(FlutterSecureStorage())
-    .saveCredential(CredentialType.hdwallet);
-
-await pkp
-    .withSecureStorage(FlutterSecureStorage())
-    .saveCredential(CredentialType.passkeypair);
-
-// load a credential from the device
-final ss = SecureStorageMiddleware(secureStorage: FlutterSecureStorage());
-final hdInstance =
-    await HDWalletSigner.loadFromSecureStorage(storageMiddleware: ss);
-print("pkp: ${hdInstance?.exportMnemonic()}");
-
-// NOTE: interactions with securestorage can be authenticated when using `SecureStorageMiddleware`
-
-final ss = SecureStorageMiddleware(secureStorage: FlutterSecureStorage(), authMiddleware: AuthenticationMiddleware());
-// then used with `SecureStorageMiddleware` in the following way
-
-ss.save("key", "value", options: SSAuthOperationOptions(requiresAuth: true, authReason: "reason"));
-ss.read("key"); // default options are used i.e requiresAuth: false
-ss.delete("key", options: SSAuthOperationOptions(requiresAuth: false)); // explicitly reject authentication
+final String paymasterUrl = 'https://pimlico.io/...';
+chain.paymasterUrl = paymasterUrl;
 ```
 
-Interacting with the smart wallet:
+If you have additional context for the paymaster, you will be able to add it to the smart wallet.
 
 ```dart
-// create a smart wallet client
-final walletClient = SmartWallet(
-    chain: chain,
-    signer: hd,
-    bundler: BundlerProvider(chain, RPCProvider(chain.bundlerUrl!)),
-);
+wallet.plugin<Paymaster>('paymaster').context = {'key': 'value'};
+```
 
-// create a simple account based on hd
-final SmartWallet simpleSmartAccount =
-      await walletClient.createSimpleAccount(salt);
-print("simple account address: ${simpleSmartAccount.address}");
+### Signers
 
-// create a simple account based on pkp
-final SmartWallet simplePkpAccount =
-      await walletClient.createSimplePasskeyAccount(pkp, salt);
-print("simple pkp account address: ${simplePkpAccount.address}");
+In order to create a smart wallet client you need to set up a signer, which will sign useroperation hashes to be verified onchain. Only signers available in the [web3signers](https://pub.dev/packages/web3_signers) package can be used.
 
+> You have to use the correct signer for the type of account you want to create.
+
+1. `PrivateKeys` - use with simple accounts and safe accounts only
+2. `Passkey` - use with p256 smart accounts and safe Passkey accounts only
+3. `EOA Wallet (Seed Phrases)` - use with simple smart accounts and safe accounts only
+4. `HardWare Signers (Secure Enclave/Keystore)` - use with p256 smart accounts only
+
+### Smart Wallet Factory
+
+The smart wallet factory handles the creation of smart wallet instances. Make sure you have created a signer from the previous step.
+
+```dart
+final SmartWalletFactory smartWalletFactory = SmartWalletFactory(chain, signer);
+```
+
+#### To Create a Simple Account Smart Wallet
+
+```dart
+final Smartwallet wallet = await smartWalletFactory.createSimpleAccount(salt);
+print("simple wallet address: ${wallet.address.hex}");
+```
+
+#### To create a P256 Smart Account
+
+```dart
+final Smartwallet wallet = await smartWalletFactory.createP256Account(keypair, salt);
+print("p256 wallet address: ${wallet.address.hex}");
+```
+
+Your keypair must be either be the `PassKeyPair` or `P256Credential` return when registering with your secp256r1 signer.
+Additionally, you can pass a recovery address to the `createP256Account` method.
+
+```dart
+final Smartwallet wallet = await smartWalletFactory.createP256Account(keypair, salt, recoveryAddress);
+print("p256 wallet address: ${wallet.address.hex}");
+```
+
+#### To create a Safe Smart Account
+
+```dart
+final Smartwallet wallet = await smartWalletFactory
+    .createSafeAccount(salt);
+print("safe wallet address: ${wallet.address.hex}");
+```
+
+Additionally, you can pass in multisig `owners` and the `threshold` to the `createSafeAccount` method.
+
+```dart
+final Smartwallet wallet = await smartWalletFactory
+    .createSafeAccount(salt, [...extraOwners], threshold);
+print("safe wallet address: ${wallet.address.hex}");
+```
+
+> Safe SecP256r1 signers can not be used with this SDK yet.
+
+### Interacting with the Smart Wallet
+
+```dart
 // retrieve the balance of a smart wallet
-final EtherAmount balance = await simpleSmartAccount.balance;
+final EtherAmount balance = await wallet.balance;
 print("account balance: ${balance.getInWei}");
 
 // retrive the account nonce
-final Uint256 nonce = await simpleSmartAccount.nonce;
+final Uint256 nonce = await wallet.nonce;
 print("account nonce: ${nonce.toInt()}");
 
 // check if a smart wallet has been deployed
-final bool deployed = await simpleSmartAccount.deployed;
+final bool deployed = await wallet.deployed;
 print("account deployed: $deployed");
 
 // get the init code of the smart wallet
-final String initCode = simpleSmartAccount.initCode;
+final String initCode = wallet.initCode;
 print("account init code: $initCode");
 
 // perform a simple transaction (send ether to another account)
 // account must be prefunded with native token. paymaster is not yet implemented
-await simpleSmartAccount.send(
+await wallet.send(
   EthereumAddress.fromHex(
       "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"), // receive address
-  getConversion("0.7142"), // 0.7142 ether
+  EtherAmount.fromInt(EtherUnit.ether, 0.7142), // 0.7142 ether
 );
-
-
-// utility function to convert eth amount from string to wei
-EtherAmount getConversion(String amount) {
-  final amtToDb = double.parse(amount);
-  return EtherAmount.fromBigInt(
-      EtherUnit.wei, BigInt.from(amtToDb * pow(10, 18)));
-}
 ```
 
 For detailed usage and examples, refer to the [documentation](https://docs.variance.space). Additional refer to the [demo](https://github.com/vaariance/variancedemo) for use in a flutter app.

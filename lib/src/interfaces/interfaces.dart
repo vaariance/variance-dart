@@ -8,6 +8,8 @@ import '../../variance.dart'
         Chain,
         EntryPointAddress,
         InvalidBundlerMethod,
+        PaymasterResponse,
+        SmartWallet,
         UserOperation,
         UserOperationByHash,
         UserOperationGas,
@@ -17,8 +19,9 @@ import '../../variance.dart'
 part 'account_factories.dart';
 part 'bundler_provider.dart';
 
-part 'rpc_provider.dart';
+part 'json_rpc_provider.dart';
 part 'smart_wallet_factory.dart';
 part 'smart_wallet.dart';
 part 'safe_module.dart';
 part 'user_operations.dart';
+part 'paymaster.dart';

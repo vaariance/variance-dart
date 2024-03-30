@@ -1,8 +1,20 @@
 part of '../../variance.dart';
 
+/// A class that implements the `BundlerProviderBase` interface and provides methods
+/// for interacting with a bundler for sending and tracking user operations on
+/// an Ethereum-like blockchain.
 class BundlerProvider implements BundlerProviderBase {
+  /// The remote procedure call (RPC) client used to communicate with the bundler.
   final RPCBase rpc;
 
+  /// Creates a new instance of the BundlerProvider class.
+  ///
+  /// [chain] is an object representing the blockchain chain configuration.
+  ///
+  /// The constructor checks if the bundler URL is a valid URL and initializes
+  /// the RPC client with the bundler URL. It also sends an RPC request to
+  /// retrieve the chain ID and verifies that it matches the expected chain ID.
+  /// If the chain IDs don't match, the _initialized flag is set to false.
   BundlerProvider(Chain chain)
       : assert(isURL(chain.bundlerUrl), InvalidBundlerUrl(chain.bundlerUrl)),
         rpc = RPCBase(chain.bundlerUrl!) {
@@ -13,6 +25,7 @@ class BundlerProvider implements BundlerProviderBase {
         .then((value) => _initialized = value == true);
   }
 
+  /// A flag indicating whether the initialization process was successful.
   late final bool _initialized;
 
   @override
@@ -61,9 +74,18 @@ class BundlerProvider implements BundlerProviderBase {
   }
 }
 
+/// A class that implements the JsonRPCProviderBase interface and provides methods
+/// for interacting with an Ethereum-like blockchain via the JSON-RPC protocol.
 class JsonRPCProvider implements JsonRPCProviderBase {
+  /// The remote procedure call (RPC) client used to communicate with the blockchain.
   final RPCBase rpc;
 
+  /// Creates a new instance of the JsonRPCProvider class.
+  ///
+  /// [chain] is an object representing the blockchain chain configuration.
+  ///
+  /// The constructor checks if the JSON-RPC URL is a valid URL and initializes
+  /// the RPC client with the JSON-RPC URL.
   JsonRPCProvider(Chain chain)
       : assert(isURL(chain.jsonRpcUrl), InvalidJsonRpcUrl(chain.jsonRpcUrl)),
         rpc = RPCBase(chain.jsonRpcUrl!);

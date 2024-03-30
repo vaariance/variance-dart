@@ -2,6 +2,7 @@ part of '../../variance.dart';
 
 /// A wrapper for interacting with deployed Ethereum contracts through [JsonRPCProvider].
 class Contract {
+  /// The remote procedure call (RPC) client used to communicate with the bundler.
   final RPCBase rpc;
 
   Contract(
@@ -22,7 +23,7 @@ class Contract {
   ///
   /// Example:
   /// ```dart
-  /// var result = await call(
+  /// var result = await read(
   ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
   ///   myErc20ContractAbi,
   ///   'balanceOf',
@@ -31,7 +32,7 @@ class Contract {
   /// ```
   /// This method uses the an Ethereum jsonRPC to `staticcall` a function on the specified smart contract.
   /// **Note:** This method does not support contract calls with state changes.
-  Future<List<dynamic>> call(
+  Future<List<dynamic>> read(
       EthereumAddress contractAddress, ContractAbi abi, String methodName,
       {List<dynamic>? params, EthereumAddress? sender}) {
     final function = getContractFunction(methodName, contractAddress, abi);
@@ -259,6 +260,7 @@ class Contract {
   ///   - `to`: The [EthereumAddress] of the target recipient for the operation.
   ///   - `amount`: The [EtherAmount] representing the amount to transfer, if applicable.
   ///   - `innerCallData`: The [Uint8List] containing inner call data, if applicable.
+  ///   - `isSafe`: An optional flag indicating whether the operation is a GnosisSafeOperation or not. defaults to false.
   ///
   /// Returns:
   ///   A [Uint8List] containing the ABI-encoded data for the 'execute' function call.
@@ -302,6 +304,7 @@ class Contract {
   ///   - `recipients`: A list of [EthereumAddress] instances representing the recipients for each operation.
   ///   - `amounts`: Optional list of [EtherAmount] instances representing the amounts to transfer for each operation.
   ///   - `innerCalls`: Optional list of [Uint8List] instances containing inner call data for each operation.
+  ///   - `isSafe`: An optional flag indicating whether the operation is a GnosisSafeOperation or not. defaults to false.
   ///
   /// Returns:
   ///   A [Uint8List] containing the ABI-encoded data for the 'executeBatch' function call.

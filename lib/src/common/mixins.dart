@@ -2,11 +2,29 @@ part of '../../variance.dart';
 
 typedef Percent = double;
 
+/// A class that represents gas settings for Ethereum transactions.
 class GasSettings {
+  /// The percentage by which the gas limits should be multiplied.
+  ///
+  /// This value should be between 0 and 100.
   Percent? gasMultiplierPercentage;
+
+  /// The user-defined maximum fee per gas for the transaction.
   BigInt? userDefinedMaxFeePerGas;
+
+  /// The user-defined maximum priority fee per gas for the transaction.
   BigInt? userDefinedMaxPriorityFeePerGas;
 
+  /// Creates a new instance of the [GasSettings] class.
+  ///
+  /// [gasMultiplierPercentage] is the percentage by which the gas limits should be multiplied.
+  /// Defaults to 0.
+  ///
+  /// [userDefinedMaxFeePerGas] is the user-defined maximum fee per gas for the transaction.
+  ///
+  /// [userDefinedMaxPriorityFeePerGas] is the user-defined maximum priority fee per gas for the transaction.
+  ///
+  /// An assertion is made to ensure that [gasMultiplierPercentage] is between 0 and 100.
   GasSettings({
     this.gasMultiplierPercentage = 0,
     this.userDefinedMaxFeePerGas,
@@ -15,11 +33,21 @@ class GasSettings {
             RangeOutOfBounds("Wrong Gas multiplier percentage", 0, 100));
 }
 
+/// A mixin that provides methods for managing gas settings for user operations.
 mixin _GasSettings {
+  /// The gas settings for user operations.
   GasSettings _gasParams = GasSettings();
 
+  /// Sets the gas settings for user operations.
+  ///
+  /// [gasParams] is an instance of the [GasSettings] class containing the gas settings.
   set setGasParams(GasSettings gasParams) => _gasParams = gasParams;
 
+  /// Applies the gas settings to a user operation.
+  ///
+  /// [op] is the user operation to which the gas settings should be applied.
+  ///
+  /// Returns a new [UserOperation] object with the updated gas settings.
   UserOperation multiply(UserOperation op) {
     final multiplier =
         BigInt.from(_gasParams.gasMultiplierPercentage! / 100 + 1);
@@ -33,6 +61,7 @@ mixin _GasSettings {
   }
 }
 
+/// Used to manage the plugins used in the [Smartwallet] instance
 mixin _PluginManager {
   final Map<String, dynamic> _plugins = {};
 

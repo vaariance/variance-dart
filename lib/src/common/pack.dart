@@ -42,6 +42,31 @@ List<BigInt> unpackUints(Uint8List bytes) {
   return [value >> 128, value & mask];
 }
 
+/// Packs a [UserOperation] into a PackedUserOperation map for EntryPoint v0.7 and above.
+///
+/// Parameters:
+/// - [userOp]: The [UserOperation] to pack.
+///
+/// Returns a [Map] containing the packed user operation.
+///
+/// Example:
+/// ```dart
+/// final userOp = UserOperation(
+///   sender: EthereumAddress.fromHex('0x1234567890123456789012345678901234567890'),
+///   nonce: BigInt.from(1),
+///   initCode: Uint8List(0),
+///   callData: Uint8List(0),
+///   callGasLimit: BigInt.from(2),
+///   verificationGasLimit: BigInt.from(3),
+///   preVerificationGas: BigInt.from(4),
+///   maxFeePerGas: BigInt.from(5),
+///   maxPriorityFeePerGas: BigInt.from(6),
+///   signature: '0x1234567890123456789012345678901234567890',
+///   paymasterAndData: Uint8List(0),
+/// );
+/// final packedUserOp = packUserOperation(userOp);
+/// print(packedUserOp);
+/// ```
 Map<String, dynamic> packUserOperation(UserOperation userOp) {
   return {
     'sender': userOp.sender.hex,
