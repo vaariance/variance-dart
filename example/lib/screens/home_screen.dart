@@ -11,6 +11,7 @@ import 'package:variancedemo/variance_colors.dart';
 import 'dart:ui' as ui;
 
 import 'package:web3_signers/web3_signers.dart';
+import 'package:web3dart/web3dart.dart';
 
 class WalletHome extends StatefulWidget {
   const WalletHome({super.key});
@@ -129,12 +130,12 @@ class _WalletBalanceState extends State<WalletBalance> {
     //   (WalletProvider provider) => provider.hdWalletSigner,
     // );
 
-    address = wallet.address.hex;
+    address = wallet?.address.hex ?? '';
 
     Future<void> getBalance() async {
-      final ether = await wallet.balance;
+      final ether = await wallet?.balance;
       setState(() {
-        balance = Uint256.fromWei(ether);
+        balance = Uint256.fromWei(ether ?? EtherAmount.zero());
       });
     }
     //if the wallet is created with a passkey
