@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -337,29 +338,20 @@ showModalBottomSheetContent(BuildContext context) {
                 ),
                 child: Row(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Your Ethereum address',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            color: const Color(0xff32353E).withOpacity(0.5),
-                          ),
+                    SizedBox(
+                      width: 250,
+                      child: Text(
+                        message,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          color: const Color(0xff32353E).withOpacity(0.5),
                         ),
-                        const SizedBox(height: 5),
-                        SizedBox(
-                          width: 280,
-                          child: Text(
-                            message,
-                            style: const TextStyle(
-                              color: Color(0xff32353E),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    Expanded(
+                    const SizedBox(height: 5),
+                    const Spacer(),
+                    SizedBox(
+                      width: 50,
                       child: TextButton(
                         onPressed: () {
                           Clipboard.setData(ClipboardData(
