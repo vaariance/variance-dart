@@ -69,8 +69,15 @@ class _SafeProxyFactory extends SafeProxyFactory
 
   EthereumAddress getPredictedSafe(
       Uint8List initializer, Uint256 salt, Uint8List creationCode) {
+    paddedAddressBytes(Uint8List addressBytes) {
+      return [...Uint8List(32 - addressBytes.length), ...addressBytes];
+    }
+
     final deploymentData = Uint8List.fromList(
-      [...creationCode, ...Constants.safeSingletonAddress.addressBytes],
+      [
+        ...creationCode,
+        ...paddedAddressBytes(Constants.safeSingletonAddress.addressBytes)
+      ],
     );
 
     final hash = keccak256(

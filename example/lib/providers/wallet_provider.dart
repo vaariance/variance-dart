@@ -38,7 +38,7 @@ class WalletProvider extends ChangeNotifier {
     try {
       // uses passkeys on android, secure enclave on iOS
       if (Platform.isAndroid) {
-        final keypair = await pkpSigner.register(name);
+        final keypair = await pkpSigner.register(name, name);
         _wallet =
             await walletFactory.createP256Account<PassKeyPair>(keypair, salt);
       } else if (Platform.isIOS) {
