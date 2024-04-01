@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:variance_dart/variance.dart';
 import 'package:web3dart/credentials.dart';
@@ -13,6 +14,8 @@ class WalletProvider extends ChangeNotifier {
 
   SmartWallet? _wallet;
   SmartWallet? get wallet => _wallet;
+  String? _error;
+  String? get errorMessage => _error;
 
   WalletProvider()
       : _chain = Chains.getChain(Network.baseTestent)
@@ -50,6 +53,8 @@ class WalletProvider extends ChangeNotifier {
       log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
       log("something happened: $e");
+      _error = e.toString();
+      notifyListeners();
     }
   }
 
@@ -72,6 +77,8 @@ class WalletProvider extends ChangeNotifier {
       log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
       log("something happened: $e");
+      _error = e.toString();
+      notifyListeners();
     }
   }
 

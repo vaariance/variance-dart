@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:variancedemo/main.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
 import 'package:variancedemo/utils/widgets.dart';
 
@@ -14,6 +16,15 @@ class CreateAccountScreen extends StatefulWidget {
 class _CreateAccountScreenState extends State<CreateAccountScreen> {
   final TextEditingController controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  FToast? fToast;
+
+  @override
+  void initState() {
+    super.initState();
+    fToast = FToast();
+    fToast?.init(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -79,14 +90,17 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       SizedBox(
                         height: 45.h,
                         child: TextButton(
+                          key: globalScaffoldMessengerKey,
                           onPressed: () async {
-                            try {
-                              await value.registerWithPassKey(controller.text,
-                                  requiresUserVerification: true);
-                              // ignore: use_build_context_synchronously
+                            await value.registerWithPassKey(controller.text,
+                                requiresUserVerification: true);
+                            // ignore: use_build_context_synchronously
+                            if (value.errorMessage != null) {
+                              fToast?.showToast(
+                                  gravity: ToastGravity.BOTTOM,
+                                  child: Text(value.errorMessage!));
+                            } else {
                               Navigator.pushNamed(context, '/home');
-                            } catch (e) {
-                              showSnackbar(e.toString());
                             }
                           },
                           style: TextButton.styleFrom(
