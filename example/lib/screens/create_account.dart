@@ -4,7 +4,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:variancedemo/main.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
-import 'package:variancedemo/utils/widgets.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
@@ -95,10 +94,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                             await value.registerWithPassKey(controller.text,
                                 requiresUserVerification: true);
                             // ignore: use_build_context_synchronously
-                            if (value.errorMessage != null) {
+                            if (value.errorMessage.isNotEmpty) {
                               fToast?.showToast(
                                   gravity: ToastGravity.BOTTOM,
-                                  child: Text(value.errorMessage!));
+                                  child: Text(value.errorMessage));
                             } else {
                               Navigator.pushNamed(context, '/home');
                             }

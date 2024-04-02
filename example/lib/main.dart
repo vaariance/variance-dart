@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
 import 'package:variancedemo/screens/create_account.dart';
-import 'package:variancedemo/screens/home_screen.dart';
+import 'package:variancedemo/screens/home/home_screen.dart';
 
 final globalScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 

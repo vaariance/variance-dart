@@ -124,7 +124,7 @@ class Chains {
       jsonRpcUrl: "https://rpc.ankr.com/polygon_mumbai",
       entrypoint: EntryPointAddress.v06,
     ),
-    Network.baseTestent: Chain(
+    Network.baseTestnet: Chain(
       chainId: 84531,
       explorer: "https://sepolia.basescan.org/",
       jsonRpcUrl: "https://rpc.ankr.com/base_sepolia",
@@ -194,7 +194,7 @@ enum Network {
   // testnet
   sepolia,
   mumbai,
-  baseTestent,
+  baseTestnet,
 
   // localhost
   localhost

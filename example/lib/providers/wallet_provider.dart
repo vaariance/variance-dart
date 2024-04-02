@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:variance_dart/variance.dart';
 import 'package:web3dart/credentials.dart';
@@ -14,11 +13,12 @@ class WalletProvider extends ChangeNotifier {
 
   SmartWallet? _wallet;
   SmartWallet? get wallet => _wallet;
-  String? _error;
-  String? get errorMessage => _error;
+
+  String _errorMessage = "";
+  String get errorMessage => _errorMessage;
 
   WalletProvider()
-      : _chain = Chains.getChain(Network.baseTestent)
+      : _chain = Chains.getChain(Network.baseTestnet)
           ..accountFactory = EthereumAddress.fromHex(
               "0x402A266e92993EbF04a5B3fd6F0e2b21bFC83070")
           ..bundlerUrl =
@@ -52,9 +52,9 @@ class WalletProvider extends ChangeNotifier {
 
       log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
-      log("something happened: $e");
-      _error = e.toString();
+      _errorMessage = e.toString();
       notifyListeners();
+      log("something happened: $e");
     }
   }
 
@@ -77,10 +77,10 @@ class WalletProvider extends ChangeNotifier {
       log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
       log("something happened: $e");
-      _error = e.toString();
-      notifyListeners();
     }
   }
+
+  Future<void> mintNFt() async {}
 
   Future<void> sendTransaction(String recipient, String amount) async {
     if (_wallet != null) {
