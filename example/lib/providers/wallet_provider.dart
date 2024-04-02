@@ -15,8 +15,11 @@ class WalletProvider extends ChangeNotifier {
   SmartWallet? _wallet;
   SmartWallet? get wallet => _wallet;
 
+  String _errorMessage = "";
+  String get errorMessage => _errorMessage;
+
   WalletProvider()
-      : _chain = Chains.getChain(Network.baseTestent)
+      : _chain = Chains.getChain(Network.baseTestnet)
           ..accountFactory = EthereumAddress.fromHex(
               "0x402A266e92993EbF04a5B3fd6F0e2b21bFC83070")
           ..bundlerUrl =
@@ -50,6 +53,8 @@ class WalletProvider extends ChangeNotifier {
 
       log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
       log("something happened: $e");
     }
   }
@@ -75,13 +80,15 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> mintNFt() async {}
+
   Future<void> sendTransaction(String recipient, String amount) async {
     if (_wallet != null) {
       final etherAmount = w3d.EtherAmount.fromBigInt(w3d.EtherUnit.wei,
           BigInt.from(double.parse(amount) * math.pow(10, 18)));
       final response =
-          await _wallet!.send(EthereumAddress.fromHex(recipient), etherAmount);
-      final receipt = await response.wait();
+          await _wallet?.send(EthereumAddress.fromHex(recipient), etherAmount);
+      final receipt = await response?.wait();
 
       log("Transaction receipt Hash: ${receipt?.userOpHash}");
     } else {
