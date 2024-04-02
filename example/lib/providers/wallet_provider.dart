@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:variance_dart/variance.dart';
@@ -53,23 +54,22 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> registerWithHDWallet() async {
+  Future<void> createSafeWallet() async {
+    _chain.accountFactory = Constants.safeProxyFactoryAddress;
+
     final signer = EOAWallet.createWallet();
-    log("mnemonic: ${signer.exportMnemonic()}");
+    log("signer: ${signer.getAddress()}");
 
     final SmartWalletFactory walletFactory = SmartWalletFactory(_chain, signer);
 
-    final salt = Uint256.fromHex(hexlify(w3d.keccak256(
-        Uint8List.fromList(utf8.encode(signer.getAddress().substring(2))))));
+    final salt = Uint256.fromHex(hexlify(w3d
+        .keccak256(EthereumAddress.fromHex(signer.getAddress()).addressBytes)));
 
-    _chain.accountFactory = Constants.safeProxyFactoryAddress;
-    final safe = await walletFactory.createSafeAccount(salt);
-    log("safe created ${safe.address.hex} ");
+    log("salt: ${salt.toHex()}");
 
     try {
-      _chain.accountFactory = Constants.simpleAccountFactoryAddress;
-      _wallet = await walletFactory.createSimpleAccount(salt);
-      log("wallet created ${_wallet?.address.hex} ");
+      _wallet = await walletFactory.createSafeAccount(salt);
+      log("safe created ${_wallet?.address.hex} ");
     } catch (e) {
       log("something happened: $e");
     }
@@ -77,9 +77,13 @@ class WalletProvider extends ChangeNotifier {
 
   Future<void> sendTransaction(String recipient, String amount) async {
     if (_wallet != null) {
-      final etherAmount =
-          w3d.EtherAmount.fromBase10String(w3d.EtherUnit.ether, amount);
-      await _wallet!.send(EthereumAddress.fromHex(recipient), etherAmount);
+      final etherAmount = w3d.EtherAmount.fromBigInt(w3d.EtherUnit.wei,
+          BigInt.from(double.parse(amount) * math.pow(10, 18)));
+      final response =
+          await _wallet!.send(EthereumAddress.fromHex(recipient), etherAmount);
+      final receipt = await response.wait();
+
+      log("Transaction receipt Hash: ${receipt?.userOpHash}");
     } else {
       log("No wallet available to send transaction");
     }

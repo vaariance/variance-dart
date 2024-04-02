@@ -125,7 +125,7 @@ class Chains {
       entrypoint: EntryPointAddress.v06,
     ),
     Network.baseTestent: Chain(
-      chainId: 84531,
+      chainId: 84532,
       explorer: "https://sepolia.basescan.org/",
       jsonRpcUrl: "https://rpc.ankr.com/base_sepolia",
       entrypoint: EntryPointAddress.v06,

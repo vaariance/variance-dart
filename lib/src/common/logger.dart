@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 /// A class that provides logging functionality with colored output for warnings and errors.
 class Logger {
   /// The ANSI escape code for red color.
@@ -66,7 +68,7 @@ class Logger {
   /// [stackTrace] is an optional stack trace associated with the error message.
   static void _logError(String level, String color, String message,
       [Object? error, StackTrace? stackTrace]) {
-    String errorMessage = '$message';
+    String errorMessage = message;
     if (error != null) {
       errorMessage += '\nError: $error';
     }
@@ -91,6 +93,6 @@ class Logger {
         '${now.second.toString().padLeft(2, '0')}';
 
     final logMessage = '$formattedTime [$color$level$_resetColor] $message';
-    print(logMessage);
+    log(logMessage);
   }
 }

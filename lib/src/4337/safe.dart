@@ -17,9 +17,11 @@ class _SafePlugin extends Safe4337Module implements Safe4337ModuleBase {
   /// Computes the hash of a Safe UserOperation.
   ///
   /// [op] is an object representing the user operation details.
+  /// [currentTimestamp] is the current timestamp in seconds.
   ///
   /// Returns a Future that resolves to the hash of the user operation as a Uint8List.
-  Future<Uint8List> getUserOperationHash(UserOperation op) async =>
+  Future<Uint8List> getUserOperationHash(
+          UserOperation op, int currentTimestamp) async =>
       getOperationHash([
         op.sender,
         op.nonce,
@@ -31,23 +33,22 @@ class _SafePlugin extends Safe4337Module implements Safe4337ModuleBase {
         op.maxFeePerGas,
         op.maxPriorityFeePerGas,
         op.paymasterAndData,
-        _getEncodedSignature(op.signature)
+        hexToBytes(getEncodedSignature(op.signature, currentTimestamp))
       ]);
 
   /// Encodes the signature of a user operation with a validity period.
   ///
   /// [signature] is the signature of the user operation.
+  /// [currentTimestamp] is the current timestamp in seconds.
   ///
-  /// Returns a Uint8List representing the encoded signature with a validity period.
-  Uint8List _getEncodedSignature(String signature) {
-    final currentTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
+  /// Returns a HexString representing the encoded signature with a validity period.
+  String getEncodedSignature(String signature, int currentTimestamp) {
     String validAfter = currentTimestamp.toRadixString(16);
     validAfter = '0' * (12 - validAfter.length) + validAfter;
 
     String validUntil = (currentTimestamp + 3600).toRadixString(16);
     validUntil = '0' * (12 - validUntil.length) + validUntil;
 
-    return hexToBytes('0x$validAfter$validUntil${signature.substring(2)}');
+    return '0x$validAfter$validUntil${signature.substring(2)}';
   }
 }

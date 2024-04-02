@@ -153,16 +153,26 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   @override
   Future<UserOperation> signUserOperation(UserOperation op,
       {int? index}) async {
-    // Calculate the operation hash. safe accounts uses EIP712
-    // The hash is retrieved by calling the SafeModule with the operation and a dummy signature.
-    final opHash = hasPlugin("safe")
-        ? await plugin<_SafePlugin>("safe").getUserOperationHash(op)
+    final isSafe = hasPlugin('safe');
+    final currentTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+    // Calculate the operation hash
+    final opHash = isSafe
+        ? await plugin<_SafePlugin>('safe')
+            .getUserOperationHash(op, currentTimestamp)
         : op.hash(_chain);
 
     // Sign the operation hash using the 'signer' plugin
-    Uint8List signature =
+    final signature =
         await plugin<MSI>('signer').personalSign(opHash, index: index);
-    op.signature = hexlify(signature);
+    final signatureHex = hexlify(signature);
+
+    // Append the signature validity period if the 'safe' plugin is enabled
+    op.signature = isSafe
+        ? plugin<_SafePlugin>('safe')
+            .getEncodedSignature(signatureHex, currentTimestamp)
+        : signatureHex;
+
     return op;
   }
 
@@ -193,7 +203,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
       ]).then((responses) {
         op = op.copyWith(
             nonce: op.nonce > BigInt.zero ? op.nonce : responses[0].value,
-            initCode: responses[0] > BigInt.zero ? Uint8List(0) : null,
+            initCode: responses[0].value > BigInt.zero ? Uint8List(0) : null,
             signature: dummySignature);
         return _updateUserOperationGas(op, feePerGas: responses[1]);
       });

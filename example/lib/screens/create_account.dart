@@ -112,16 +112,14 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     child: TextButton.icon(
                         onPressed: () {
                           try {
-                            context
-                                .read<WalletProvider>()
-                                .registerWithHDWallet();
+                            context.read<WalletProvider>().createSafeWallet();
                             Navigator.pushNamed(context, '/home');
                           } catch (e) {
                             'Something went wrong: $e';
                           }
                         },
                         icon: const Icon(Icons.key),
-                        label: const Text('Generate Account with HD Key')),
+                        label: const Text('Create Safe Smart Account')),
                   )
                 ],
               ),

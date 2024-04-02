@@ -22,7 +22,7 @@ class BundlerProvider implements BundlerProviderBase {
         .send<String>('eth_chainId')
         .then(BigInt.parse)
         .then((value) => value.toInt() == chain.chainId)
-        .then((value) => _initialized = value == true);
+        .then((value) => _initialized = value);
   }
 
   /// A flag indicating whether the initialization process was successful.
