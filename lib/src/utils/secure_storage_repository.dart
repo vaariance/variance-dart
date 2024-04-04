@@ -23,9 +23,11 @@ class SecureStorageMiddleware implements SecureStorageRepository {
 
   final String? _credential;
 
-  SecureStorageMiddleware(
-      {required this.secureStorage, this.authMiddleware, String? credential})
-      : androidOptions = const AndroidOptions(
+  SecureStorageMiddleware({
+    required this.secureStorage,
+    this.authMiddleware,
+    String? credential,
+  })  : androidOptions = const AndroidOptions(
           encryptedSharedPreferences: true,
         ),
         iosOptions = const IOSOptions(
@@ -33,91 +35,84 @@ class SecureStorageMiddleware implements SecureStorageRepository {
         ),
         _credential = credential;
 
+  Future<void> _authenticate({required SSAuthOperationOptions options}) async {
+    if (!options.requiresAuth) return;
+    if (authMiddleware == null) throw SecureStorageAuthMiddlewareError();
+
+    return await authMiddleware?.authenticate(
+      localizedReason: options.authReason,
+    );
+  }
+
   @override
-  Future<void> delete(String key,
-      {SSAuthOperationOptions? options =
-          const SSAuthOperationOptions()}) async {
-    if (options!.requiresAuth) {
-      if (authMiddleware == null) {
-        throw SecureStorageAuthMiddlewareError();
-      }
-      await authMiddleware?.authenticate(localizedReason: options.authReason);
-    }
+  Future<void> delete(
+    String key, {
+    SSAuthOperationOptions? options = const SSAuthOperationOptions(),
+  }) async {
+    await _authenticate(options: options!);
     await secureStorage.delete(
-        key: "${options.ssNameSpace ?? "vaariance"}_$key");
+      key: "${options.ssNameSpace ?? "vaariance"}_$key",
+    );
   }
 
   @override
-  Future<String?> read(String key,
-      {SSAuthOperationOptions? options =
-          const SSAuthOperationOptions()}) async {
-    if (options!.requiresAuth) {
-      if (authMiddleware == null) {
-        throw SecureStorageAuthMiddlewareError();
-      }
-      await authMiddleware?.authenticate(localizedReason: options.authReason);
-    }
+  Future<String?> read(
+    String key, {
+    SSAuthOperationOptions? options = const SSAuthOperationOptions(),
+  }) async {
+    await _authenticate(options: options!);
     return await secureStorage.read(
-        key: "${options.ssNameSpace ?? "vaariance"}_$key");
+      key: "${options.ssNameSpace ?? "vaariance"}_$key",
+    );
   }
 
   @override
-  Future<String?> readCredential(CredentialType type,
-      {SSAuthOperationOptions? options =
-          const SSAuthOperationOptions()}) async {
-    if (options!.requiresAuth) {
-      if (authMiddleware == null) {
-        throw SecureStorageAuthMiddlewareError();
-      }
-      await authMiddleware?.authenticate(localizedReason: options.authReason);
-    }
+  Future<String?> readCredential(
+    CredentialType type, {
+    SSAuthOperationOptions? options = const SSAuthOperationOptions(),
+  }) async {
+    await _authenticate(options: options!);
     return await secureStorage.read(
-        key: "${options.ssNameSpace ?? "vaariance"}_${type.name}");
+      key: "${options.ssNameSpace ?? "vaariance"}_${type.name}",
+    );
   }
 
   @override
-  Future<void> save(String key, String value,
-      {SSAuthOperationOptions? options =
-          const SSAuthOperationOptions()}) async {
-    if (options!.requiresAuth) {
-      if (authMiddleware == null) {
-        throw SecureStorageAuthMiddlewareError();
-      }
-      await authMiddleware?.authenticate(localizedReason: options.authReason);
-    }
-
+  Future<void> save(
+    String key,
+    String value, {
+    SSAuthOperationOptions? options = const SSAuthOperationOptions(),
+  }) async {
+    await _authenticate(options: options!);
     await secureStorage.write(
-        key: "${options.ssNameSpace ?? "vaariance"}_$key", value: value);
+      key: "${options.ssNameSpace ?? "vaariance"}_$key",
+      value: value,
+    );
   }
 
   @override
-  Future<void> saveCredential(CredentialType type,
-      {SSAuthOperationOptions? options =
-          const SSAuthOperationOptions()}) async {
-    if (options!.requiresAuth) {
-      if (authMiddleware == null) {
-        throw SecureStorageAuthMiddlewareError();
-      }
-      await authMiddleware?.authenticate(localizedReason: options.authReason);
-    }
+  Future<void> saveCredential(
+    CredentialType type, {
+    SSAuthOperationOptions? options = const SSAuthOperationOptions(),
+  }) async {
+    await _authenticate(options: options!);
     await secureStorage.write(
-        key: "${options.ssNameSpace ?? "vaariance"}_${type.name}",
-        value: _credential);
+      key: "${options.ssNameSpace ?? "vaariance"}_${type.name}",
+      value: _credential,
+    );
   }
 
   @override
-  Future<void> update(String key, String value,
-      {SSAuthOperationOptions? options =
-          const SSAuthOperationOptions()}) async {
-    if (options!.requiresAuth) {
-      if (authMiddleware == null) {
-        throw SecureStorageAuthMiddlewareError();
-      }
-      await authMiddleware?.authenticate(localizedReason: options.authReason);
-    }
-
+  Future<void> update(
+    String key,
+    String value, {
+    SSAuthOperationOptions? options = const SSAuthOperationOptions(),
+  }) async {
+    await _authenticate(options: options!);
     await secureStorage.write(
-        key: "${options.ssNameSpace ?? "vaariance"}_$key", value: value);
+      key: "${options.ssNameSpace ?? "vaariance"}_$key",
+      value: value,
+    );
   }
 }
 
