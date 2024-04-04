@@ -1,4 +1,4 @@
-part of '../../variance.dart';
+part of '../../variance_dart.dart';
 
 class GasEstimationError extends Error {
   final String message;

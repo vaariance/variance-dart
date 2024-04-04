@@ -46,7 +46,9 @@ class _WalletHomeState extends State<WalletHome> {
                       label: const Text(' Receive')),
                   50.horizontalSpace,
                   TextButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        context.read<WalletProvider>().mintNFt();
+                      },
                       style: TextButton.styleFrom(
                           backgroundColor: const Color(0xffE1FF01)),
                       icon: const Icon(

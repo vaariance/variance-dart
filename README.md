@@ -17,8 +17,11 @@ Variance is a Dart SDK designed to simplify interaction with Ethereum-based bloc
 open your terminal and run the following command:
 
 ```sh
-flutter pub get variance_dart
-flutter pub get web3_signers
+flutter pub add variance_dart
+flutter pub add web3_signers
+
+# optionally
+flutter pub add web3dart
 ```
 
 ### Usage
@@ -26,7 +29,7 @@ flutter pub get web3_signers
 ```dart
 // Import the package
 import 'package:web3_signers/web3_signers.dart';
-import 'package:variance_dart/variance.dart';
+import 'package:variance_dart/variance_dart.dart';
 
 // optionally
 import 'package:web3dart/web3dart.dart';
@@ -56,11 +59,11 @@ chain.entrypoint = entrypointAddress;
 Also if wish to use paymasters with your smart wallet you can do so by specifying the endpoint of the paymaster. By default the paymaster is set to null. This would add a paymaster Plugin to the smart wallet.
 
 ```dart
-final String paymasterUrl = 'https://pimlico.io/...';
+final String paymasterUrl = 'https://api.pimlico.io/v2/84532/rpc?apikey=...';
 chain.paymasterUrl = paymasterUrl;
 ```
 
-If you have additional context for the paymaster, you will be able to add it to the smart wallet.
+If you have additional context for the paymaster, you will be able to add it to the smart wallet after creation or before initiating a transaction.
 
 ```dart
 wallet.plugin<Paymaster>('paymaster').context = {'key': 'value'};
@@ -153,7 +156,7 @@ await wallet.send(
 );
 ```
 
-For detailed usage and examples, refer to the [documentation](https://docs.variance.space). Additional refer to the [demo](https://github.com/vaariance/variancedemo) for use in a flutter app.
+For detailed usage and examples, refer to the [documentation](https://docs.variance.space). Additional refer to the [example](./example/) for use in a flutter app.
 
 ## API Reference
 

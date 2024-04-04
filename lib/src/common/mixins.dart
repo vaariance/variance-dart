@@ -1,4 +1,4 @@
-part of '../../variance.dart';
+part of '../../variance_dart.dart';
 
 typedef Percent = double;
 
@@ -43,7 +43,7 @@ mixin _GasSettings {
   /// [gasParams] is an instance of the [GasSettings] class containing the gas settings.
   set setGasParams(GasSettings gasParams) => _gasParams = gasParams;
 
-  /// Applies the gas settings to a user operation.
+  /// Applies the gas settings to a user operation, by multiplying the gas limits by a certain percentage.
   ///
   /// [op] is the user operation to which the gas settings should be applied.
   ///
@@ -84,6 +84,17 @@ mixin _PluginManager {
     _plugins[name] = module;
   }
 
+  /// checks if a plugin exists
+  ///
+  /// Parameters:
+  ///   - `name`: The name of the plugin to check
+  ///
+  /// Returns:
+  ///   true if the plugin exists
+  bool hasPlugin(String name) {
+    return _plugins.containsKey(name);
+  }
+
   /// Gets a plugin by name.
   ///
   /// Parameters:
@@ -100,17 +111,6 @@ mixin _PluginManager {
       }
     }
     return _plugins[name] as T;
-  }
-
-  /// checks if a plugin exists
-  ///
-  /// Parameters:
-  ///   - `name`: The name of the plugin to check
-  ///
-  /// Returns:
-  ///   true if the plugin exists
-  bool hasPlugin(String name) {
-    return _plugins.containsKey(name);
   }
 
   /// Removes an unwanted plugin by name.

@@ -19,14 +19,11 @@ abstract class SmartWalletFactoryBase {
   /// Creates a new Safe account with the provided salt and optional owners and threshold.
   ///
   /// [salt] is the salt value used in the account creation process.
-  /// [owners] is an optional list of owner addresses for the Safe account.
-  /// [threshold] is an optional threshold value for the Safe account.
   ///
   /// Returns a [Future] that resolves to a [SmartWallet] instance representing
   /// the created Safe account.
 
-  Future<SmartWallet> createSafeAccount(Uint256 salt,
-      [List<EthereumAddress>? owners, int? threshold]);
+  Future<SmartWallet> createSafeAccount(Uint256 salt);
 
   /// Creates a new simple account with the provided salt and optional index.
   ///

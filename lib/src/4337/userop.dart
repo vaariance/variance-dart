@@ -1,4 +1,4 @@
-part of '../../variance.dart';
+part of '../../variance_dart.dart';
 
 /// A class that implements the user operation struct defined in EIP4337.
 class UserOperation implements UserOperationBase {
@@ -357,22 +357,23 @@ class UserOperationResponse {
         RangeError.value(
             timeout.inSeconds, "timeout", "timeout must be > pollInterval"));
 
-    return await Isolate.run(() async {
-      Duration count = Duration.zero;
+    Duration count = Duration.zero;
 
-      while (count < timeout) {
-        await Future.delayed(pollInterval);
+    while (count < timeout) {
+      await Future.delayed(pollInterval);
 
+      try {
         final receipt = await _callback(userOpHash);
         if (receipt != null) {
           return receipt;
         }
-
+        count += pollInterval;
+      } catch (e) {
         count += pollInterval;
       }
+    }
 
-      throw TimeoutException(
-          "can't find useroperation with hash $userOpHash", timeout);
-    });
+    throw TimeoutException(
+        "can't find useroperation with hash $userOpHash", timeout);
   }
 }

@@ -1,4 +1,4 @@
-part of '../../variance.dart';
+part of '../../variance_dart.dart';
 
 /// A class that represents a Smart Wallet on an Ethereum-like blockchain.
 ///
@@ -154,12 +154,12 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   Future<UserOperation> signUserOperation(UserOperation op,
       {int? index}) async {
     final isSafe = hasPlugin('safe');
-    final currentTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final blockInfo =
+        await plugin<JsonRPCProviderBase>('jsonRpc').getBlockInformation();
 
     // Calculate the operation hash
     final opHash = isSafe
-        ? await plugin<_SafePlugin>('safe')
-            .getUserOperationHash(op, currentTimestamp)
+        ? await plugin<_SafePlugin>('safe').getSafeOperationHash(op, blockInfo)
         : op.hash(_chain);
 
     // Sign the operation hash using the 'signer' plugin
@@ -169,8 +169,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
 
     // Append the signature validity period if the 'safe' plugin is enabled
     op.signature = isSafe
-        ? plugin<_SafePlugin>('safe')
-            .getEncodedSignature(signatureHex, currentTimestamp)
+        ? plugin<_SafePlugin>('safe').getSafeSignature(signatureHex, blockInfo)
         : signatureHex;
 
     return op;
@@ -203,7 +202,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
       ]).then((responses) {
         op = op.copyWith(
             nonce: op.nonce > BigInt.zero ? op.nonce : responses[0].value,
-            initCode: responses[0].value > BigInt.zero ? Uint8List(0) : null,
+            initCode: responses[0] > Uint256.zero ? Uint8List(0) : null,
             signature: dummySignature);
         return _updateUserOperationGas(op, feePerGas: responses[1]);
       });

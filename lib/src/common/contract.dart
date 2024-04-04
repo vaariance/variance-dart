@@ -1,4 +1,4 @@
-part of '../../variance.dart';
+part of '../../variance_dart.dart';
 
 /// A wrapper for interacting with deployed Ethereum contracts through [JsonRPCProvider].
 class Contract {
@@ -8,47 +8,6 @@ class Contract {
   Contract(
     this.rpc,
   );
-
-  /// Asynchronously calls a function on a smart contract with the provided parameters.
-  ///
-  /// Parameters:
-  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
-  ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
-  ///   - `methodName`: The name of the method to call on the smart contract.
-  ///   - `params`: Optional parameters for the function call.
-  ///   - `sender`: The [EthereumAddress] of the sender, if applicable.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with a list of dynamic values representing the result of the function call.
-  ///
-  /// Example:
-  /// ```dart
-  /// var result = await read(
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
-  ///   myErc20ContractAbi,
-  ///   'balanceOf',
-  ///   params: [ EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432')],
-  /// );
-  /// ```
-  /// This method uses the an Ethereum jsonRPC to `staticcall` a function on the specified smart contract.
-  /// **Note:** This method does not support contract calls with state changes.
-  Future<List<dynamic>> read(
-      EthereumAddress contractAddress, ContractAbi abi, String methodName,
-      {List<dynamic>? params, EthereumAddress? sender}) {
-    final function = getContractFunction(methodName, contractAddress, abi);
-    final calldata = {
-      'to': contractAddress.hex,
-      'data': params != null
-          ? bytesToHex(function.encodeCall(params),
-              include0x: true, padToEvenLength: true)
-          : "0x",
-      if (sender != null) 'from': sender.hex,
-    };
-    return rpc.send<String>('eth_call', [
-      calldata,
-      BlockNum.current().toBlockParam()
-    ]).then((value) => function.decodeReturnValues(value));
-  }
 
   /// Asynchronously checks whether a smart contract is deployed at the specified address.
   ///
@@ -105,6 +64,47 @@ class Contract {
         .send<String>('eth_getBalance', [address.hex, atBlock.toBlockParam()])
         .then(BigInt.parse)
         .then((value) => EtherAmount.fromBigInt(EtherUnit.wei, value));
+  }
+
+  /// Asynchronously calls a function on a smart contract with the provided parameters.
+  ///
+  /// Parameters:
+  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
+  ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
+  ///   - `methodName`: The name of the method to call on the smart contract.
+  ///   - `params`: Optional parameters for the function call.
+  ///   - `sender`: The [EthereumAddress] of the sender, if applicable.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with a list of dynamic values representing the result of the function call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var result = await read(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   myErc20ContractAbi,
+  ///   'balanceOf',
+  ///   params: [ EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432')],
+  /// );
+  /// ```
+  /// This method uses the an Ethereum jsonRPC to `staticcall` a function on the specified smart contract.
+  /// **Note:** This method does not support contract calls with state changes.
+  Future<List<dynamic>> read(
+      EthereumAddress contractAddress, ContractAbi abi, String methodName,
+      {List<dynamic>? params, EthereumAddress? sender}) {
+    final function = getContractFunction(methodName, contractAddress, abi);
+    final calldata = {
+      'to': contractAddress.hex,
+      'data': params != null
+          ? bytesToHex(function.encodeCall(params),
+              include0x: true, padToEvenLength: true)
+          : "0x",
+      if (sender != null) 'from': sender.hex,
+    };
+    return rpc.send<String>('eth_call', [
+      calldata,
+      BlockNum.current().toBlockParam()
+    ]).then((value) => function.decodeReturnValues(value));
   }
 
   /// Encodes an ERC-20 token approval function call.

@@ -1,27 +1,4 @@
-part of '../../variance.dart';
-
-class PaymasterResponse {
-  final Uint8List paymasterAndData;
-  final BigInt preVerificationGas;
-  final BigInt verificationGasLimit;
-  final BigInt callGasLimit;
-
-  PaymasterResponse({
-    required this.paymasterAndData,
-    required this.preVerificationGas,
-    required this.verificationGasLimit,
-    required this.callGasLimit,
-  });
-
-  factory PaymasterResponse.fromMap(Map<String, dynamic> map) {
-    return PaymasterResponse(
-      paymasterAndData: hexToBytes(map['paymasterAndData']),
-      preVerificationGas: BigInt.parse(map['preVerificationGas']),
-      verificationGasLimit: BigInt.parse(map['verificationGasLimit']),
-      callGasLimit: BigInt.parse(map['callGasLimit']),
-    );
-  }
-}
+part of '../../variance_dart.dart';
 
 /// Represents a Paymaster contract for sponsoring user operations.
 class Paymaster implements PaymasterBase {
@@ -34,11 +11,6 @@ class Paymaster implements PaymasterBase {
   /// information to the Paymaster when sponsoring user operations.
   Map<String, String>? _context;
 
-  @override
-  set context(Map<String, String>? context) {
-    _context = context;
-  }
-
   /// Creates a new instance of the [Paymaster] class.
   ///
   /// [_chain] is the Ethereum chain configuration.
@@ -47,9 +19,14 @@ class Paymaster implements PaymasterBase {
   /// Throws an [InvalidPaymasterUrl] exception if the paymaster URL in the
   /// provided chain configuration is not a valid URL.
   Paymaster(this._chain, [this._context])
-      : assert(isURL(_chain.paymasterUrl),
+      : assert(_chain.paymasterUrl.isURL(),
             InvalidPaymasterUrl(_chain.paymasterUrl)),
         _rpc = RPCBase(_chain.paymasterUrl!);
+
+  @override
+  set context(Map<String, String>? context) {
+    _context = context;
+  }
 
   @override
   Future<UserOperation> intercept(UserOperation operation) async {
@@ -62,16 +39,56 @@ class Paymaster implements PaymasterBase {
       preVerificationGas: paymasterResponse.preVerificationGas,
       verificationGasLimit: paymasterResponse.verificationGasLimit,
       callGasLimit: paymasterResponse.callGasLimit,
+      maxFeePerGas: paymasterResponse.maxFeePerGas ?? operation.maxFeePerGas,
+      maxPriorityFeePerGas: paymasterResponse.maxPriorityFeePerGas ??
+          operation.maxPriorityFeePerGas,
     );
   }
 
   @override
   Future<PaymasterResponse> sponsorUserOperation(Map<String, dynamic> userOp,
       EntryPointAddress entrypoint, Map<String, String>? context) async {
+    final request = [userOp, entrypoint.address.hex];
+    if (context != null) {
+      request.add(context);
+    }
     final response = await _rpc.send<Map<String, dynamic>>(
-        'pm_sponsorUserOperation', [userOp, entrypoint.address.hex, context]);
+        'pm_sponsorUserOperation', request);
 
     // Parse the response into a PaymasterResponse object
     return PaymasterResponse.fromMap(response);
+  }
+}
+
+class PaymasterResponse {
+  final Uint8List paymasterAndData;
+  final BigInt preVerificationGas;
+  final BigInt verificationGasLimit;
+  final BigInt callGasLimit;
+  final BigInt? maxFeePerGas;
+  final BigInt? maxPriorityFeePerGas;
+
+  PaymasterResponse({
+    required this.paymasterAndData,
+    required this.preVerificationGas,
+    required this.verificationGasLimit,
+    required this.callGasLimit,
+    this.maxFeePerGas,
+    this.maxPriorityFeePerGas,
+  });
+
+  factory PaymasterResponse.fromMap(Map<String, dynamic> map) {
+    return PaymasterResponse(
+      paymasterAndData: hexToBytes(map['paymasterAndData']),
+      preVerificationGas: BigInt.parse(map['preVerificationGas']),
+      verificationGasLimit: BigInt.parse(map['verificationGasLimit']),
+      callGasLimit: BigInt.parse(map['callGasLimit']),
+      maxFeePerGas: map['maxFeePerGas'] != null
+          ? BigInt.parse(map['maxFeePerGas'])
+          : null,
+      maxPriorityFeePerGas: map['maxPriorityFeePerGas'] != null
+          ? BigInt.parse(map['maxPriorityFeePerGas'])
+          : null,
+    );
   }
 }

@@ -1,6 +1,6 @@
 name: variance_dart
 description: An Account Abstraction (4337) Development kit, for quickly building mobile web3 apps and smart wallets.
-version: 0.0.9
+version: 0.1.0-r2
 documentation: https://docs.variance.space
 homepage: https://variance.space
 repository: https://github.com/vaariance/variance-dart
@@ -20,8 +20,7 @@ dependencies:
     sdk: flutter
   web3dart: ^2.7.2
   http: ^1.1.0
-  string_validator: ^1.0.2
-  web3_signers: ^0.0.6-r2
+  web3_signers: ^0.0.6
 
 dev_dependencies:
   web3dart_builders: ^0.0.7

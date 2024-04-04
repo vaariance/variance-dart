@@ -364,18 +364,18 @@ packages:
     dependency: transitive
     description:
       name: passkeys
-      sha256: "79f07498b44d8372a569904d5e3e1de238d83abcf83b79d583a06394b98d2789"
+      sha256: "59e50b21746aff90cbc56145174caa3b99523f449e42f7d8aa2199ec09c511cd"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.7"
+    version: "2.0.8"
   passkeys_android:
     dependency: transitive
     description:
       name: passkeys_android
-      sha256: ab245d18d88040409d3aa93c3359a4c10c569894361c56929cb367d4b892bbaf
+      sha256: "9dc0b84dad03329ff2f3be18bedecf1b8de9309c8e9cda6ef821dc88556a126d"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.3"
+    version: "2.0.4"
   passkeys_ios:
     dependency: transitive
     description:
@@ -629,14 +629,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
-  string_validator:
-    dependency: transitive
-    description:
-      name: string_validator
-      sha256: "54d4f42cd6878ae72793a58a529d9a18ebfdfbfebd9793bbe55c9b28935e8543"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   term_glyph:
     dependency: transitive
     description:
@@ -691,7 +683,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.9"
+    version: "0.1.0-r1"
   vector_math:
     dependency: transitive
     description:
@@ -720,10 +712,10 @@ packages:
     dependency: "direct main"
     description:
       name: web3_signers
-      sha256: "7dc7f83d2eba5e78eb0310fcdf0cb4c0b167c27abafc86c8027383913dd64488"
+      sha256: fd2a4ee394537f2140c08a395eadd8611aa713e04699c29b6aaba75e11264faf
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.6-r2"
+    version: "0.0.6"
   web3dart:
     dependency: "direct main"
     description:

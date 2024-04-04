@@ -1,4 +1,4 @@
-part of '../../variance.dart';
+part of '../../variance_dart.dart';
 
 /// Packs two 128-bit unsigned integers into a 32-byte array.
 ///

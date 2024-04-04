@@ -1,4 +1,4 @@
-part of '../../variance.dart';
+part of '../../variance_dart.dart';
 
 /// A class that implements the `BundlerProviderBase` interface and provides methods
 /// for interacting with a bundler for sending and tracking user operations on
@@ -6,6 +6,9 @@ part of '../../variance.dart';
 class BundlerProvider implements BundlerProviderBase {
   /// The remote procedure call (RPC) client used to communicate with the bundler.
   final RPCBase rpc;
+
+  /// A flag indicating whether the initialization process was successful.
+  late final bool _initialized;
 
   /// Creates a new instance of the BundlerProvider class.
   ///
@@ -16,7 +19,7 @@ class BundlerProvider implements BundlerProviderBase {
   /// retrieve the chain ID and verifies that it matches the expected chain ID.
   /// If the chain IDs don't match, the _initialized flag is set to false.
   BundlerProvider(Chain chain)
-      : assert(isURL(chain.bundlerUrl), InvalidBundlerUrl(chain.bundlerUrl)),
+      : assert(chain.bundlerUrl.isURL(), InvalidBundlerUrl(chain.bundlerUrl)),
         rpc = RPCBase(chain.bundlerUrl!) {
     rpc
         .send<String>('eth_chainId')
@@ -24,9 +27,6 @@ class BundlerProvider implements BundlerProviderBase {
         .then((value) => value.toInt() == chain.chainId)
         .then((value) => _initialized = value);
   }
-
-  /// A flag indicating whether the initialization process was successful.
-  late final bool _initialized;
 
   @override
   Future<UserOperationGas> estimateUserOperationGas(
@@ -87,7 +87,7 @@ class JsonRPCProvider implements JsonRPCProviderBase {
   /// The constructor checks if the JSON-RPC URL is a valid URL and initializes
   /// the RPC client with the JSON-RPC URL.
   JsonRPCProvider(Chain chain)
-      : assert(isURL(chain.jsonRpcUrl), InvalidJsonRpcUrl(chain.jsonRpcUrl)),
+      : assert(chain.jsonRpcUrl.isURL(), InvalidJsonRpcUrl(chain.jsonRpcUrl)),
         rpc = RPCBase(chain.jsonRpcUrl!);
 
   @override
@@ -103,6 +103,17 @@ class JsonRPCProvider implements JsonRPCProviderBase {
         .send<String>('eth_blockNumber')
         .then(hexToInt)
         .then((value) => value.toInt());
+  }
+
+  @override
+  Future<BlockInformation> getBlockInformation({
+    String blockNumber = 'latest',
+    bool isContainFullObj = true,
+  }) {
+    return rpc.send<Map<String, dynamic>>(
+      'eth_getBlockByNumber',
+      [blockNumber, isContainFullObj],
+    ).then((json) => BlockInformation.fromJson(json));
   }
 
   @override

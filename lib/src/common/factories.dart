@@ -1,4 +1,4 @@
-part of '../../variance.dart';
+part of '../../variance_dart.dart';
 
 /// A class that extends [P256AccountFactory] and implements [P256AccountFactoryBase].
 /// It creates an instance of [P256AccountFactory] with a custom [RPCBase] client.

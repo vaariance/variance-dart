@@ -1,4 +1,4 @@
-part of '../../variance.dart';
+part of '../../variance_dart.dart';
 
 /// Represents an Ethereum-based blockchain chain.
 class Chain {

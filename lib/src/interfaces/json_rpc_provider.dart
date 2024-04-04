@@ -39,6 +39,26 @@ abstract class JsonRPCProviderBase {
   /// This method uses an ethereum jsonRPC to fetch the current block number from the Ethereum node.
   Future<int> getBlockNumber();
 
+  /// Asynchronously retrieves information about the specified block.
+  /// If no block number is provided, it defaults to the latest block.
+  /// If `isContainFullObj` is set to `true`, the full block object will be returned.
+  ///
+  /// Parameters:
+  ///   - `blockNumber`: The block number to retrieve information for.
+  ///   - `isContainFullObj`: Whether to return the full block object.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with a [BlockInformation] object containing the block information.
+  ///
+  /// Example:
+  /// ```dart
+  /// var blockInfo = await getBlockInformation();
+  /// ```
+  Future<BlockInformation> getBlockInformation({
+    String blockNumber = 'latest',
+    bool isContainFullObj = true,
+  });
+
   /// Asynchronously retrieves the EIP-1559 gas prices, including `maxFeePerGas` and `maxPriorityFeePerGas`.
   ///
   /// Returns:

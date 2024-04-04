@@ -1,4 +1,4 @@
-part of '../../variance.dart';
+part of '../../variance_dart.dart';
 
 /// A factory class for creating various types of Ethereum smart wallets.
 /// {@inheritDoc SmartWalletFactoryBase}
@@ -31,6 +31,13 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       chainId: _chain.chainId,
       rpc: _jsonRpc.rpc);
 
+  /// A getter for the SafePlugin instance.
+  _SafePlugin get _safePlugin => _SafePlugin(
+      address:
+          Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version).address,
+      chainId: _chain.chainId,
+      client: _safeProxyFactory.client);
+
   /// A getter for the SafeProxyFactory contract instance.
   _SafeProxyFactory get _safeProxyFactory => _SafeProxyFactory(
       address: _chain.accountFactory!,
@@ -42,13 +49,6 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       address: _chain.accountFactory!,
       chainId: _chain.chainId,
       rpc: _jsonRpc.rpc);
-
-  /// A getter for the SafePlugin instance.
-  _SafePlugin get _safePlugin => _SafePlugin(
-      address:
-          Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version).address,
-      chainId: _chain.chainId,
-      client: _safeProxyFactory.client);
 
   @override
   Future<SmartWallet> createP256Account<T>(T keyPair, Uint256 salt,
@@ -67,15 +67,11 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   }
 
   @override
-  Future<SmartWallet> createSafeAccount(Uint256 salt,
-      [List<EthereumAddress>? owners, int? threshold]) async {
+  Future<SmartWallet> createSafeAccount(Uint256 salt) async {
     final signer = EthereumAddress.fromHex(_signer.getAddress());
-    final ownerSet = owners != null ? {signer, ...owners} : [signer];
 
     // Get the initializer data for the Safe account
-    final initializer = _safeProxyFactory.getInitializer(
-        ownerSet,
-        threshold ?? 1,
+    final initializer = _safeProxyFactory.getInitializer([signer], 1,
         Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version));
 
     // Get the proxy creation code for the Safe account

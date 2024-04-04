@@ -1,3 +1,24 @@
+## 0.1.0-r2
+
+* Fix safe transaction encoding
+* Remove _checkDeployment function in counterfactual creation
+* Add getBlockInformation in JsonRPCProvider
+
+## 0.1.0-r1
+
+* Mainnet Pre-release
+* refactor sdk to use the factory method for creating smart-accounts
+* add safe smart accounts via safe plugin
+* reduce external dependencies to 3
+* implement custom errors and add logger for debugging
+* update contract abis, adding more erc20/erc721 abi snippets
+* fix paymaster plugin context incompatibility
+* add utility for packing and unpacking uint256 values
+* update chain configuration to surpport minimal modest chains
+* update example to a real flutter example
+* rename library name from variance to variance_dart for consistency
+* update API refs and README to reflect new changes
+
 ## 0.0.9
 
 * Add support for entrypoint v0.7 in parrallel.
