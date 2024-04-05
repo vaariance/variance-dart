@@ -286,8 +286,12 @@ class Contract {
       innerCallData ?? Uint8List.fromList([])
     ];
 
-    if (isSafe) params.add(BigInt.zero);
-    final method = isSafe ? 'executeUserOpWithErrorString' : 'execute';
+    String method = 'execute';
+
+    if (isSafe) {
+      method = 'executeUserOpWithErrorString';
+      params.add(BigInt.zero);
+    }
 
     return encodeFunctionCall(
       method,
@@ -331,24 +335,32 @@ class Contract {
       List<EtherAmount>? amounts,
       List<Uint8List>? innerCalls,
       bool isSafe = false}) {
-    if (isSafe) {
-      throw UnimplementedError(
-          "Batch Transactions with Safe are not yet implemented.");
-    }
-
-    final params = [
+    List params = [
       recipients,
       amounts?.map<BigInt>((e) => e.getInWei) ?? [],
       innerCalls ?? Uint8List.fromList([]),
     ];
+
     if (innerCalls == null || innerCalls.isEmpty) {
       require(amounts != null && amounts.isNotEmpty, "malformed batch request");
     }
 
+    String method = 'executeBatch';
+
+    if (isSafe) {
+      method = 'executeUserOpWithErrorString';
+      params = [
+        recipients[0], // multisend contract
+        EtherAmount.zero().getInWei, // 0 value to be passed
+        innerCalls?[0], // the encoded multisend calldata
+        BigInt.one // specifying delegate call operation
+      ];
+    }
+
     return encodeFunctionCall(
-      'executeBatch',
+      method,
       walletAddress,
-      ContractAbis.get('executeBatch'),
+      ContractAbis.get(method),
       params,
     );
   }

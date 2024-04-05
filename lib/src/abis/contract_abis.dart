@@ -82,6 +82,10 @@ class ContractAbis {
         abi =
             '[{"type":"function","name":"setup","inputs":[{"name":"_owners","type":"address[]","internalType":"address[]"},{"name":"_threshold","type":"uint256","internalType":"uint256"},{"name":"to","type":"address","internalType":"address"},{"name":"data","type":"bytes","internalType":"bytes"},{"name":"fallbackHandler","type":"address","internalType":"address"},{"name":"paymentToken","type":"address","internalType":"address"},{"name":"payment","type":"uint256","internalType":"uint256"},{"name":"paymentReceiver","type":"address","internalType":"address payable"}],"outputs":[],"stateMutability":"nonpayable"}]';
         break;
+      case 'multiSend':
+        abi =
+            '[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"bytes","name":"transactions","type":"bytes"}],"name":"multiSend","outputs":[],"stateMutability":"payable","type":"function"}]';
+        break;
       default:
         throw 'ABI of $name is not available by default. Please provide the ABI manually.';
     }

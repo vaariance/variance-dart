@@ -64,4 +64,42 @@ class _SafePlugin extends Safe4337Module implements Safe4337ModuleBase {
         op.paymasterAndData,
         hexToBytes(getSafeSignature(op.signature, blockInfo))
       ]);
+
+  Uint8List getSafeMultisendCallData(List<EthereumAddress> recipients,
+      List<EtherAmount>? amounts, List<Uint8List>? innerCalls) {
+    Uint8List packedCallData = Uint8List(0);
+
+    for (int i = 0; i < recipients.length; i++) {
+      Uint8List operation = Uint8List.fromList([0]);
+      assert(operation.length == 1);
+      Uint8List to = recipients[i].addressBytes;
+      assert(to.length == 20);
+      Uint8List value = amounts != null
+          ? padTo32Bytes(amounts[i].getInWei)
+          : padTo32Bytes(BigInt.zero);
+      assert(value.length == 32);
+      Uint8List dataLength = innerCalls != null
+          ? padTo32Bytes(BigInt.from(innerCalls[i].length))
+          : padTo32Bytes(BigInt.zero);
+      assert(dataLength.length == 32);
+      Uint8List data =
+          innerCalls != null ? innerCalls[i] : Uint8List.fromList([]);
+      Uint8List encodedCall = Uint8List.fromList(
+          [...operation, ...to, ...value, ...dataLength, ...data]);
+      packedCallData = Uint8List.fromList([...packedCallData, ...encodedCall]);
+    }
+
+    return Contract.encodeFunctionCall(
+        "multiSend",
+        Constants.safeMultiSendaddress,
+        ContractAbis.get("multiSend"),
+        [packedCallData]);
+  }
+
+  Uint8List padTo32Bytes(BigInt number) {
+    final bytes = intToBytes(number);
+    return bytes.length < 32
+        ? Uint8List.fromList([...Uint8List(32 - bytes.length), ...bytes])
+        : bytes;
+  }
 }

@@ -176,6 +176,8 @@ class Constants {
       EthereumAddress.fromHex("0x41675C099F32341bf84BFc5382aF534df5C7461a");
   static final EthereumAddress safeModuleSetupAddress =
       EthereumAddress.fromHex("0x8EcD4ec46D4D2a6B64fE960B3D64e8B94B2234eb");
+  static final EthereumAddress safeMultiSendaddress =
+      EthereumAddress.fromHex("0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526");
 
   Constants._();
 }

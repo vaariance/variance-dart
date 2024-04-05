@@ -29,7 +29,8 @@ class WalletProvider extends ChangeNotifier {
       : _chain = Chains.getChain(Network.baseTestnet)
           ..accountFactory = EthereumAddress.fromHex(
               "0x402A266e92993EbF04a5B3fd6F0e2b21bFC83070")
-          ..bundlerUrl = "https://api.pimlico.io/v2/84532/rpc?apikey="
+          ..bundlerUrl =
+              "https://api.pimlico.io/v2/84532/rpc?apikey=YOUR_API_KEY"
           ..paymasterUrl = "https://paymaster.optimism.io/v1/84532/rpc";
 
   Future<void> registerWithPassKey(String name,
@@ -137,23 +138,6 @@ class WalletProvider extends ChangeNotifier {
             ContractAbis.get("ERC721_SafeMint"), [_wallet?.address]));
     await tx1?.wait();
 
-    // mints erc20 tokens
-    final tx2 = await _wallet?.sendTransaction(
-        erc20,
-        Contract.encodeFunctionCall(
-            "mint", erc20, ContractAbis.get("ERC20_Mint"), [
-          _wallet?.address,
-          w3d.EtherAmount.fromInt(w3d.EtherUnit.ether, 20).getInWei
-        ]));
-    await tx2?.wait();
-
-    // transfers the tokens
-    final tx3 = await _wallet?.sendTransaction(
-        erc20,
-        Contract.encodeERC20TransferCall(
-            erc20, deployer, w3d.EtherAmount.fromInt(w3d.EtherUnit.ether, 18)));
-    await tx3?.wait();
-    log("trying batched transaction");
     await sendBatchedTransaction();
   }
 

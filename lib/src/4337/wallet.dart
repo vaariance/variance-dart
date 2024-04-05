@@ -111,15 +111,28 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
 
   @override
   Future<UserOperationResponse> sendBatchedTransaction(
-          List<EthereumAddress> recipients, List<Uint8List> calls,
-          {List<EtherAmount>? amounts}) =>
-      sendUserOperation(buildUserOperation(
+      List<EthereumAddress> recipients, List<Uint8List> calls,
+      {List<EtherAmount>? amounts}) {
+    final isSafe = hasPlugin("safe");
+    if (isSafe) {
+      final innerCall = plugin<_SafePlugin>('safe')
+          .getSafeMultisendCallData(recipients, amounts, calls);
+      return sendUserOperation(buildUserOperation(
+          callData: Contract.executeBatch(
+              walletAddress: _walletAddress,
+              recipients: [Constants.safeMultiSendaddress],
+              amounts: [],
+              innerCalls: [innerCall],
+              isSafe: true)));
+    } else {
+      return sendUserOperation(buildUserOperation(
           callData: Contract.executeBatch(
               walletAddress: _walletAddress,
               recipients: recipients,
               amounts: amounts,
-              innerCalls: calls,
-              isSafe: hasPlugin("safe"))));
+              innerCalls: calls)));
+    }
+  }
 
   @override
   Future<UserOperationResponse> sendSignedUserOperation(UserOperation op) =>

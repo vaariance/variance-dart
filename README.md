@@ -88,14 +88,14 @@ The smart wallet factory handles the creation of smart wallet instances. Make su
 final SmartWalletFactory smartWalletFactory = SmartWalletFactory(chain, signer);
 ```
 
-#### To Create a Simple Account Smart Wallet
+#### To Create a Simple Smart Account
 
 ```dart
 final Smartwallet wallet = await smartWalletFactory.createSimpleAccount(salt);
 print("simple wallet address: ${wallet.address.hex}");
 ```
 
-#### To create a P256 Smart Account
+#### To create a P256 Smart Account (Secure Enclave/Keystore)
 
 ```dart
 final Smartwallet wallet = await smartWalletFactory.createP256Account(keypair, salt);
@@ -110,7 +110,7 @@ final Smartwallet wallet = await smartWalletFactory.createP256Account(keypair, s
 print("p256 wallet address: ${wallet.address.hex}");
 ```
 
-#### To create a Safe Smart Account
+#### To create a [Safe](https://safe.global) Smart Account
 
 ```dart
 final Smartwallet wallet = await smartWalletFactory

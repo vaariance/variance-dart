@@ -1,3 +1,8 @@
+## 0.1.0-r3
+
+* Add mutisend address to constants
+* Add support for Safe account batch transactions
+
 ## 0.1.0-r2
 
 * Fix safe transaction encoding
