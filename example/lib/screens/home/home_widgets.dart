@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -126,84 +127,83 @@ Future<ui.Image> _loadOverlayImage() async {
   return completer.future;
 }
 
-showModalBottomSheetContent(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    builder: (BuildContext context) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.89,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(10.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: qrFutureBuilder, // Replace with your content
-                ),
-              ),
-              const SizedBox(height: 50),
-              Container(
-                width: 280,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                margin: const EdgeInsets.symmetric(horizontal: 15),
+class Receive extends StatelessWidget {
+  const Receive({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.89,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            50.verticalSpace,
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey.shade400),
                 ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 250,
-                      child: Text(
-                        message,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          color: const Color(0xff32353E).withOpacity(0.5),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    const Spacer(),
-                    SizedBox(
-                      width: 60,
-                      height: 30,
-                      child: TextButton(
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(
-                            text: message,
-                          ));
-                        },
-                        style: TextButton.styleFrom(
-                          backgroundColor: const Color(0xff32353E),
-                          padding: const EdgeInsets.all(5),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: const Text(
-                          'copy',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: qrFutureBuilder, // Replace with your content
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 50),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              // margin: const EdgeInsets.symmetric(horizontal: 15),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.grey.shade400),
+              ),
+              child: Row(
+                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        overflow: TextOverflow.ellipsis,
+                        color: const Color(0xff32353E).withOpacity(0.5),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(
+                          text: message,
+                        ));
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xff32353E),
+                        padding: const EdgeInsets.only(left: 30, right: 30),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        'copy',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-      );
-    },
-  );
+      ),
+    );
+  }
 }

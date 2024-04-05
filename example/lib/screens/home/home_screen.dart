@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -16,10 +17,18 @@ class WalletHome extends StatefulWidget {
   State<WalletHome> createState() => _WalletHomeState();
 }
 
-class _WalletHomeState extends State<WalletHome> {
+class _WalletHomeState extends State<WalletHome>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  late TabController _tabController;
   TextEditingController amountController = TextEditingController();
   TextEditingController addressController = TextEditingController();
+
+  @override
+  void initState() {
+    _tabController = TabController(length: 3, vsync: this);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,93 +42,174 @@ class _WalletHomeState extends State<WalletHome> {
             children: [
               const WalletBalance(),
               50.verticalSpace,
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton.icon(
-                      onPressed: () {
-                        showModalBottomSheetContent(context);
-                      },
-                      style: TextButton.styleFrom(
-                          backgroundColor: const Color(0xffE1FF01)),
-                      icon: const Icon(Icons.qr_code_2_sharp),
-                      label: const Text(' Receive')),
-                  50.horizontalSpace,
-                  TextButton.icon(
-                      onPressed: () {
-                        context.read<WalletProvider>().mintNFt();
-                      },
-                      style: TextButton.styleFrom(
-                          backgroundColor: const Color(0xffE1FF01)),
-                      icon: const Icon(
-                        Icons.all_inclusive_outlined,
-                      ),
-                      label: const Text('Mint NFT')),
+              TabBar(
+                controller: _tabController,
+                tabs: [
+                  Tab(
+                    child: Text('Send',
+                        style: TextStyle(
+                            fontSize: 20.sp, color: VarianceColors.secondary)),
+                  ),
+                  Tab(
+                    child: Text('Receive',
+                        style: TextStyle(
+                            fontSize: 20.sp, color: VarianceColors.secondary)),
+                  ),
+                  Tab(
+                    child: Text('NFT',
+                        style: TextStyle(
+                            fontSize: 20.sp, color: VarianceColors.secondary)),
+                  ),
                 ],
               ),
+              Expanded(
+                child: TabBarView(controller: _tabController, children: [
+                  Send(
+                      addressController: addressController,
+                      formKey: _formKey,
+                      amountController: amountController),
+                  const Receive(),
+                  const NFT(),
+                ]),
+              ),
               60.verticalSpace,
-              AddressBar(
-                hintText: 'Eth Address',
-                textEditingController: addressController,
-              ),
-              18.verticalSpace,
-              TextFormField(
-                  style: TextStyle(
-                      fontSize: 51.sp,
-                      fontWeight: FontWeight.w600,
-                      color: VarianceColors.secondary),
-                  key: _formKey,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a value';
-                    } else if (int.parse(value) > 100) {
-                      return 'Value should be less than or equal to 100';
-                    }
-                    return null;
-                  },
-                  onChanged: (value) {
-                    if (value.isEmpty) {
-                      return;
-                    }
-                  },
-                  textAlign: TextAlign.center,
-                  controller: amountController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    focusColor: Colors.white,
-                    fillColor: Colors.white,
-                    border: InputBorder.none,
-                    hintText: '0.0',
-                    hintStyle: TextStyle(
-                        fontSize: 51, color: VarianceColors.secondary),
-                  ),
-                  cursorColor: VarianceColors.secondary,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                      RegExp(r'^\.?\d*(?<!\.)\.?\d*'),
-                    )
-                  ]),
-              SizedBox(
-                height: 58.h,
-                width: double.infinity,
-                child: TextButton(
-                    style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                        backgroundColor: VarianceColors.white),
-                    onPressed: () {
-                      log(amountController.text);
-                      log(addressController.text);
-                      context.read<WalletProvider>().sendTransaction(
-                          addressController.text, amountController.text);
-                    },
-                    child: const Text('Send')),
-              ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class Send extends StatelessWidget {
+  const Send({
+    super.key,
+    required this.addressController,
+    required GlobalKey<FormState> formKey,
+    required this.amountController,
+  }) : _formKey = formKey;
+
+  final TextEditingController addressController;
+  final GlobalKey<FormState> _formKey;
+  final TextEditingController amountController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      // mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        50.verticalSpace,
+        AddressBar(
+          hintText: 'Eth Address',
+          textEditingController: addressController,
+        ),
+        18.verticalSpace,
+        TextFormField(
+            style: TextStyle(
+                fontSize: 51.sp,
+                fontWeight: FontWeight.w600,
+                color: VarianceColors.secondary),
+            key: _formKey,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter a value';
+              } else if (int.parse(value) > 100) {
+                return 'Value should be less than or equal to 100';
+              }
+              return null;
+            },
+            onChanged: (value) {
+              if (value.isEmpty) {
+                return;
+              }
+            },
+            textAlign: TextAlign.center,
+            controller: amountController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              focusColor: Colors.white,
+              fillColor: Colors.white,
+              border: InputBorder.none,
+              hintText: '0.0',
+              hintStyle:
+                  TextStyle(fontSize: 51, color: VarianceColors.secondary),
+            ),
+            cursorColor: VarianceColors.secondary,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                RegExp(r'^\.?\d*(?<!\.)\.?\d*'),
+              )
+            ]),
+        SizedBox(
+          height: 58.h,
+          width: double.infinity,
+          child: TextButton(
+              style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  backgroundColor: VarianceColors.white),
+              onPressed: () {
+                log(amountController.text);
+                log(addressController.text);
+                context.read<WalletProvider>().sendTransaction(
+                    addressController.text, amountController.text);
+              },
+              child: const Text('Send')),
+        ),
+      ],
+    );
+  }
+}
+
+class NFT extends StatelessWidget {
+  const NFT({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final wallet = context.select(
+      (WalletProvider provider) => provider.wallet,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        50.verticalSpace,
+        Row(
+          children: [
+            const CircleAvatar(),
+            10.horizontalSpace,
+            const Text(
+              'NFT',
+              style: TextStyle(color: VarianceColors.secondary),
+            ),
+            const Spacer(),
+            const Text(
+              '\$0.00',
+              style: TextStyle(color: VarianceColors.secondary),
+            ),
+          ],
+        ),
+        10.verticalSpace,
+        Row(children: [
+          const CircleAvatar(),
+          10.horizontalSpace,
+          const Text(
+            'NFT',
+            style: TextStyle(color: VarianceColors.secondary),
+          ),
+          const Spacer(),
+          const Text(
+            '\$0.00',
+            style: TextStyle(color: VarianceColors.secondary),
+          ),
+        ]),
+        Spacer(),
+        ElevatedButton(
+            onPressed: () {
+              context.read<WalletProvider>().mintNFt();
+            },
+            child: const Text('Mint')),
+      ],
     );
   }
 }
