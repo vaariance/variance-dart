@@ -1,3 +1,10 @@
+## 0.1.0
+
+* Training wheel support for entrypoint v0.7.0 via pimlico bundler
+* Fix issue with gas multiplier
+* Added safe4337module abi for v0.7.0
+* Add support for custom paymaster address
+
 ## 0.1.0-r3
 
 * Add mutisend address to constants
