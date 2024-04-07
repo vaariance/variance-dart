@@ -45,6 +45,20 @@ abstract class UserOperationBase {
   /// Returns a [Uint8List] representing the hashed user operation.
   Uint8List hash(Chain chain);
 
+  /// Packs a [UserOperation] into a PackedUserOperation map for EntryPoint v0.7 and above.
+  ///
+  /// Parameters:
+  /// - [userOp]: The [UserOperation] to pack.
+  ///
+  /// Returns a [Map] containing the packed user operation.
+  ///
+  /// Example:
+  /// ```dart
+  /// final packedUserOp = op.packUserOperation();
+  /// print(packedUserOp);
+  /// ```
+  Map<String, String> packUserOperation();
+
   /// Converts the user operation to a JSON-encoded string.
   String toJson();
 

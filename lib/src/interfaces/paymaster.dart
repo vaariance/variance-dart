@@ -6,6 +6,11 @@ abstract class PaymasterBase {
   /// [context] is a map containing the context data to be set.
   set context(Map<String, String>? context);
 
+  /// Sets the address of the Paymaster.
+  ///
+  /// [address] is the address of the Paymaster.
+  set paymasterAddress(EthereumAddress? address);
+
   /// Intercepts a [UserOperation] and sponsors it with the Paymaster.
   ///
   /// [operation] is the [UserOperation] to be sponsored.

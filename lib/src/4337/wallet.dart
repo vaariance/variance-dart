@@ -137,7 +137,8 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   @override
   Future<UserOperationResponse> sendSignedUserOperation(UserOperation op) =>
       plugin<BundlerProviderBase>('bundler')
-          .sendUserOperation(op.toMap(), _chain.entrypoint)
+          .sendUserOperation(
+              op.toMap(_chain.entrypoint.version), _chain.entrypoint)
           .catchError((e) => throw SendError(e.toString(), op));
 
   @override
@@ -217,6 +218,14 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
             nonce: op.nonce > BigInt.zero ? op.nonce : responses[0].value,
             initCode: responses[0] > Uint256.zero ? Uint8List(0) : null,
             signature: dummySignature);
+
+        // require pimlico bundlers for entrypoint v07
+        if (_chain.entrypoint.version == 0.7) {
+          final bundlerHost = Uri.parse(_chain.bundlerUrl!).host;
+          Logger.conditionalError(!bundlerHost.contains("pimlico"),
+              "Entrypoint v07 is relatively new. Currently, only compatible with pimlico bundler https://pimlico.io.");
+        }
+
         return _updateUserOperationGas(op, feePerGas: responses[1]);
       });
 
@@ -231,8 +240,9 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   Future<UserOperation> _updateUserOperationGas(UserOperation op,
           {Map<String, EtherAmount>? feePerGas}) =>
       plugin<BundlerProviderBase>('bundler')
-          .estimateUserOperationGas(op.toMap(), _chain.entrypoint)
+          .estimateUserOperationGas(
+              op.toMap(_chain.entrypoint.version), _chain.entrypoint)
           .then((opGas) => op.updateOpGas(opGas, feePerGas))
-          .then((op) => multiply(op))
+          .then((op) => applyCustomGasSettings(op))
           .catchError((e) => throw GasEstimationError(e.toString(), op));
 }

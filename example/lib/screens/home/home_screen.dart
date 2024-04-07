@@ -203,7 +203,7 @@ class NFT extends StatelessWidget {
             style: TextStyle(color: VarianceColors.secondary),
           ),
         ]),
-        Spacer(),
+        const Spacer(),
         ElevatedButton(
             onPressed: () {
               context.read<WalletProvider>().mintNFt();

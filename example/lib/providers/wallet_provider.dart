@@ -26,13 +26,19 @@ class WalletProvider extends ChangeNotifier {
       EthereumAddress.fromHex("0x218F6Bbc32Ef28F547A67c70AbCF8c2ea3b468BA");
 
   WalletProvider()
-      : _chain = Chains.getChain(Network.baseTestnet)
+      : _chain = Chain(
+            chainId: 11155111,
+            explorer: "https://sepolia.etherscan.io/",
+            entrypoint: EntryPointAddress.v07)
           ..accountFactory = EthereumAddress.fromHex(
-              "0x402A266e92993EbF04a5B3fd6F0e2b21bFC83070")
+              "0xECA49857B32A12403F5a3A64ad291861EF4B63cb") // v07 p256 factory address
+          ..jsonRpcUrl = "https://rpc.ankr.com/eth_sepolia"
           ..bundlerUrl =
-              "https://api.pimlico.io/v2/84532/rpc?apikey=YOUR_API_KEY"
-          ..paymasterUrl = "https://paymaster.optimism.io/v1/84532/rpc";
+              "https://api.pimlico.io/v2/11155111/rpc?apikey=YOUR_API_KEY"
+          ..paymasterUrl =
+              "https://api.pimlico.io/v2/11155111/rpc?apikey=YOUR_API_KEY";
 
+  // "0x402A266e92993EbF04a5B3fd6F0e2b21bFC83070" v06 p256 factory address
   Future<void> registerWithPassKey(String name,
       {bool? requiresUserVerification}) async {
     final pkpSigner =
@@ -67,7 +73,7 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> createEOAWallet() async {
-    _chain.accountFactory = Constants.simpleAccountFactoryAddress;
+    _chain.accountFactory = Constants.simpleAccountFactoryAddressv06;
 
     final signer = EOAWallet.createWallet();
     log("signer: ${signer.getAddress()}");
@@ -87,7 +93,7 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> createPrivateKeyWallet() async {
-    _chain.accountFactory = Constants.simpleAccountFactoryAddress;
+    _chain.accountFactory = Constants.simpleAccountFactoryAddressv06;
 
     final signer = PrivateKeySigner.createRandom("123456");
     log("signer: ${signer.getAddress()}");
@@ -131,6 +137,14 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> mintNFt() async {
+    // pimlico requires us to get the gasfees from their bundler.
+    // that cannot be built into the sdk so we modify the internal fees manually
+    if (_chain.entrypoint.version == 0.7) {
+      _wallet?.gasSettings = GasSettings(
+          gasMultiplierPercentage: 5,
+          userDefinedMaxFeePerGas: BigInt.parse("0x524e1909"),
+          userDefinedMaxPriorityFeePerGas: BigInt.parse("0x52412100"));
+    }
     // mints nft
     final tx1 = await _wallet?.sendTransaction(
         nft,

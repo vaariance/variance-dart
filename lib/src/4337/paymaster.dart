@@ -5,6 +5,12 @@ class Paymaster implements PaymasterBase {
   final RPCBase _rpc;
   final Chain _chain;
 
+  /// The address of the Paymaster contract.
+  ///
+  /// This is an optional parameter and can be left null if the paymaster address
+  /// is not known or needed.
+  EthereumAddress? _paymasterAddress;
+
   /// The context data for the Paymaster.
   ///
   /// This is an optional parameter and can be used to provide additional context
@@ -14,11 +20,12 @@ class Paymaster implements PaymasterBase {
   /// Creates a new instance of the [Paymaster] class.
   ///
   /// [_chain] is the Ethereum chain configuration.
+  /// [_paymasterAddress] is an optional address of the Paymaster contract.
   /// [_context] is an optional map containing the context data for the Paymaster.
   ///
   /// Throws an [InvalidPaymasterUrl] exception if the paymaster URL in the
   /// provided chain configuration is not a valid URL.
-  Paymaster(this._chain, [this._context])
+  Paymaster(this._chain, [this._paymasterAddress, this._context])
       : assert(_chain.paymasterUrl.isURL(),
             InvalidPaymasterUrl(_chain.paymasterUrl)),
         _rpc = RPCBase(_chain.paymasterUrl!);
@@ -29,19 +36,27 @@ class Paymaster implements PaymasterBase {
   }
 
   @override
-  Future<UserOperation> intercept(UserOperation operation) async {
+  set paymasterAddress(EthereumAddress? address) {
+    _paymasterAddress = address;
+  }
+
+  @override
+  Future<UserOperation> intercept(UserOperation op) async {
+    if (_paymasterAddress != null) {
+      op.paymasterAndData = Uint8List.fromList([
+        ..._paymasterAddress!.addressBytes,
+        ...op.paymasterAndData.sublist(20)
+      ]);
+    }
     final paymasterResponse = await sponsorUserOperation(
-        operation.toMap(), _chain.entrypoint, _context);
+        op.toMap(_chain.entrypoint.version), _chain.entrypoint, _context);
 
     // Create a new UserOperation with the updated Paymaster data and gas limits
-    return operation.copyWith(
+    return op.copyWith(
       paymasterAndData: paymasterResponse.paymasterAndData,
       preVerificationGas: paymasterResponse.preVerificationGas,
       verificationGasLimit: paymasterResponse.verificationGasLimit,
       callGasLimit: paymasterResponse.callGasLimit,
-      maxFeePerGas: paymasterResponse.maxFeePerGas ?? operation.maxFeePerGas,
-      maxPriorityFeePerGas: paymasterResponse.maxPriorityFeePerGas ??
-          operation.maxPriorityFeePerGas,
     );
   }
 
@@ -65,30 +80,35 @@ class PaymasterResponse {
   final BigInt preVerificationGas;
   final BigInt verificationGasLimit;
   final BigInt callGasLimit;
-  final BigInt? maxFeePerGas;
-  final BigInt? maxPriorityFeePerGas;
 
   PaymasterResponse({
     required this.paymasterAndData,
     required this.preVerificationGas,
     required this.verificationGasLimit,
     required this.callGasLimit,
-    this.maxFeePerGas,
-    this.maxPriorityFeePerGas,
   });
 
   factory PaymasterResponse.fromMap(Map<String, dynamic> map) {
+    final List<BigInt> accountGasLimits = map['accountGasLimits'] != null
+        ? unpackUints(map['accountGasLimits'])
+        : [
+            BigInt.parse(map['verificationGasLimit']),
+            BigInt.parse(map['callGasLimit'])
+          ];
+
+    final paymasterAndData = map['paymasterAndData'] != null
+        ? hexToBytes(map['paymasterAndData'])
+        : Uint8List.fromList([
+            ...EthereumAddress.fromHex(map['paymaster']).addressBytes,
+            ...packUints(BigInt.parse(map['paymasterVerificationGasLimit']),
+                BigInt.parse(map['paymasterPostOpGasLimit'])),
+            ...hexToBytes(map["paymasterData"])
+          ]);
+
     return PaymasterResponse(
-      paymasterAndData: hexToBytes(map['paymasterAndData']),
-      preVerificationGas: BigInt.parse(map['preVerificationGas']),
-      verificationGasLimit: BigInt.parse(map['verificationGasLimit']),
-      callGasLimit: BigInt.parse(map['callGasLimit']),
-      maxFeePerGas: map['maxFeePerGas'] != null
-          ? BigInt.parse(map['maxFeePerGas'])
-          : null,
-      maxPriorityFeePerGas: map['maxPriorityFeePerGas'] != null
-          ? BigInt.parse(map['maxPriorityFeePerGas'])
-          : null,
-    );
+        paymasterAndData: paymasterAndData,
+        preVerificationGas: BigInt.parse(map['preVerificationGas']),
+        verificationGasLimit: accountGasLimits[0],
+        callGasLimit: accountGasLimits[1]);
   }
 }

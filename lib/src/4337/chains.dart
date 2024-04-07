@@ -166,16 +166,22 @@ class Constants {
       EthereumAddress.fromHex("0x0000000071727De22E5E9d8BAf0edAc6f37da032");
   static EthereumAddress zeroAddress =
       EthereumAddress.fromHex("0x0000000000000000000000000000000000000000");
-  static final EthereumAddress simpleAccountFactoryAddress =
+  static final EthereumAddress simpleAccountFactoryAddressv06 =
       EthereumAddress.fromHex("0x9406Cc6185a346906296840746125a0E44976454");
+  static final EthereumAddress simpleAccountFactoryAddressv07 =
+      EthereumAddress.fromHex("0x91E60e0613810449d098b0b5Ec8b51A0FE8c8985");
   static final EthereumAddress safeProxyFactoryAddress =
       EthereumAddress.fromHex("0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67");
-  static final EthereumAddress safe4337ModuleAddress =
+  static final EthereumAddress safe4337ModuleAddressv06 =
       EthereumAddress.fromHex("0xa581c4A4DB7175302464fF3C06380BC3270b4037");
+  static final EthereumAddress safe4337ModuleAddressv07 =
+      EthereumAddress.fromHex("0x75cf11467937ce3F2f357CE24ffc3DBF8fD5c226");
   static final EthereumAddress safeSingletonAddress =
       EthereumAddress.fromHex("0x41675C099F32341bf84BFc5382aF534df5C7461a");
-  static final EthereumAddress safeModuleSetupAddress =
+  static final EthereumAddress safeModuleSetupAddressv06 =
       EthereumAddress.fromHex("0x8EcD4ec46D4D2a6B64fE960B3D64e8B94B2234eb");
+  static final EthereumAddress safeModuleSetupAddressv07 =
+      EthereumAddress.fromHex("0x2dd68b007B46fBe91B9A7c3EDa5A7a1063cB5b47");
   static final EthereumAddress safeMultiSendaddress =
       EthereumAddress.fromHex("0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526");
 
@@ -234,7 +240,15 @@ class Safe4337ModuleAddress {
   /// The address of the Safe4337Module contract for version 0.6.
   static Safe4337ModuleAddress v06 = Safe4337ModuleAddress(
     0.6,
-    Constants.safe4337ModuleAddress,
+    Constants.safe4337ModuleAddressv06,
+    Constants.safeModuleSetupAddressv06,
+  );
+
+  /// The address of the Safe4337Module contract for version 0.7.
+  static Safe4337ModuleAddress v07 = Safe4337ModuleAddress(
+    0.7,
+    Constants.safe4337ModuleAddressv07,
+    Constants.safeModuleSetupAddressv07,
   );
 
   /// The version of the Safe4337Module contract.
@@ -243,11 +257,15 @@ class Safe4337ModuleAddress {
   /// The Ethereum address of the Safe4337Module contract.
   final EthereumAddress address;
 
+  /// The address of the SafeModuleSetup contract.
+  final EthereumAddress setup;
+
   /// Creates a new instance of the [Safe4337ModuleAddress] class.
   ///
   /// [version] is the version of the Safe4337Module contract.
   /// [address] is the Ethereum address of the Safe4337Module contract.
-  const Safe4337ModuleAddress(this.version, this.address);
+  /// [setup] is the address of the SafeModuleSetup contract.
+  const Safe4337ModuleAddress(this.version, this.address, this.setup);
 
   /// Creates a new instance of the [Safe4337ModuleAddress] class from a given version.
   ///
@@ -264,6 +282,8 @@ class Safe4337ModuleAddress {
     switch (version) {
       case 0.6:
         return Safe4337ModuleAddress.v06;
+      case 0.7:
+        return Safe4337ModuleAddress.v07;
       default:
         throw Exception("Unsupported version: $version");
     }

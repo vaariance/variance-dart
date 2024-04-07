@@ -47,9 +47,9 @@ class _SafeProxyFactory extends SafeProxyFactory
         "setup", Constants.safeSingletonAddress, ContractAbis.get("setup"), [
       owners.toList(),
       BigInt.from(threshold),
-      Constants.safeModuleSetupAddress,
-      Contract.encodeFunctionCall("enableModules",
-          Constants.safeModuleSetupAddress, ContractAbis.get("enableModules"), [
+      module.setup,
+      Contract.encodeFunctionCall(
+          "enableModules", module.setup, ContractAbis.get("enableModules"), [
         [module.address]
       ]),
       module.address,

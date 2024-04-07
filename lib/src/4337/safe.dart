@@ -50,20 +50,34 @@ class _SafePlugin extends Safe4337Module implements Safe4337ModuleBase {
   ///
   /// Returns a Future that resolves to the hash of the user operation as a Uint8List.
   Future<Uint8List> getSafeOperationHash(
-          UserOperation op, BlockInformation blockInfo) async =>
-      getOperationHash([
+      UserOperation op, BlockInformation blockInfo) async {
+    if (self.address == Safe4337ModuleAddress.v07.address) {
+      return getOperationHash$2([
         op.sender,
         op.nonce,
         op.initCode,
         op.callData,
-        op.callGasLimit,
-        op.verificationGasLimit,
+        packUints(op.verificationGasLimit, op.callGasLimit),
         op.preVerificationGas,
-        op.maxFeePerGas,
-        op.maxPriorityFeePerGas,
+        packUints(op.maxPriorityFeePerGas, op.maxFeePerGas),
         op.paymasterAndData,
         hexToBytes(getSafeSignature(op.signature, blockInfo))
       ]);
+    }
+    return getOperationHash([
+      op.sender,
+      op.nonce,
+      op.initCode,
+      op.callData,
+      op.callGasLimit,
+      op.verificationGasLimit,
+      op.preVerificationGas,
+      op.maxFeePerGas,
+      op.maxPriorityFeePerGas,
+      op.paymasterAndData,
+      hexToBytes(getSafeSignature(op.signature, blockInfo))
+    ]);
+  }
 
   Uint8List getSafeMultisendCallData(List<EthereumAddress> recipients,
       List<EtherAmount>? amounts, List<Uint8List>? innerCalls) {
@@ -71,17 +85,13 @@ class _SafePlugin extends Safe4337Module implements Safe4337ModuleBase {
 
     for (int i = 0; i < recipients.length; i++) {
       Uint8List operation = Uint8List.fromList([0]);
-      assert(operation.length == 1);
       Uint8List to = recipients[i].addressBytes;
-      assert(to.length == 20);
       Uint8List value = amounts != null
           ? padTo32Bytes(amounts[i].getInWei)
           : padTo32Bytes(BigInt.zero);
-      assert(value.length == 32);
       Uint8List dataLength = innerCalls != null
           ? padTo32Bytes(BigInt.from(innerCalls[i].length))
           : padTo32Bytes(BigInt.zero);
-      assert(dataLength.length == 32);
       Uint8List data =
           innerCalls != null ? innerCalls[i] : Uint8List.fromList([]);
       Uint8List encodedCall = Uint8List.fromList(

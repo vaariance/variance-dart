@@ -7,7 +7,7 @@ class GasSettings {
   /// The percentage by which the gas limits should be multiplied.
   ///
   /// This value should be between 0 and 100.
-  Percent? gasMultiplierPercentage;
+  Percent gasMultiplierPercentage;
 
   /// The user-defined maximum fee per gas for the transaction.
   BigInt? userDefinedMaxFeePerGas;
@@ -29,7 +29,7 @@ class GasSettings {
     this.gasMultiplierPercentage = 0,
     this.userDefinedMaxFeePerGas,
     this.userDefinedMaxPriorityFeePerGas,
-  }) : assert(gasMultiplierPercentage! >= 0,
+  }) : assert(gasMultiplierPercentage >= 0,
             RangeOutOfBounds("Wrong Gas multiplier percentage", 0, 100));
 }
 
@@ -41,21 +41,22 @@ mixin _GasSettings {
   /// Sets the gas settings for user operations.
   ///
   /// [gasParams] is an instance of the [GasSettings] class containing the gas settings.
-  set setGasParams(GasSettings gasParams) => _gasParams = gasParams;
+  set gasSettings(GasSettings gasParams) => _gasParams = gasParams;
 
   /// Applies the gas settings to a user operation, by multiplying the gas limits by a certain percentage.
   ///
   /// [op] is the user operation to which the gas settings should be applied.
   ///
   /// Returns a new [UserOperation] object with the updated gas settings.
-  UserOperation multiply(UserOperation op) {
-    final multiplier =
-        BigInt.from(_gasParams.gasMultiplierPercentage! / 100 + 1);
+  UserOperation applyCustomGasSettings(UserOperation op) {
+    final multiplier = _gasParams.gasMultiplierPercentage / 100 + 1;
 
     return op.copyWith(
-        callGasLimit: op.callGasLimit * multiplier,
-        verificationGasLimit: op.verificationGasLimit * multiplier,
-        preVerificationGas: op.preVerificationGas * multiplier,
+        callGasLimit: BigInt.from(op.callGasLimit.toDouble() * multiplier),
+        verificationGasLimit:
+            BigInt.from(op.verificationGasLimit.toDouble() * multiplier),
+        preVerificationGas:
+            BigInt.from(op.preVerificationGas.toDouble() * multiplier),
         maxFeePerGas: _gasParams.userDefinedMaxFeePerGas,
         maxPriorityFeePerGas: _gasParams.userDefinedMaxPriorityFeePerGas);
   }

@@ -147,7 +147,7 @@ class UserOperation implements UserOperationBase {
   @override
   Uint8List hash(Chain chain) {
     Uint8List encoded;
-    if (chain.entrypoint.version >= EntryPointAddress.v07.version) {
+    if (chain.entrypoint.version == EntryPointAddress.v07.version) {
       encoded = keccak256(abi.encode([
         'address',
         'uint256',
@@ -196,13 +196,46 @@ class UserOperation implements UserOperationBase {
         [encoded, chain.entrypoint.address, BigInt.from(chain.chainId)]));
   }
 
+  /// uses pimlico v07 useroperation standard, which requires only pimlico bundlers
+  /// this is a training wheel and will revert to which ever schema bundlers accept in concensus
+  @override
+  Map<String, String> packUserOperation() {
+    Map<String, String> op = {
+      'sender': sender.hexEip55,
+      'nonce': '0x${nonce.toRadixString(16)}',
+      'callData': hexlify(callData),
+      'callGasLimit': '0x${callGasLimit.toRadixString(16)}',
+      'verificationGasLimit': '0x${verificationGasLimit.toRadixString(16)}',
+      'preVerificationGas': '0x${preVerificationGas.toRadixString(16)}',
+      'maxFeePerGas': '0x${maxFeePerGas.toRadixString(16)}',
+      'maxPriorityFeePerGas': '0x${maxPriorityFeePerGas.toRadixString(16)}',
+      'signature': signature,
+    };
+    if (initCode.isNotEmpty) {
+      op['factory'] = hexlify(initCode.sublist(0, 20));
+      op['factoryData'] = hexlify(initCode.sublist(20));
+    }
+    if (paymasterAndData.isNotEmpty) {
+      op['paymaster'] = hexlify(paymasterAndData.sublist(0, 20));
+      final upackedPaymasterGasFields =
+          unpackUints(hexlify(paymasterAndData.sublist(20, 52)));
+      op['paymasterVerificationGasLimit'] =
+          '0x${upackedPaymasterGasFields[0].toRadixString(16)}';
+      op['paymasterPostOpGasLimit'] =
+          '0x${upackedPaymasterGasFields[1].toRadixString(16)}';
+      op['paymasterData'] = hexlify(paymasterAndData.sublist(52));
+    }
+    return op;
+  }
+
   @override
   String toJson() {
     return jsonEncode(toMap());
   }
 
   @override
-  Map<String, String> toMap() {
+  Map<String, String> toMap([double version = 0.6]) {
+    if (version == 0.7) return packUserOperation();
     return {
       'sender': sender.hexEip55,
       'nonce': '0x${nonce.toRadixString(16)}',
@@ -213,8 +246,8 @@ class UserOperation implements UserOperationBase {
       'preVerificationGas': '0x${preVerificationGas.toRadixString(16)}',
       'maxFeePerGas': '0x${maxFeePerGas.toRadixString(16)}',
       'maxPriorityFeePerGas': '0x${maxPriorityFeePerGas.toRadixString(16)}',
-      'signature': signature,
       'paymasterAndData': hexlify(paymasterAndData),
+      'signature': signature,
     };
   }
 
@@ -282,9 +315,16 @@ class UserOperationGas {
     this.validUntil,
   });
   factory UserOperationGas.fromMap(Map<String, dynamic> map) {
+    final List<BigInt> accountGasLimits = map['accountGasLimits'] != null
+        ? unpackUints(map['accountGasLimits'])
+        : [
+            BigInt.parse(map['verificationGasLimit']),
+            BigInt.parse(map['callGasLimit'])
+          ];
+
     return UserOperationGas(
-      callGasLimit: BigInt.parse(map['callGasLimit']),
-      verificationGasLimit: BigInt.parse(map['verificationGasLimit']),
+      verificationGasLimit: accountGasLimits[0],
+      callGasLimit: accountGasLimits[1],
       preVerificationGas: BigInt.parse(map['preVerificationGas']),
       validAfter:
           map['validAfter'] != null ? BigInt.parse(map['validAfter']) : null,
