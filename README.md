@@ -118,14 +118,6 @@ final Smartwallet wallet = await smartWalletFactory
 print("safe wallet address: ${wallet.address.hex}");
 ```
 
-Additionally, you can pass in multisig `owners` and the `threshold` to the `createSafeAccount` method.
-
-```dart
-final Smartwallet wallet = await smartWalletFactory
-    .createSafeAccount(salt, [...extraOwners], threshold);
-print("safe wallet address: ${wallet.address.hex}");
-```
-
 > Safe SecP256r1 signers can not be used with this SDK yet.
 
 ### Interacting with the Smart Wallet
