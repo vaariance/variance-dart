@@ -1,59 +1,13 @@
-part of 'common.dart';
+part of '../../variance_dart.dart';
 
-/// A wrapper for interacting with deployed Ethereum contracts through [RPCProvider].
+/// A wrapper for interacting with deployed Ethereum contracts through [JsonRPCProvider].
 class Contract {
-  RPCProviderBase _provider;
+  /// The remote procedure call (RPC) client used to communicate with the bundler.
+  final RPCBase rpc;
 
   Contract(
-    this._provider,
+    this.rpc,
   );
-
-  RPCProviderBase get provider => _provider;
-
-  set setProvider(RPCProviderBase provider) {
-    _provider = provider;
-  }
-
-  /// Asynchronously calls a function on a smart contract with the provided parameters.
-  ///
-  /// Parameters:
-  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
-  ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
-  ///   - `methodName`: The name of the method to call on the smart contract.
-  ///   - `params`: Optional parameters for the function call.
-  ///   - `sender`: The [EthereumAddress] of the sender, if applicable.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with a list of dynamic values representing the result of the function call.
-  ///
-  /// Example:
-  /// ```dart
-  /// var result = await call(
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
-  ///   myErc20ContractAbi,
-  ///   'balanceOf',
-  ///   params: [ EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432')],
-  /// );
-  /// ```
-  /// This method uses the an Ethereum jsonRPC to `staticcall` a function on the specified smart contract.
-  /// **Note:** This method does not support contract calls with state changes.
-  Future<List<dynamic>> call(
-      EthereumAddress contractAddress, ContractAbi abi, String methodName,
-      {List<dynamic>? params, EthereumAddress? sender}) {
-    final function = getContractFunction(methodName, contractAddress, abi);
-    final calldata = {
-      'to': contractAddress.hex,
-      'data': params != null
-          ? bytesToHex(function.encodeCall(params),
-              include0x: true, padToEvenLength: true)
-          : "0x",
-      if (sender != null) 'from': sender.hex,
-    };
-    return _provider.send<String>('eth_call', [
-      calldata,
-      BlockNum.current().toBlockParam()
-    ]).then((value) => function.decodeReturnValues(value));
-  }
 
   /// Asynchronously checks whether a smart contract is deployed at the specified address.
   ///
@@ -77,7 +31,7 @@ class Contract {
     if (address == null) {
       return Future.value(false);
     }
-    final isDeployed = _provider
+    final isDeployed = rpc
         .send<String>('eth_getCode', [address.hex, atBlock.toBlockParam()])
         .then(hexToBytes)
         .then((value) => value.isNotEmpty);
@@ -106,10 +60,51 @@ class Contract {
     if (address == null) {
       return Future.value(EtherAmount.zero());
     }
-    return _provider
+    return rpc
         .send<String>('eth_getBalance', [address.hex, atBlock.toBlockParam()])
         .then(BigInt.parse)
         .then((value) => EtherAmount.fromBigInt(EtherUnit.wei, value));
+  }
+
+  /// Asynchronously calls a function on a smart contract with the provided parameters.
+  ///
+  /// Parameters:
+  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
+  ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
+  ///   - `methodName`: The name of the method to call on the smart contract.
+  ///   - `params`: Optional parameters for the function call.
+  ///   - `sender`: The [EthereumAddress] of the sender, if applicable.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with a list of dynamic values representing the result of the function call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var result = await read(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   myErc20ContractAbi,
+  ///   'balanceOf',
+  ///   params: [ EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432')],
+  /// );
+  /// ```
+  /// This method uses the an Ethereum jsonRPC to `staticcall` a function on the specified smart contract.
+  /// **Note:** This method does not support contract calls with state changes.
+  Future<List<dynamic>> read(
+      EthereumAddress contractAddress, ContractAbi abi, String methodName,
+      {List<dynamic>? params, EthereumAddress? sender}) {
+    final function = getContractFunction(methodName, contractAddress, abi);
+    final calldata = {
+      'to': contractAddress.hex,
+      'data': params != null
+          ? bytesToHex(function.encodeCall(params),
+              include0x: true, padToEvenLength: true)
+          : "0x",
+      if (sender != null) 'from': sender.hex,
+    };
+    return rpc.send<String>('eth_call', [
+      calldata,
+      BlockNum.current().toBlockParam()
+    ]).then((value) => function.decodeReturnValues(value));
   }
 
   /// Encodes an ERC-20 token approval function call.
@@ -139,7 +134,7 @@ class Contract {
     return encodeFunctionCall(
       'approve',
       address,
-      ContractAbis.get('ERC20'),
+      ContractAbis.get('ERC20_Approve'),
       [spender, amount.getInWei],
     );
   }
@@ -171,7 +166,7 @@ class Contract {
     return encodeFunctionCall(
       'transfer',
       address,
-      ContractAbis.get('ERC20'),
+      ContractAbis.get('ERC20_Transfer'),
       [recipient, amount.getInWei],
     );
   }
@@ -198,7 +193,7 @@ class Contract {
   static Uint8List encodeERC721ApproveCall(
       EthereumAddress contractAddress, EthereumAddress to, BigInt tokenId) {
     return encodeFunctionCall("approve", contractAddress,
-        ContractAbis.get("ERC721"), [to.hex, tokenId]);
+        ContractAbis.get("ERC721_Approve"), [to.hex, tokenId]);
   }
 
   /// Encodes an ERC-721 token safe transfer function call.
@@ -224,8 +219,11 @@ class Contract {
   /// This method uses the ERC-721 contract ABI  to return a `calldata` for 'safeTransferFrom' function call.
   static Uint8List encodeERC721SafeTransferCall(EthereumAddress contractAddress,
       EthereumAddress from, EthereumAddress to, BigInt tokenId) {
-    return encodeFunctionCall("safeTransferFrom", contractAddress,
-        ContractAbis.get("ERC721"), [from.hex, to.hex, tokenId]);
+    return encodeFunctionCall(
+        "safeTransferFrom",
+        contractAddress,
+        ContractAbis.get("ERC721_SafeTransferFrom"),
+        [from.hex, to.hex, tokenId]);
   }
 
   /// Encodes a function call for a smart contract.
@@ -262,6 +260,7 @@ class Contract {
   ///   - `to`: The [EthereumAddress] of the target recipient for the operation.
   ///   - `amount`: The [EtherAmount] representing the amount to transfer, if applicable.
   ///   - `innerCallData`: The [Uint8List] containing inner call data, if applicable.
+  ///   - `isSafe`: An optional flag indicating whether the operation is a GnosisSafeOperation or not. defaults to false.
   ///
   /// Returns:
   ///   A [Uint8List] containing the ABI-encoded data for the 'execute' function call.
@@ -276,25 +275,28 @@ class Contract {
   /// ); // transfer to 0x1234567890abcdef1234567890abcdef12345678 with 1000000000000000000 wei
   /// ```
   /// This method uses the 'execute' function ABI to encode the smart wallet operation.
-  static Uint8List execute(EthereumAddress? walletAddress,
+  static Uint8List execute(EthereumAddress walletAddress,
       {required EthereumAddress to,
       EtherAmount? amount,
-      Uint8List? innerCallData}) {
+      Uint8List? innerCallData,
+      bool isSafe = false}) {
     final params = [
       to,
       amount?.getInWei ?? EtherAmount.zero().getInWei,
       innerCallData ?? Uint8List.fromList([])
     ];
 
-    if (walletAddress == null) {
-      throw SmartWalletError(
-          "Invlaid Operation, SmartWallet Address is undefined! (contract.execute)");
+    String method = 'execute';
+
+    if (isSafe) {
+      method = 'executeUserOpWithErrorString';
+      params.add(BigInt.zero);
     }
 
     return encodeFunctionCall(
-      'execute',
+      method,
       walletAddress,
-      ContractAbis.get('execute'),
+      ContractAbis.get(method),
       params,
     );
   }
@@ -306,6 +308,7 @@ class Contract {
   ///   - `recipients`: A list of [EthereumAddress] instances representing the recipients for each operation.
   ///   - `amounts`: Optional list of [EtherAmount] instances representing the amounts to transfer for each operation.
   ///   - `innerCalls`: Optional list of [Uint8List] instances containing inner call data for each operation.
+  ///   - `isSafe`: An optional flag indicating whether the operation is a GnosisSafeOperation or not. defaults to false.
   ///
   /// Returns:
   ///   A [Uint8List] containing the ABI-encoded data for the 'executeBatch' function call.
@@ -327,28 +330,37 @@ class Contract {
   /// ```
   /// This method uses the 'executeBatch' function ABI to encode the smart wallet batch operation.
   static Uint8List executeBatch(
-      {required EthereumAddress? walletAddress,
+      {required EthereumAddress walletAddress,
       required List<EthereumAddress> recipients,
       List<EtherAmount>? amounts,
-      List<Uint8List>? innerCalls}) {
-    final params = [
+      List<Uint8List>? innerCalls,
+      bool isSafe = false}) {
+    List params = [
       recipients,
       amounts?.map<BigInt>((e) => e.getInWei) ?? [],
       innerCalls ?? Uint8List.fromList([]),
     ];
+
     if (innerCalls == null || innerCalls.isEmpty) {
       require(amounts != null && amounts.isNotEmpty, "malformed batch request");
     }
 
-    if (walletAddress == null) {
-      throw SmartWalletError(
-          "Invlaid Operation, SmartWallet Address is undefined! (contract.executeBatch)");
+    String method = 'executeBatch';
+
+    if (isSafe) {
+      method = 'executeUserOpWithErrorString';
+      params = [
+        recipients[0], // multisend contract
+        EtherAmount.zero().getInWei, // 0 value to be passed
+        innerCalls?[0], // the encoded multisend calldata
+        BigInt.one // specifying delegate call operation
+      ];
     }
 
     return encodeFunctionCall(
-      'executeBatch',
+      method,
       walletAddress,
-      ContractAbis.get('executeBatch'),
+      ContractAbis.get(method),
       params,
     );
   }

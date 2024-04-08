@@ -1,5 +1,6 @@
-part of '../../variance.dart';
+part of '../../variance_dart.dart';
 
+/// A class that implements the user operation struct defined in EIP4337.
 class UserOperation implements UserOperationBase {
   @override
   final EthereumAddress sender;
@@ -115,81 +116,127 @@ class UserOperation implements UserOperationBase {
         paymasterAndData: Uint8List(0),
       );
 
-  /// Creates a [UserOperation] by updating an existing operation using a map.
-  ///
-  /// Parameters:
-  ///   - `map`: A map containing key-value pairs representing the user operation data.
-  ///   - `opGas`: Optional parameter of type [UserOperationGas] for specifying gas-related information.
-  ///   - `sender`: Optional Ethereum address of the sender.
-  ///   - `nonce`: Optional nonce value.
-  ///   - `initCode`: Optional initialization code.
-  ///
-  /// Returns:
-  ///   A [UserOperation] instance created from the provided map.
-  ///
-  /// Example:
-  /// ```dart
-  /// var map = UserOperation.partial(callData: Uint8List(0xabcdef)).toMap();
-  /// var updatedUserOperation = UserOperation.update(
-  ///   map,
-  ///   opGas: UserOperationGas(callGasLimit: BigInt.from(20000000), ...),
-  ///   // Other parameters can be updated as needed.
-  /// );
-  /// ```
-  factory UserOperation.update(
-    Map<String, String> map, {
-    UserOperationGas? opGas,
+  UserOperation copyWith({
     EthereumAddress? sender,
     BigInt? nonce,
-    String? initCode,
+    Uint8List? initCode,
+    Uint8List? callData,
+    BigInt? callGasLimit,
+    BigInt? verificationGasLimit,
+    BigInt? preVerificationGas,
+    BigInt? maxFeePerGas,
+    BigInt? maxPriorityFeePerGas,
+    String? signature,
+    Uint8List? paymasterAndData,
   }) {
-    if (opGas != null) {
-      map['callGasLimit'] = '0x${opGas.callGasLimit.toRadixString(16)}';
-      map['verificationGasLimit'] =
-          '0x${opGas.verificationGasLimit.toRadixString(16)}';
-      map['preVerificationGas'] =
-          '0x${BigInt.from(opGas.preVerificationGas.toDouble() * 1.2).toRadixString(16)}';
-    }
-
-    if (sender != null) map['sender'] = sender.hex;
-    if (nonce != null) map['nonce'] = '0x${nonce.toRadixString(16)}';
-    if (initCode != null) map['initCode'] = initCode;
-
-    return UserOperation.fromMap(map);
+    return UserOperation(
+      sender: sender ?? this.sender,
+      nonce: nonce ?? this.nonce,
+      initCode: initCode ?? this.initCode,
+      callData: callData ?? this.callData,
+      callGasLimit: callGasLimit ?? this.callGasLimit,
+      verificationGasLimit: verificationGasLimit ?? this.verificationGasLimit,
+      preVerificationGas: preVerificationGas ?? this.preVerificationGas,
+      maxFeePerGas: maxFeePerGas ?? this.maxFeePerGas,
+      maxPriorityFeePerGas: maxPriorityFeePerGas ?? this.maxPriorityFeePerGas,
+      signature: signature ?? this.signature,
+      paymasterAndData: paymasterAndData ?? this.paymasterAndData,
+    );
   }
 
   @override
   Uint8List hash(Chain chain) {
-    final encoded = keccak256(abi.encode([
-      'address',
-      'uint256',
-      'bytes32',
-      'bytes32',
-      'uint256',
-      'uint256',
-      'uint256',
-      'uint256',
-      'uint256',
-      'bytes32',
-    ], [
-      sender,
-      nonce,
-      keccak256(initCode),
-      keccak256(callData),
-      callGasLimit,
-      verificationGasLimit,
-      preVerificationGas,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      keccak256(paymasterAndData),
-    ]));
+    Uint8List encoded;
+    if (chain.entrypoint.version == EntryPointAddress.v07.version) {
+      encoded = keccak256(abi.encode([
+        'address',
+        'uint256',
+        'bytes32',
+        'bytes32',
+        'bytes32',
+        'uint256',
+        'bytes32',
+        'bytes32',
+      ], [
+        sender,
+        nonce,
+        keccak256(initCode),
+        keccak256(callData),
+        packUints(verificationGasLimit, callGasLimit),
+        preVerificationGas,
+        packUints(maxPriorityFeePerGas, maxFeePerGas),
+        keccak256(paymasterAndData),
+      ]));
+    } else {
+      encoded = keccak256(abi.encode([
+        'address',
+        'uint256',
+        'bytes32',
+        'bytes32',
+        'uint256',
+        'uint256',
+        'uint256',
+        'uint256',
+        'uint256',
+        'bytes32',
+      ], [
+        sender,
+        nonce,
+        keccak256(initCode),
+        keccak256(callData),
+        callGasLimit,
+        verificationGasLimit,
+        preVerificationGas,
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+        keccak256(paymasterAndData),
+      ]));
+    }
     return keccak256(abi.encode(['bytes32', 'address', 'uint256'],
-        [encoded, chain.entrypoint, BigInt.from(chain.chainId)]));
+        [encoded, chain.entrypoint.address, BigInt.from(chain.chainId)]));
+  }
+
+  /// uses pimlico v07 useroperation standard, which requires only pimlico bundlers
+  /// this is a training wheel and will revert to which ever schema bundlers accept in concensus
+  @override
+  Map<String, String> packUserOperation() {
+    Map<String, String> op = {
+      'sender': sender.hexEip55,
+      'nonce': '0x${nonce.toRadixString(16)}',
+      'callData': hexlify(callData),
+      'callGasLimit': '0x${callGasLimit.toRadixString(16)}',
+      'verificationGasLimit': '0x${verificationGasLimit.toRadixString(16)}',
+      'preVerificationGas': '0x${preVerificationGas.toRadixString(16)}',
+      'maxFeePerGas': '0x${maxFeePerGas.toRadixString(16)}',
+      'maxPriorityFeePerGas': '0x${maxPriorityFeePerGas.toRadixString(16)}',
+      'signature': signature,
+    };
+    if (initCode.isNotEmpty) {
+      op['factory'] = hexlify(initCode.sublist(0, 20));
+      op['factoryData'] = hexlify(initCode.sublist(20));
+    }
+    if (paymasterAndData.isNotEmpty) {
+      op['paymaster'] = hexlify(paymasterAndData.sublist(0, 20));
+      final upackedPaymasterGasFields =
+          unpackUints(hexlify(paymasterAndData.sublist(20, 52)));
+      op['paymasterVerificationGasLimit'] =
+          '0x${upackedPaymasterGasFields[0].toRadixString(16)}';
+      op['paymasterPostOpGasLimit'] =
+          '0x${upackedPaymasterGasFields[1].toRadixString(16)}';
+      op['paymasterData'] = hexlify(paymasterAndData.sublist(52));
+    }
+    return op;
   }
 
   @override
-  Map<String, String> toMap() {
-    return <String, String>{
+  String toJson() {
+    return jsonEncode(toMap());
+  }
+
+  @override
+  Map<String, String> toMap([double version = 0.6]) {
+    if (version == 0.7) return packUserOperation();
+    return {
       'sender': sender.hexEip55,
       'nonce': '0x${nonce.toRadixString(16)}',
       'initCode': hexlify(initCode),
@@ -199,14 +246,33 @@ class UserOperation implements UserOperationBase {
       'preVerificationGas': '0x${preVerificationGas.toRadixString(16)}',
       'maxFeePerGas': '0x${maxFeePerGas.toRadixString(16)}',
       'maxPriorityFeePerGas': '0x${maxPriorityFeePerGas.toRadixString(16)}',
-      'signature': signature,
       'paymasterAndData': hexlify(paymasterAndData),
+      'signature': signature,
     };
   }
 
   @override
-  String toJson() {
-    return jsonEncode(toMap());
+  UserOperation updateOpGas(
+      UserOperationGas? opGas, Map<String, dynamic>? feePerGas) {
+    return copyWith(
+      callGasLimit: opGas?.callGasLimit,
+      verificationGasLimit: opGas?.verificationGasLimit,
+      preVerificationGas: opGas?.preVerificationGas,
+      maxFeePerGas: (feePerGas?["maxFeePerGas"] as EtherAmount?)?.getInWei,
+      maxPriorityFeePerGas:
+          (feePerGas?["maxPriorityFeePerGas"] as EtherAmount?)?.getInWei,
+    );
+  }
+
+  @override
+  void validate(bool deployed, [String? initCode]) {
+    require(
+        deployed
+            ? hexlify(this.initCode).toLowerCase() == "0x"
+            : hexlify(this.initCode).toLowerCase() == initCode?.toLowerCase(),
+        "InitCode mismatch");
+    require(callData.length >= 4, "Calldata too short");
+    require(signature.length >= 64, "Signature too short");
   }
 }
 
@@ -236,27 +302,34 @@ class UserOperationByHash {
 }
 
 class UserOperationGas {
-  final BigInt preVerificationGas;
+  final BigInt callGasLimit;
   final BigInt verificationGasLimit;
+  final BigInt preVerificationGas;
   BigInt? validAfter;
   BigInt? validUntil;
-  final BigInt callGasLimit;
   UserOperationGas({
-    required this.preVerificationGas,
+    required this.callGasLimit,
     required this.verificationGasLimit,
+    required this.preVerificationGas,
     this.validAfter,
     this.validUntil,
-    required this.callGasLimit,
   });
   factory UserOperationGas.fromMap(Map<String, dynamic> map) {
+    final List<BigInt> accountGasLimits = map['accountGasLimits'] != null
+        ? unpackUints(map['accountGasLimits'])
+        : [
+            BigInt.parse(map['verificationGasLimit']),
+            BigInt.parse(map['callGasLimit'])
+          ];
+
     return UserOperationGas(
+      verificationGasLimit: accountGasLimits[0],
+      callGasLimit: accountGasLimits[1],
       preVerificationGas: BigInt.parse(map['preVerificationGas']),
-      verificationGasLimit: BigInt.parse(map['verificationGasLimit']),
       validAfter:
           map['validAfter'] != null ? BigInt.parse(map['validAfter']) : null,
       validUntil:
           map['validUntil'] != null ? BigInt.parse(map['validUntil']) : null,
-      callGasLimit: BigInt.parse(map['callGasLimit']),
     );
   }
 }
@@ -304,7 +377,43 @@ class UserOperationReceipt {
 
 class UserOperationResponse {
   final String userOpHash;
-  final Future<FilterEvent?> Function({int millisecond}) wait;
+  final Future<UserOperationReceipt?> Function(String) _callback;
 
-  UserOperationResponse(this.userOpHash, this.wait);
+  UserOperationResponse(this.userOpHash, this._callback);
+
+  Future<UserOperationReceipt?> wait(
+      [Duration timeout = const Duration(seconds: 15),
+      Duration pollInterval = const Duration(seconds: 2)]) async {
+    assert(
+        timeout.inSeconds > 0,
+        RangeError.value(
+            timeout.inSeconds, "timeout", "wait timeout must be >= 0 sec"));
+    assert(
+        pollInterval.inSeconds > 0,
+        RangeError.value(pollInterval.inSeconds, "pollInterval",
+            "pollInterval must be >= 0 sec"));
+    assert(
+        pollInterval < timeout,
+        RangeError.value(
+            timeout.inSeconds, "timeout", "timeout must be > pollInterval"));
+
+    Duration count = Duration.zero;
+
+    while (count < timeout) {
+      await Future.delayed(pollInterval);
+
+      try {
+        final receipt = await _callback(userOpHash);
+        if (receipt != null) {
+          return receipt;
+        }
+        count += pollInterval;
+      } catch (e) {
+        count += pollInterval;
+      }
+    }
+
+    throw TimeoutException(
+        "can't find useroperation with hash $userOpHash", timeout);
+  }
 }

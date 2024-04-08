@@ -7,40 +7,43 @@ part of 'interfaces.dart';
 /// creating different implementations of Smart Wallets while adhering to a
 /// common interface.
 abstract class SmartWalletBase {
-  /// The Ethereum address associated with the Smart Wallet.
+  /// The Ethereum address of the Smart Wallet.
   EthereumAddress? get address;
 
-  /// Retrieves the balance of the Smart Wallet.
+  /// Returns the balance of the Smart Wallet.
+  ///
+  /// The balance is retrieved by interacting with the 'contract' plugin.
   Future<EtherAmount> get balance;
 
-  /// Checks if the Smart Wallet has been deployed on the blockchain.
-  Future<bool> get deployed;
+  /// Retrieves the dummy signature required for gas estimation from the Smart Wallet.
+  String get dummySignature;
 
-  /// Retrieves the init code of the Smart Wallet.
+  /// Returns the initialization code for deploying the Smart Wallet contract.
   String? get initCode;
 
-  /// Retrieves the gas required to deploy the Smart Wallet.
+  /// Returns the estimated gas required for deploying the Smart Wallet contract.
+  ///
+  /// The gas estimation is performed by interacting with the 'jsonRpc' plugin.
   Future<BigInt> get initCodeGas;
 
-  /// Retrieves the nonce of the Smart Wallet.
+  /// Checks if the Smart Wallet is deployed on the blockchain.
+  ///
+  /// The deployment status is checked by interacting with the 'contract' plugin.
+  Future<bool> get isDeployed;
+
+  /// Returns the nonce for the Smart Wallet from the entrypoint.
+  ///
+  /// The nonce is retrieved by calling the `_getNonce` method.
   Future<Uint256> get nonce;
 
-  /// Converts the Smart Wallet address to its hexadecimal representation.
+  /// Returns the hexadecimal representation of the Smart Wallet address in EIP-55 format.
   String? get toHex;
-
-  /// Sets the smart wallet address for this account;
-  set setWalletAddress(EthereumAddress address);
 
   /// Builds a [UserOperation] instance with the specified parameters.
   ///
   /// Parameters:
   ///   - `callData` (required): The call data as a [Uint8List].
   ///   - `customNonce`: An optional custom nonce value.
-  ///   - `callGasLimit`: An optional custom call gas limit as a [BigInt].
-  ///   - `verificationGasLimit`: An optional custom verification gas limit as a [BigInt].
-  ///   - `preVerificationGas`: An optional custom pre-verification gas as a [BigInt].
-  ///   - `maxFeePerGas`: An optional custom maximum fee per gas as a [BigInt].
-  ///   - `maxPriorityFeePerGas`: An optional custom maximum priority fee per gas as a [BigInt].
   ///
   /// Returns:
   ///   A [UserOperation] instance with the specified parameters.
@@ -50,108 +53,42 @@ abstract class SmartWalletBase {
   /// var userOperation = buildUserOperation(
   ///   callData: Uint8List(0xabcdef),
   ///   customNonce: BigInt.from(42),
-  ///   callGasLimit: BigInt.from(20000000),
-  ///   // Other optional parameters can be provided as needed.
   /// );
   /// ```
   UserOperation buildUserOperation({
     required Uint8List callData,
     BigInt? customNonce,
-    BigInt? callGasLimit,
-    BigInt? verificationGasLimit,
-    BigInt? preVerificationGas,
-    BigInt? maxFeePerGas,
-    BigInt? maxPriorityFeePerGas,
   });
 
-  /// Sets the account initialization calldata for a [SmartWalletBase] in a potentially unsafe manner.
+  /// Sets the initialization code for deploying the Smart Wallet contract.
+  ///
+  /// This method is marked as `@Deprecated` and should not be used in production code.
+  /// It is recommended to set the initialization code during the construction of the [SmartWallet] instance.
   ///
   /// **Warning:**
   /// This method allows setting the initialization calldata directly, which may lead to unexpected behavior
   /// if used improperly. It is intended for advanced use cases where the caller is aware of the potential risks.
   ///
   /// Parameters:
-  ///   - `code`: The initialization calldata as a [Uint8List]. Set to `null` to clear the existing data.
+  ///   - `code`: The initialization calldata as a [Uint8List].
   ///
   /// Example:
   /// ```dart
   /// dangerouslySetInitCallData(Uint8List.fromList([0x01, 0x02, 0x03]));
   /// ```
-  void dangerouslySetInitCallData(Uint8List? code);
+  @Deprecated("Not recommended to modify the initcode")
+  void dangerouslySetInitCode(Uint8List code);
 
-  /// Asynchronously creates a simple Ethereum smart account using the provided salt value.
-  /// Uses counterfactactual deployment to create the account and [deployed] should be used to check deployment status.
-  /// An `initCode` will be attached on the first transaction.
+  /// Prepares a user operation by updating it with the latest nonce and gas prices,
+  /// intercepting it with a paymaster (if enabled), and validating it.
   ///
-  /// Parameters:
-  ///   - `salt`: A [Uint256] representing the salt value for account creation.
-  ///   - `index`: Optional parameter specifying the index for selecting a signer. Defaults to `null`.
+  /// [op] is the user operation to prepare.
+  /// [update] is a flag indicating whether to update the user operation with the
+  /// latest nonce and gas prices. Defaults to `true`.
   ///
-  /// Returns:
-  ///   A [Future] that completes with the created [SmartWallet] instance.
-  ///
-  /// Example:
-  /// ```dart
-  /// var smartWallet = await createSimpleAccount(Uint256.zero, index: 1);
-  /// ```
-  /// This method generates initialization calldata using the 'createAccount' method and the provided signer and salt.
-  /// It then retrieves the Ethereum address for the simple account and sets it to the wallet instance.
-  Future createSimpleAccount(Uint256 salt, {int? index});
-
-  /// Asynchronously creates a simple Ethereum smart account using a passkey pair and the provided salt value.
-  ///
-  /// Parameters:
-  ///   - `pkp`: A [PassKeyPair] representing the passkey pair for account creation.
-  ///   - `salt`: A [Uint256] representing the salt value for account creation.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with the created [SmartWallet] instance.
-  ///
-  /// Example:
-  /// ```dart
-  /// var smartWallet = await createSimplePasskeyAccount(myPassKeyPair, Uint256.zero);
-  /// ```
-  /// This method generates initialization calldata using the 'createPasskeyAccount' method and the provided
-  /// passkey pair and salt. The passkey pair includes the credential and public key values.
-  Future createSimplePasskeyAccount(PassKeyPair pkp, Uint256 salt);
-
-  /// Asynchronously retrieves the Ethereum address for a simple account created with the specified signer and salt.
-  ///
-  /// Parameters:
-  ///   - `signer`: The [EthereumAddress] of the signer associated with the account.
-  ///   - `salt`: A [Uint256] representing the salt value used in the account creation.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with the Ethereum address of the simple account.
-  ///
-  /// Example:
-  /// ```dart
-  /// var address = await getSimpleAccountAddress(
-  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
-  ///   Uint256.zero,
-  /// );
-  /// ```
-  Future<EthereumAddress> getSimpleAccountAddress(
-      EthereumAddress signer, Uint256 salt);
-
-  /// Asynchronously retrieves the Ethereum address for a simple account created with the specified passkey pair and salt.
-  ///
-  /// Parameters:
-  ///   - `pkp`: The [PassKeyPair] used for creating the account.
-  ///   - `salt`: A [Uint256] representing the salt value used in the account creation.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with the Ethereum address of the simple account.
-  ///
-  /// Example:
-  /// ```dart
-  /// var address = await getSimplePassKeyAccountAddress(
-  ///   myPassKeyPair,
-  ///   Uint256.zero,
-  /// );
-  /// ```
-  Future<EthereumAddress> getSimplePassKeyAccountAddress(
-      PassKeyPair pkp, Uint256 salt);
+  /// Returns a [Future] that resolves to the prepared [UserOperation] object.
+  Future<UserOperation> prepareUserOperation(UserOperation op,
+      {bool update = true});
 
   /// Asynchronously transfers native Token (ETH) to the specified recipient with the given amount.
   ///
@@ -269,7 +206,6 @@ abstract class SmartWalletBase {
   /// Parameters:
   ///   - `userOp`: The [UserOperation] to be signed.
   ///   - `update`: Optional parameter indicating whether to update the user operation before signing. Defaults to `true`.
-  ///   - `id`: Optional identifier (credential Id) when using a passkey signer Defaults to `null`.
   ///   - `index`: Optional index parameter for selecting a signer. Defaults to `null`.
   ///
   /// Returns:
@@ -281,9 +217,5 @@ abstract class SmartWalletBase {
   /// var signedOperation = await signUserOperation(myUserOperation, index: 0); // signer 0
   /// var signedOperation = await signUserOperation(myUserOperation, index: 1); // signer 1
   /// ```
-  Future<UserOperation> signUserOperation(
-    UserOperation userOp, {
-    bool update = true,
-    String? id,
-  });
+  Future<UserOperation> signUserOperation(UserOperation op, {int? index});
 }

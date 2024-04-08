@@ -1,155 +1,124 @@
-part of '../../variance.dart';
+part of '../../variance_dart.dart';
 
+/// A class that implements the `BundlerProviderBase` interface and provides methods
+/// for interacting with a bundler for sending and tracking user operations on
+/// an Ethereum-like blockchain.
 class BundlerProvider implements BundlerProviderBase {
-  /// Set of Ethereum RPC methods supported by the SmartWallet SDK.
-  static final Set<String> methods = {
-    'eth_chainId',
-    'eth_sendUserOperation',
-    'eth_estimateUserOperationGas',
-    'eth_getUserOperationByHash',
-    'eth_getUserOperationReceipt',
-    'eth_supportedEntryPoints',
-  };
+  /// The remote procedure call (RPC) client used to communicate with the bundler.
+  final RPCBase rpc;
 
-  final int _chainId;
-  final String _bundlerUrl;
-  final RPCProviderBase _bundlerRpc;
-
+  /// A flag indicating whether the initialization process was successful.
   late final bool _initialized;
 
-  Entrypoint? entrypoint;
-
-  BundlerProvider(Chain chain, RPCProviderBase bundlerRpc)
-      : _chainId = chain.chainId,
-        _bundlerUrl = chain.bundlerUrl!,
-        _bundlerRpc = bundlerRpc {
-    _initializeBundlerProvider();
+  /// Creates a new instance of the BundlerProvider class.
+  ///
+  /// [chain] is an object representing the blockchain chain configuration.
+  ///
+  /// The constructor checks if the bundler URL is a valid URL and initializes
+  /// the RPC client with the bundler URL. It also sends an RPC request to
+  /// retrieve the chain ID and verifies that it matches the expected chain ID.
+  /// If the chain IDs don't match, the _initialized flag is set to false.
+  BundlerProvider(Chain chain)
+      : assert(chain.bundlerUrl.isURL(), InvalidBundlerUrl(chain.bundlerUrl)),
+        rpc = RPCBase(chain.bundlerUrl!) {
+    rpc
+        .send<String>('eth_chainId')
+        .then(BigInt.parse)
+        .then((value) => value.toInt() == chain.chainId)
+        .then((value) => _initialized = value);
   }
 
   @override
   Future<UserOperationGas> estimateUserOperationGas(
-      Map<String, dynamic> userOp, EthereumAddress entrypoint) async {
-    require(_initialized, "estimateUserOpGas: Wallet Provider not initialized");
-    final opGas = await _bundlerRpc.send<Map<String, dynamic>>(
-        'eth_estimateUserOperationGas', [userOp, entrypoint.hex]);
+      Map<String, dynamic> userOp, EntryPointAddress entrypoint) async {
+    Logger.conditionalWarning(
+        !_initialized, "estimateUserOpGas may fail: chainId mismatch");
+    final opGas = await rpc.send<Map<String, dynamic>>(
+        'eth_estimateUserOperationGas', [userOp, entrypoint.address.hex]);
     return UserOperationGas.fromMap(opGas);
   }
 
   @override
   Future<UserOperationByHash> getUserOperationByHash(String userOpHash) async {
-    require(_initialized, "getUserOpByHash: Wallet Provider not initialized");
-    final opExtended = await _bundlerRpc
+    Logger.conditionalWarning(
+        !_initialized, "getUserOpByHash may fail: chainId mismatch");
+    final opExtended = await rpc
         .send<Map<String, dynamic>>('eth_getUserOperationByHash', [userOpHash]);
     return UserOperationByHash.fromMap(opExtended);
   }
 
   @override
-  Future<UserOperationReceipt> getUserOpReceipt(String userOpHash) async {
-    require(_initialized, "getUserOpReceipt: Wallet Provider not initialized");
-    final opReceipt = await _bundlerRpc.send<Map<String, dynamic>>(
+  Future<UserOperationReceipt?> getUserOpReceipt(String userOpHash) async {
+    Logger.conditionalWarning(
+        !_initialized, "getUserOpReceipt may fail: chainId mismatch");
+    final opReceipt = await rpc.send<Map<String, dynamic>>(
         'eth_getUserOperationReceipt', [userOpHash]);
     return UserOperationReceipt.fromMap(opReceipt);
   }
 
   @override
-  void initializeWithEntrypoint(Entrypoint ep) {
-    entrypoint = ep;
-  }
-
-  @override
   Future<UserOperationResponse> sendUserOperation(
-      Map<String, dynamic> userOp, EthereumAddress entrypoint) async {
-    require(_initialized, "sendUserOp: Wallet Provider not initialized");
-    final opHash = await _bundlerRpc
-        .send<String>('eth_sendUserOperation', [userOp, entrypoint.hex]);
-    return UserOperationResponse(opHash, wait);
+      Map<String, dynamic> userOp, EntryPointAddress entrypoint) async {
+    Logger.conditionalWarning(
+        !_initialized, "sendUserOp may fail: chainId mismatch");
+    final opHash = await rpc.send<String>(
+        'eth_sendUserOperation', [userOp, entrypoint.address.hex]);
+    return UserOperationResponse(opHash, getUserOpReceipt);
   }
 
   @override
   Future<List<String>> supportedEntryPoints() async {
     final entrypointList =
-        await _bundlerRpc.send<List<dynamic>>('eth_supportedEntryPoints');
+        await rpc.send<List<dynamic>>('eth_supportedEntryPoints');
     return List.castFrom(entrypointList);
-  }
-
-  @override
-  Future<FilterEvent?> wait({int millisecond = 0}) async {
-    if (millisecond == 0) {
-      return null;
-    }
-    require(entrypoint != null, "Entrypoint required! use Wallet.init");
-    final block = await entrypoint!.client.getBlockNumber();
-    final end = DateTime.now().millisecondsSinceEpoch + millisecond;
-
-    return await Isolate.run(() async {
-      while (DateTime.now().millisecondsSinceEpoch < end) {
-        final filterEvent = await entrypoint!.client
-            .events(
-              FilterOptions.events(
-                contract: entrypoint!.self,
-                event: entrypoint!.self.event('UserOperationEvent'),
-                fromBlock: BlockNum.exact(block - 100),
-              ),
-            )
-            .take(1)
-            .first;
-        if (filterEvent.transactionHash != null) {
-          return filterEvent;
-        }
-        await Future.delayed(Duration(milliseconds: millisecond));
-      }
-      return null;
-    });
-  }
-
-  Future _initializeBundlerProvider() async {
-    final chainId = await _bundlerRpc
-        .send<String>('eth_chainId')
-        .then(BigInt.parse)
-        .then((value) => value.toInt());
-    require(chainId == _chainId,
-        "bundler $_bundlerUrl is on chainId $chainId, but provider is on chainId $_chainId");
-    _initialized = true;
-  }
-
-  /// Validates if the provided method is a supported RPC method.
-  ///
-  /// Parameters:
-  ///   - `method`: The Ethereum RPC method to validate.
-  ///
-  /// Throws:
-  ///   - A [Exception] if the method is not a valid supported method.
-  ///
-  /// Example:
-  /// ```dart
-  /// validateBundlerMethod('eth_sendUserOperation');
-  /// ```
-  static validateBundlerMethod(String method) {
-    require(methods.contains(method),
-        "validateMethod: method ::'$method':: is not a valid method");
   }
 }
 
-class RPCProvider extends JsonRPC implements RPCProviderBase {
-  RPCProvider(String url) : super(url, http.Client());
+/// A class that implements the JsonRPCProviderBase interface and provides methods
+/// for interacting with an Ethereum-like blockchain via the JSON-RPC protocol.
+class JsonRPCProvider implements JsonRPCProviderBase {
+  /// The remote procedure call (RPC) client used to communicate with the blockchain.
+  final RPCBase rpc;
+
+  /// Creates a new instance of the JsonRPCProvider class.
+  ///
+  /// [chain] is an object representing the blockchain chain configuration.
+  ///
+  /// The constructor checks if the JSON-RPC URL is a valid URL and initializes
+  /// the RPC client with the JSON-RPC URL.
+  JsonRPCProvider(Chain chain)
+      : assert(chain.jsonRpcUrl.isURL(), InvalidJsonRpcUrl(chain.jsonRpcUrl)),
+        rpc = RPCBase(chain.jsonRpcUrl!);
 
   @override
   Future<BigInt> estimateGas(EthereumAddress to, String calldata) {
-    return _makeRPCCall<String>('eth_estimateGas', [
+    return rpc.send<String>('eth_estimateGas', [
       {'to': to.hex, 'data': calldata}
     ]).then(hexToInt);
   }
 
   @override
   Future<int> getBlockNumber() {
-    return _makeRPCCall<String>('eth_blockNumber')
+    return rpc
+        .send<String>('eth_blockNumber')
         .then(hexToInt)
         .then((value) => value.toInt());
   }
 
   @override
+  Future<BlockInformation> getBlockInformation({
+    String blockNumber = 'latest',
+    bool isContainFullObj = true,
+  }) {
+    return rpc.send<Map<String, dynamic>>(
+      'eth_getBlockByNumber',
+      [blockNumber, isContainFullObj],
+    ).then((json) => BlockInformation.fromJson(json));
+  }
+
+  @override
   Future<Map<String, EtherAmount>> getEip1559GasPrice() async {
-    final fee = await _makeRPCCall<String>("eth_maxPriorityFeePerGas");
+    final fee = await rpc.send<String>("eth_maxPriorityFeePerGas");
     final tip = Uint256.fromHex(fee);
     final mul = Uint256(BigInt.from(100 * 13));
     final buffer = tip / mul;
@@ -177,11 +146,27 @@ class RPCProvider extends JsonRPC implements RPCProviderBase {
 
   @override
   Future<EtherAmount> getLegacyGasPrice() async {
-    final data = await _makeRPCCall<String>('eth_gasPrice');
+    final data = await rpc.send<String>('eth_gasPrice');
     return EtherAmount.fromBigInt(EtherUnit.wei, hexToInt(data));
   }
+}
 
-  @override
+class RPCBase extends JsonRPC {
+  RPCBase(String url) : super(url, http.Client());
+
+  /// Asynchronously sends an RPC call to the Ethereum node for the specified function and parameters.
+  ///
+  /// Parameters:
+  ///   - `function`: The Ethereum RPC function to call. eg: `eth_getBalance`
+  ///   - `params`: Optional parameters for the RPC call.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with the result of the RPC call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var result = await send<String>('eth_getBalance', ['0x9876543210abcdef9876543210abcdef98765432']);
+  /// ```
   Future<T> send<T>(String function, [List<dynamic>? params]) {
     return _makeRPCCall<T>(function, params);
   }
