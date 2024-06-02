@@ -1,3 +1,8 @@
+## 0.1.1
+
+* Remove chainId verification in the bundler provider
+* Allow entrypoint v0.7 for any bundler
+
 ## 0.1.0
 
 * Training wheel support for entrypoint v0.7.0 via pimlico bundler
