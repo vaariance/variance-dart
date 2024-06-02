@@ -11,7 +11,6 @@ import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
 
 import 'src/abis/abis.dart';
-import 'src/common/logger.dart';
 import 'src/interfaces/interfaces.dart';
 
 export 'src/abis/abis.dart' show ContractAbis;

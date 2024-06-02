@@ -1,7 +1,6 @@
 part of '../../variance_dart.dart';
 
 /// A factory class for creating various types of Ethereum smart wallets.
-/// {@inheritDoc SmartWalletFactoryBase}
 class SmartWalletFactory implements SmartWalletFactoryBase {
   final Chain _chain;
   final MSI _signer;
