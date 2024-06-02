@@ -125,7 +125,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     child: TextButton.icon(
                         onPressed: () {
                           try {
-                            context.read<WalletProvider>().createSafeWallet();
+                            context
+                                .read<WalletProvider>()
+                                .createPrivateKeyWallet();
                             Navigator.pushNamed(context, '/home');
                           } catch (e) {
                             'Something went wrong: $e';

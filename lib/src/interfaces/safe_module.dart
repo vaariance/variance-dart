@@ -1,6 +1,7 @@
 part of 'interfaces.dart';
 
 abstract class Safe4337ModuleBase {
+  // ignore: non_constant_identifier_names
   Future<EthereumAddress> SUPPORTED_ENTRYPOINT({BlockNum? atBlock});
 
   Future<String> executeUserOpWithErrorString(

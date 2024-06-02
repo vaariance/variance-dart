@@ -219,13 +219,6 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
             initCode: responses[0] > Uint256.zero ? Uint8List(0) : null,
             signature: dummySignature);
 
-        // require pimlico bundlers for entrypoint v07
-        if (_chain.entrypoint.version == 0.7) {
-          final bundlerHost = Uri.parse(_chain.bundlerUrl!).host;
-          Logger.conditionalError(!bundlerHost.contains("pimlico"),
-              "Entrypoint v07 is relatively new. Currently, only compatible with pimlico bundler https://pimlico.io.");
-        }
-
         return _updateUserOperationGas(op, feePerGas: responses[1]);
       });
 
