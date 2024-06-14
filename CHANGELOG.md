@@ -1,3 +1,8 @@
+## 0.1.2
+
+* Update web3-signers
+* export logger from web3-signers
+
 ## 0.1.1
 
 * Remove chainId verification in the bundler provider
