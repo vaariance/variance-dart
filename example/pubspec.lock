@@ -45,10 +45,10 @@ packages:
     dependency: transitive
     description:
       name: blockchain_utils
-      sha256: b0d73432f145ba6f9299c362ea6d8ea9804d5422c34180abee7854b7adcb869d
+      sha256: "699d72427447814bd574b95b0d3baf9b2c0ec9c9b82deef3c6264c6f5efa4406"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.2"
+    version: "3.0.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -707,7 +707,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.1.2"
   vector_math:
     dependency: transitive
     description:
@@ -744,10 +744,10 @@ packages:
     dependency: "direct main"
     description:
       name: web3_signers
-      sha256: a8f520f32e858cf482b1e04f38ccef225fe2b6ca2ccf56ed0c5a087b7f6c0701
+      sha256: de57dbdde9bbaa3c503adb169b082f6342f502b7492420a7365d5fa979283ab0
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.7"
+    version: "0.0.12"
   web3dart:
     dependency: "direct main"
     description:

@@ -179,9 +179,9 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       'uint256'
     ], [
       recoveryAddress ?? Constants.zeroAddress,
-      hexToBytes(pkp.credentialHex),
-      pkp.publicKey.item1.value,
-      pkp.publicKey.item2.value,
+      hexToBytes(pkp.authData.hexCredential),
+      pkp.authData.publicKey.item1.value,
+      pkp.authData.publicKey.item2.value,
     ]);
 
     final initCalldata = _p256Accountfactory.self

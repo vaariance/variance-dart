@@ -13,6 +13,7 @@ import 'package:web3dart/web3dart.dart';
 import 'src/abis/abis.dart';
 import 'src/interfaces/interfaces.dart';
 
+export 'package:web3_signers/web3_signers.dart' show Logger;
 export 'src/abis/abis.dart' show ContractAbis;
 
 part 'src/4337/chains.dart';
