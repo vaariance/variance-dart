@@ -20,27 +20,29 @@ class _SafePlugin extends Safe4337Module implements Safe4337ModuleBase {
   /// [blockInfo] is the current blockInformation including the timestamp and baseFee.
   ///
   /// Returns a HexString representing the encoded signature with a validity period.
-  String getSafeSignature(String signature, BlockInformation blockInfo) {
+  String getSafeSignature<T>(T signature, BlockInformation blockInfo) {
+    late Uint8List signatureBytes;
+
+    if (signature is Uint8List) {
+      signatureBytes = signature;
+    } else if (signature is String && signature.startsWith('0x')) {
+      signatureBytes = hexToBytes(signature);
+    } else {
+      throw ArgumentError('Unsupported signature type');
+    }
     final timestamp = blockInfo.timestamp.millisecondsSinceEpoch ~/ 1000;
 
-    String validAfter = (timestamp - 3600).toRadixString(16);
-    validAfter = '0' * (12 - validAfter.length) + validAfter;
+    String validAfter = (timestamp - 3600).toRadixString(16).padLeft(12, '0');
+    String validUntil = (timestamp + 3600).toRadixString(16).padLeft(12, '0');
 
-    String validUntil = (timestamp + 3600).toRadixString(16);
-    validUntil = '0' * (12 - validUntil.length) + validUntil;
-
-    int v = int.parse(signature.substring(130, 132), radix: 16);
-
+    int v = signatureBytes[64];
     if (v >= 27 && v <= 30) {
       v += 4;
     }
 
-    String modifiedV = v.toRadixString(16);
-    if (modifiedV.length == 1) {
-      modifiedV = '0$modifiedV';
-    }
-
-    return '0x$validAfter$validUntil${signature.substring(2, 130)}$modifiedV';
+    String modifiedV = v.toRadixString(16).padLeft(2, '0');
+    String hexSignature = hexlify(signatureBytes.sublist(0, 64));
+    return '0x$validAfter$validUntil$hexSignature$modifiedV';
   }
 
   /// Computes the hash of a Safe UserOperation.
@@ -52,31 +54,35 @@ class _SafePlugin extends Safe4337Module implements Safe4337ModuleBase {
   Future<Uint8List> getSafeOperationHash(
       UserOperation op, BlockInformation blockInfo) async {
     if (self.address == Safe4337ModuleAddress.v07.address) {
-      return getOperationHash$2([
+      return getOperationHash$2((
+        userOp: [
+          op.sender,
+          op.nonce,
+          op.initCode,
+          op.callData,
+          packUints(op.verificationGasLimit, op.callGasLimit),
+          op.preVerificationGas,
+          packUints(op.maxPriorityFeePerGas, op.maxFeePerGas),
+          op.paymasterAndData,
+          hexToBytes(getSafeSignature(op.signature, blockInfo))
+        ]
+      ));
+    }
+    return getOperationHash((
+      userOp: [
         op.sender,
         op.nonce,
         op.initCode,
         op.callData,
-        packUints(op.verificationGasLimit, op.callGasLimit),
+        op.callGasLimit,
+        op.verificationGasLimit,
         op.preVerificationGas,
-        packUints(op.maxPriorityFeePerGas, op.maxFeePerGas),
+        op.maxFeePerGas,
+        op.maxPriorityFeePerGas,
         op.paymasterAndData,
         hexToBytes(getSafeSignature(op.signature, blockInfo))
-      ]);
-    }
-    return getOperationHash([
-      op.sender,
-      op.nonce,
-      op.initCode,
-      op.callData,
-      op.callGasLimit,
-      op.verificationGasLimit,
-      op.preVerificationGas,
-      op.maxFeePerGas,
-      op.maxPriorityFeePerGas,
-      op.paymasterAndData,
-      hexToBytes(getSafeSignature(op.signature, blockInfo))
-    ]);
+      ]
+    ));
   }
 
   Uint8List getSafeMultisendCallData(List<EthereumAddress> recipients,

@@ -76,7 +76,7 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> createEOAWallet() async {
-    _chain.accountFactory = Constants.simpleAccountFactoryAddressv06;
+    _chain.accountFactory = Constants.lightAccountFactoryAddressv06;
 
     final signer = EOAWallet.createWallet();
     log("signer: ${signer.getAddress()}");
@@ -86,7 +86,7 @@ class WalletProvider extends ChangeNotifier {
         .keccak256(EthereumAddress.fromHex(signer.getAddress()).addressBytes)));
 
     try {
-      _wallet = await walletFactory.createSimpleAccount(salt);
+      _wallet = await walletFactory.createAlchemyLightAccount(salt);
       log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
       _errorMessage = e.toString();
@@ -111,7 +111,7 @@ class WalletProvider extends ChangeNotifier {
     log("pk salt: ${salt.toHex()}");
 
     try {
-      _wallet = await walletFactory.createSimpleAccount(salt);
+      _wallet = await walletFactory.createAlchemyLightAccount(salt);
       log("pk wallet created ${_wallet?.address.hex} ");
     } catch (e) {
       _errorMessage = e.toString();

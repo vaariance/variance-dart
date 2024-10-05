@@ -25,14 +25,14 @@ abstract class SmartWalletFactoryBase {
 
   Future<SmartWallet> createSafeAccount(Uint256 salt);
 
-  /// Creates a new simple account with the provided salt and optional index.
+  /// Creates a new light account with the provided salt and optional index.
   ///
   /// [salt] is the salt value used in the account creation process.
   /// [index] is an optional index value for the signer address.
   ///
   /// Returns a [Future] that resolves to a [SmartWallet] instance representing
-  /// the created simple account.
-  Future<SmartWallet> createSimpleAccount(Uint256 salt, [int? index]);
+  /// the created light account.
+  Future<SmartWallet> createAlchemyLightAccount(Uint256 salt, [int? index]);
 
   /// Creates a new vendor account with the provided address and initialization code.
   ///

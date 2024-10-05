@@ -23,7 +23,7 @@ dependencies:
   fluttertoast: ^8.2.4
   variance_dart:
     path: ../
-  web3_signers: ^0.0.6
+  web3_signers: ^0.0.14-alpha-01
 
 dev_dependencies:
   flutter_test:

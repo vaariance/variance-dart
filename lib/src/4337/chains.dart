@@ -65,77 +65,75 @@ class Chain {
 //predefined Chains you can use
 class Chains {
   static Map<Network, Chain> chains = {
-    Network.ethereum: Chain(
+    Network.mainnet: Chain(
       chainId: 1,
       explorer: "https://etherscan.io/",
       jsonRpcUrl: "https://rpc.ankr.com/eth",
-      entrypoint: EntryPointAddress.v06,
+      entrypoint: EntryPointAddress.v07,
+      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.polygon: Chain(
       chainId: 137,
       explorer: "https://polygonscan.com/",
       jsonRpcUrl: "https://rpc.ankr.com/polygon",
-      entrypoint: EntryPointAddress.v06,
+      entrypoint: EntryPointAddress.v07,
+      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.optimism: Chain(
       chainId: 10,
       explorer: "https://explorer.optimism.io",
       jsonRpcUrl: "https://rpc.ankr.com/optimism",
-      entrypoint: EntryPointAddress.v06,
+      entrypoint: EntryPointAddress.v07,
+      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.base: Chain(
       chainId: 8453,
       explorer: "https://basescan.org",
       jsonRpcUrl: "https://rpc.ankr.com/base",
-      entrypoint: EntryPointAddress.v06,
+      entrypoint: EntryPointAddress.v07,
+      accountFactory: Constants.safeProxyFactoryAddress,
     ),
-    Network.arbitrumOne: Chain(
+    Network.arbitrum: Chain(
       chainId: 42161,
       explorer: "https://arbiscan.io/",
       jsonRpcUrl: "https://rpc.ankr.com/arbitrum",
-      entrypoint: EntryPointAddress.v06,
+      entrypoint: EntryPointAddress.v07,
+      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.linea: Chain(
-        chainId: 59144,
-        explorer: "https://lineascan.build/",
-        jsonRpcUrl: "https://rpc.linea.build",
-        entrypoint: EntryPointAddress.v06),
-    Network.opBnB: Chain(
-      chainId: 204,
-      explorer: "http://opbnbscan.com/",
-      jsonRpcUrl: "https://opbnb-mainnet-rpc.bnbchain.org",
-      entrypoint: EntryPointAddress.v06,
+      chainId: 59144,
+      explorer: "https://lineascan.build/",
+      jsonRpcUrl: "https://rpc.linea.build",
+      entrypoint: EntryPointAddress.v07,
+      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.scroll: Chain(
       chainId: 534352,
       explorer: "https://scrollscan.com/",
       jsonRpcUrl: "https://rpc.ankr.com/scroll",
-      entrypoint: EntryPointAddress.v06,
+      entrypoint: EntryPointAddress.v07,
+      accountFactory: Constants.safeProxyFactoryAddress,
+    ),
+    Network.fuse: Chain(
+      chainId: 122,
+      explorer: "https://explorer.fuse.io",
+      jsonRpcUrl: "https://rpc.fuse.io",
+      entrypoint: EntryPointAddress.v07,
+      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.sepolia: Chain(
       chainId: 11155111,
       explorer: "https://sepolia.etherscan.io/",
       jsonRpcUrl: "https://rpc.ankr.com/eth_sepolia",
-      entrypoint: EntryPointAddress.v06,
-    ),
-    Network.mumbai: Chain(
-      chainId: 80001,
-      explorer: "https://mumbai.polygonscan.com/",
-      jsonRpcUrl: "https://rpc.ankr.com/polygon_mumbai",
-      entrypoint: EntryPointAddress.v06,
+      entrypoint: EntryPointAddress.v07,
+      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.baseTestnet: Chain(
       chainId: 84532,
       explorer: "https://sepolia.basescan.org/",
       jsonRpcUrl: "https://rpc.ankr.com/base_sepolia",
-      entrypoint: EntryPointAddress.v06,
-    ),
-    Network.localhost: Chain(
-      chainId: 1337,
-      explorer: "http://localhost:8545",
-      jsonRpcUrl: "http://localhost:8545",
-      bundlerUrl: "http://localhost:3000/rpc",
-      entrypoint: EntryPointAddress.v06,
+      entrypoint: EntryPointAddress.v07,
+      accountFactory: Constants.safeProxyFactoryAddress,
     )
   };
 
@@ -159,53 +157,20 @@ class Chains {
   }
 }
 
-class Constants {
-  static EthereumAddress entrypointv06 =
-      EthereumAddress.fromHex("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789");
-  static EthereumAddress entrypointv07 =
-      EthereumAddress.fromHex("0x0000000071727De22E5E9d8BAf0edAc6f37da032");
-  static EthereumAddress zeroAddress =
-      EthereumAddress.fromHex("0x0000000000000000000000000000000000000000");
-  static final EthereumAddress simpleAccountFactoryAddressv06 =
-      EthereumAddress.fromHex("0x9406Cc6185a346906296840746125a0E44976454");
-  static final EthereumAddress simpleAccountFactoryAddressv07 =
-      EthereumAddress.fromHex("0x91E60e0613810449d098b0b5Ec8b51A0FE8c8985");
-  static final EthereumAddress safeProxyFactoryAddress =
-      EthereumAddress.fromHex("0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67");
-  static final EthereumAddress safe4337ModuleAddressv06 =
-      EthereumAddress.fromHex("0xa581c4A4DB7175302464fF3C06380BC3270b4037");
-  static final EthereumAddress safe4337ModuleAddressv07 =
-      EthereumAddress.fromHex("0x75cf11467937ce3F2f357CE24ffc3DBF8fD5c226");
-  static final EthereumAddress safeSingletonAddress =
-      EthereumAddress.fromHex("0x41675C099F32341bf84BFc5382aF534df5C7461a");
-  static final EthereumAddress safeModuleSetupAddressv06 =
-      EthereumAddress.fromHex("0x8EcD4ec46D4D2a6B64fE960B3D64e8B94B2234eb");
-  static final EthereumAddress safeModuleSetupAddressv07 =
-      EthereumAddress.fromHex("0x2dd68b007B46fBe91B9A7c3EDa5A7a1063cB5b47");
-  static final EthereumAddress safeMultiSendaddress =
-      EthereumAddress.fromHex("0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526");
-
-  Constants._();
-}
-
 enum Network {
   // mainnet
-  ethereum,
+  mainnet,
   polygon,
   optimism,
   base,
-  arbitrumOne,
+  arbitrum,
   linea,
-  opBnB,
   scroll,
+  fuse,
 
   // testnet
   sepolia,
-  mumbai,
   baseTestnet,
-
-  // localhost
-  localhost
 }
 
 /// Represents the address of an EntryPoint contract on the Ethereum blockchain.

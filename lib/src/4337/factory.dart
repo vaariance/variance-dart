@@ -43,8 +43,8 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       chainId: _chain.chainId,
       rpc: _jsonRpc.rpc);
 
-  /// A getter for the SimpleAccountFactory contract instance.
-  _SimpleAccountFactory get _simpleAccountfactory => _SimpleAccountFactory(
+  /// A getter for the LightAccountFactory contract instance.
+  _LightAccountFactory get _lightAccountfactory => _LightAccountFactory(
       address: _chain.accountFactory!,
       chainId: _chain.chainId,
       rpc: _jsonRpc.rpc);
@@ -95,24 +95,27 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   }
 
   @override
-  Future<SmartWallet> createSimpleAccount(Uint256 salt, [int? index]) async {
+  Future<SmartWallet> createAlchemyLightAccount(Uint256 salt,
+      [int? index]) async {
     final signer =
         EthereumAddress.fromHex(_signer.getAddress(index: index ?? 0));
 
-    // Get the predicted address of the simple account
-    final address = await _simpleAccountfactory.getAddress(signer, salt.value);
+    // Get the predicted address of the light account
+    final address = await _lightAccountfactory
+        .getAddress((owner: signer, salt: salt.value));
 
     // Encode the call data for the `createAccount` function
-    // This function is used to create the simple account with the given signer address and salt
-    final initCalldata = _simpleAccountfactory.self
+    // This function is used to create the light account with the given signer address and salt
+    final initCalldata = _lightAccountfactory.self
         .function('createAccount')
         .encodeCall([signer, salt.value]);
 
     // Generate the initialization code by combining the account factory address and the encoded call data
     final initCode = _getInitCode(initCalldata);
 
-    // Create the SmartWallet instance for the simple account
-    return _createAccount(_chain, address, initCode);
+    // Create the SmartWallet instance for the light account
+    return _createAccount(
+        _chain, address, initCode, Constants.defaultBytePrefix);
   }
 
   @override
@@ -137,8 +140,9 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   ///
   /// Returns a [SmartWallet] instance representing the created account.
   SmartWallet _createAccount(
-      Chain chain, EthereumAddress address, Uint8List initCalldata) {
-    final wallet = SmartWallet(chain, address, initCalldata)
+      Chain chain, EthereumAddress address, Uint8List initCalldata,
+      [Uint8List? prefix]) {
+    final wallet = SmartWallet(chain, address, initCalldata, prefix)
       ..addPlugin<MSI>('signer', _signer)
       ..addPlugin<BundlerProviderBase>('bundler', _bundler)
       ..addPlugin<JsonRPCProviderBase>('jsonRpc', _jsonRpc)
@@ -188,8 +192,8 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
         .function('createP256Account')
         .encodeCall([salt.value, creation]);
     final initCode = _getInitCode(initCalldata);
-    final address =
-        await _p256Accountfactory.getP256AccountAddress(salt.value, creation);
+    final address = await _p256Accountfactory
+        .getP256AccountAddress((salt: salt.value, creation: creation));
     return _createAccount(_chain, address, initCode);
   }
 
@@ -228,8 +232,8 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
         .function('createP256Account')
         .encodeCall([salt.value, creation]);
     final initCode = _getInitCode(initCalldata);
-    final address =
-        await _p256Accountfactory.getP256AccountAddress(salt.value, creation);
+    final address = await _p256Accountfactory
+        .getP256AccountAddress((salt: salt.value, creation: creation));
     return _createAccount(_chain, address, initCode);
   }
 

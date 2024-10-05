@@ -25,7 +25,7 @@ part of '../../variance_dart.dart';
 /// final response = await wallet.send(recipient, amount);
 /// ```
 class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
-  /// The blockchain chain configuration.
+  /// The chain configuration.
   final Chain _chain;
 
   /// The address of the Smart Wallet.
@@ -34,12 +34,18 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   /// The initialization code for deploying the Smart Wallet contract.
   Uint8List _initCode;
 
+  /// Defines the signer type for Alchemy Light Accounts.
+  final Uint8List _prefix;
+
   /// Creates a new instance of the [SmartWallet] class.
   ///
   /// [_chain] is an object representing the blockchain chain configuration.
   /// [_walletAddress] is the address of the Smart Wallet.
   /// [_initCode] is the initialization code for deploying the Smart Wallet contract.
-  SmartWallet(this._chain, this._walletAddress, this._initCode);
+  /// [prefix] is the signature prefix for signing light account transactions.
+  SmartWallet(this._chain, this._walletAddress, this._initCode,
+      [Uint8List? signaturePrefix])
+      : _prefix = signaturePrefix ?? Uint8List(0);
 
   @override
   EthereumAddress get address => _walletAddress;
@@ -65,7 +71,8 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   String? get toHex => _walletAddress.hexEip55;
 
   @override
-  String get dummySignature => plugin<MSI>('signer').dummySignature;
+  String get dummySignature =>
+      plugin<MSI>('signer').getDummySignature(prefix: hexlify(_prefix));
 
   /// Returns the estimated gas required for deploying the Smart Wallet contract.
   ///
@@ -179,12 +186,11 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
     // Sign the operation hash using the 'signer' plugin
     final signature =
         await plugin<MSI>('signer').personalSign(opHash, index: index);
-    final signatureHex = hexlify(signature);
 
     // Append the signature validity period if the 'safe' plugin is enabled
     op.signature = isSafe
-        ? plugin<_SafePlugin>('safe').getSafeSignature(signatureHex, blockInfo)
-        : signatureHex;
+        ? plugin<_SafePlugin>('safe').getSafeSignature(signature, blockInfo)
+        : hexlify(_prefix + signature);
 
     return op;
   }
