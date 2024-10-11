@@ -34,25 +34,18 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   /// The initialization code for deploying the Smart Wallet contract.
   Uint8List _initCode;
 
-  /// Defines the signer type for Alchemy Light Accounts.
-  final Uint8List _prefix;
-
   /// Creates a new instance of the [SmartWallet] class.
   ///
   /// [_chain] is an object representing the blockchain chain configuration.
   /// [_walletAddress] is the address of the Smart Wallet.
   /// [_initCode] is the initialization code for deploying the Smart Wallet contract.
-  /// [prefix] is the signature prefix for signing light account transactions.
-  SmartWallet(this._chain, this._walletAddress, this._initCode,
-      [Uint8List? signaturePrefix])
-      : _prefix = signaturePrefix ?? Uint8List(0);
+  SmartWallet(this._chain, this._walletAddress, this._initCode);
 
   @override
   EthereumAddress get address => _walletAddress;
 
   @override
-  Future<EtherAmount> get balance =>
-      plugin<Contract>("contract").getBalance(_walletAddress);
+  Future<EtherAmount> get balance => _getBalance();
 
   @override
   Future<bool> get isDeployed =>
@@ -71,8 +64,9 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   String? get toHex => _walletAddress.hexEip55;
 
   @override
-  String get dummySignature =>
-      plugin<MSI>('signer').getDummySignature(prefix: hexlify(_prefix));
+  String get dummySignature => plugin<MSI>('signer').getDummySignature();
+
+  bool get isSafe => hasPlugin("safe");
 
   /// Returns the estimated gas required for deploying the Smart Wallet contract.
   ///
@@ -103,7 +97,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
           EthereumAddress recipient, EtherAmount amount) =>
       sendUserOperation(buildUserOperation(
           callData: Contract.execute(_walletAddress,
-              to: recipient, amount: amount, isSafe: hasPlugin("safe"))));
+              to: recipient, amount: amount, isSafe: isSafe)));
 
   @override
   Future<UserOperationResponse> sendTransaction(
@@ -114,13 +108,12 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
               to: to,
               amount: amount,
               innerCallData: encodedFunctionData,
-              isSafe: hasPlugin("safe"))));
+              isSafe: isSafe)));
 
   @override
   Future<UserOperationResponse> sendBatchedTransaction(
       List<EthereumAddress> recipients, List<Uint8List> calls,
       {List<EtherAmount>? amounts}) {
-    final isSafe = hasPlugin("safe");
     if (isSafe) {
       final innerCall = plugin<_SafePlugin>('safe')
           .getSafeMultisendCallData(recipients, amounts, calls);
@@ -174,24 +167,30 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   @override
   Future<UserOperation> signUserOperation(UserOperation op,
       {int? index}) async {
-    final isSafe = hasPlugin('safe');
     final blockInfo =
         await plugin<JsonRPCProviderBase>('jsonRpc').getBlockInformation();
 
-    // Calculate the operation hash
-    final opHash = isSafe
-        ? await plugin<_SafePlugin>('safe').getSafeOperationHash(op, blockInfo)
-        : op.hash(_chain);
+    calculateOperationHash(UserOperation op, BlockInformation blockInfo) async {
+      if (isSafe) {
+        return plugin<_SafePlugin>('safe').getSafeOperationHash(op, blockInfo);
+      } else {
+        return op.hash(_chain);
+      }
+    }
 
-    // Sign the operation hash using the 'signer' plugin
-    final signature =
-        await plugin<MSI>('signer').personalSign(opHash, index: index);
+    signOperationHash(Uint8List opHash, int? index) async {
+      final signature =
+          await plugin<MSI>('signer').personalSign(opHash, index: index);
+      final signatureHex = hexlify(signature);
+      if (isSafe) {
+        return plugin<_SafePlugin>('safe')
+            .getSafeSignature(signatureHex, blockInfo);
+      }
+      return signatureHex;
+    }
 
-    // Append the signature validity period if the 'safe' plugin is enabled
-    op.signature = isSafe
-        ? plugin<_SafePlugin>('safe').getSafeSignature(signature, blockInfo)
-        : hexlify(_prefix + signature);
-
+    final opHash = await calculateOperationHash(op, blockInfo);
+    op.signature = await signOperationHash(opHash, index);
     return op;
   }
 
@@ -209,6 +208,16 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
               params: [_walletAddress, BigInt.zero])
           .then((value) => Uint256(value[0]))
           .catchError((e) => throw NonceError(e.toString(), _walletAddress)));
+
+  /// Returns the balance for the Smart Wallet address from the entrypoint.
+  ///
+  /// If an error occurs during the balance retrieval process, a [FetchBalanceError] exception is thrown.
+  Future<EtherAmount> _getBalance() => plugin<Contract>("contract")
+      .read(_chain.entrypoint.address, ContractAbis.get('getBalance'),
+          "balanceOf",
+          params: [_walletAddress])
+      .then((value) => EtherAmount.fromBigInt(EtherUnit.wei, value[0]))
+      .catchError((e) => throw FetchBalanceError(e.toString(), _walletAddress));
 
   /// Updates the user operation with the latest nonce and gas prices.
   ///

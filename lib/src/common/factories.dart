@@ -1,22 +1,5 @@
 part of '../../variance_dart.dart';
 
-/// A class that extends [P256AccountFactory] and implements [P256AccountFactoryBase].
-/// It creates an instance of [P256AccountFactory] with a custom [RPCBase] client.
-/// Used to create instances of [SmartWallet] for P256 accounts.
-class _P256AccountFactory extends P256AccountFactory
-    implements P256AccountFactoryBase {
-  /// Creates a new instance of [_P256AccountFactory].
-  ///
-  /// [address] is the address of the account factory.
-  /// [chainId] is the ID of the blockchain chain.
-  /// [rpc] is the [RPCBase] client used for communication with the blockchain.
-  _P256AccountFactory({
-    required super.address,
-    super.chainId,
-    required RPCBase rpc,
-  }) : super(client: Web3Client.custom(rpc));
-}
-
 /// A class that extends [SafeProxyFactory] and implements [SafeProxyFactoryBase].
 /// It creates an instance of [SafeProxyFactory] with a custom [RPCBase] client.
 /// Used to create instances of [SmartWallet] for Safe accounts.
@@ -49,17 +32,35 @@ class _SafeProxyFactory extends SafeProxyFactory
   ///
   /// Returns a [Uint8List] containing the encoded initializer data.
   Uint8List getInitializer(Iterable<EthereumAddress> owners, int threshold,
-      Safe4337ModuleAddress module) {
-    return Contract.encodeFunctionCall(
-        "setup", Constants.safeSingletonAddress, ContractAbis.get("setup"), [
-      owners.toList(),
-      BigInt.from(threshold),
-      module.setup,
-      Contract.encodeFunctionCall(
+      Safe4337ModuleAddress module,
+      [Uint8List Function(Uint8List Function())? encodeWebauthnSetup]) {
+    encodeModuleSetup() {
+      return Contract.encodeFunctionCall(
           "enableModules", module.setup, ContractAbis.get("enableModules"), [
         [module.address]
-      ]),
-      module.address,
+      ]);
+    }
+
+    final setup = {
+      "owners": owners.toList(),
+      "threshold": BigInt.from(threshold),
+      "to": module.setup,
+      "data": encodeModuleSetup(),
+      "fallbackHandler": module.address,
+    };
+
+    if (encodeWebauthnSetup != null) {
+      setup["to"] = Constants.safeMultiSendaddress;
+      setup["data"] = encodeWebauthnSetup(encodeModuleSetup);
+    }
+
+    return Contract.encodeFunctionCall(
+        "setup", Constants.safeL2SingletonAddress, ContractAbis.get("setup"), [
+      setup["owners"],
+      setup["threshold"],
+      setup["to"],
+      setup["data"],
+      setup["fallbackHandler"],
       Constants.zeroAddress,
       BigInt.zero,
       Constants.zeroAddress,
@@ -71,37 +72,27 @@ class _SafeProxyFactory extends SafeProxyFactory
   /// [initializer] is the initializer data for deploying the Safe contract.
   /// [salt] is the salt value used for address calculation.
   /// [creationCode] is the creation code for deploying the Safe contract.
+  /// [singleton] is the address of the Safe singleton.
   ///
   /// Returns the predicted [EthereumAddress] of the Safe contract.
 
-  EthereumAddress getPredictedSafe(
-      Uint8List initializer, Uint256 salt, Uint8List creationCode) {
-    paddedAddressBytes(Uint8List addressBytes) {
-      return [...Uint8List(32 - addressBytes.length), ...addressBytes];
-    }
+  EthereumAddress getPredictedSafe(Uint8List initializer, Uint256 salt,
+      Uint8List creationCode, EthereumAddress singleton) {
+    final deploymentData =
+        creationCode.concat(singleton.addressBytes.padLeftTo32Bytes());
 
-    final deploymentData = Uint8List.fromList(
-      [
-        ...creationCode,
-        ...paddedAddressBytes(Constants.safeSingletonAddress.addressBytes)
-      ],
-    );
+    // toHex pads to 64 then tobytes ensures its always 32 bytes salt
+    final create2Salt =
+        keccak256(keccak256(initializer).concat(hexToBytes(salt.toHex())));
 
     final hash = keccak256(
-      Uint8List.fromList([
-        0xff,
-        ...self.address.addressBytes,
-        ...keccak256(Uint8List.fromList([
-          ...keccak256(initializer),
-          ...intToBytes(salt.value),
-        ])),
-        ...keccak256(deploymentData),
-      ]),
+      Uint8List.fromList([0xff])
+          .concat(self.address.addressBytes)
+          .concat(create2Salt)
+          .concat(keccak256(deploymentData)),
     );
 
-    final predictedAddress =
-        EthereumAddress(Uint8List.fromList(hash.skip(12).take(20).toList()));
-    return predictedAddress;
+    return EthereumAddress(Uint8List.fromList(hash.skip(12).take(20).toList()));
   }
 }
 

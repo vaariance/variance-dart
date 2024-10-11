@@ -32,7 +32,7 @@ Uint8List packUints(BigInt high128, BigInt low128) {
 /// final unpacked = unpackUints("0x...32byteshex");
 /// print(unpacked);
 /// ```
-List<BigInt> unpackUints(Hex hex) {
+List<BigInt> unpackUints(String hex) {
   final value = BigInt.parse(hex.substring(2), radix: 16);
   return [value >> 128, value.toUnsigned(128)];
 }

@@ -1,3 +1,14 @@
+## 0.1.4
+
+* add surpport for web3_signers v0.1+
+* add create safe account with passkeys method in accounts factory
+* modify getSafeSignature to support hybrid signatures (private key + passkey)
+* update default singleton to safeL2
+* refactor safe inititializer
+* fix issue that causes create2salt to result in a different safe address
+* fetch the smart account balance from the entrypoint
+* fix issue where empty amounts array throws a light account ArrayLengthMismatch() error during batch transactions
+
 ## 0.1.3
 
 * replace Simple account with Alchemy light account

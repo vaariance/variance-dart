@@ -26,6 +26,9 @@ class Chain {
   /// is not known or needed.
   String? paymasterUrl;
 
+  /// Specify whether it is testnet
+  bool testnet;
+
   /// Creates a new instance of the [Chain] class.
   ///
   /// [chainId] is the unique identifier of the chain.
@@ -59,7 +62,8 @@ class Chain {
       this.accountFactory,
       this.jsonRpcUrl,
       this.bundlerUrl,
-      this.paymasterUrl});
+      this.paymasterUrl,
+      this.testnet = false});
 }
 
 //predefined Chains you can use
@@ -70,71 +74,61 @@ class Chains {
       explorer: "https://etherscan.io/",
       jsonRpcUrl: "https://rpc.ankr.com/eth",
       entrypoint: EntryPointAddress.v07,
-      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.polygon: Chain(
       chainId: 137,
       explorer: "https://polygonscan.com/",
       jsonRpcUrl: "https://rpc.ankr.com/polygon",
       entrypoint: EntryPointAddress.v07,
-      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.optimism: Chain(
       chainId: 10,
       explorer: "https://explorer.optimism.io",
       jsonRpcUrl: "https://rpc.ankr.com/optimism",
       entrypoint: EntryPointAddress.v07,
-      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.base: Chain(
       chainId: 8453,
       explorer: "https://basescan.org",
       jsonRpcUrl: "https://rpc.ankr.com/base",
       entrypoint: EntryPointAddress.v07,
-      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.arbitrum: Chain(
       chainId: 42161,
       explorer: "https://arbiscan.io/",
       jsonRpcUrl: "https://rpc.ankr.com/arbitrum",
       entrypoint: EntryPointAddress.v07,
-      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.linea: Chain(
       chainId: 59144,
       explorer: "https://lineascan.build/",
       jsonRpcUrl: "https://rpc.linea.build",
       entrypoint: EntryPointAddress.v07,
-      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.scroll: Chain(
       chainId: 534352,
       explorer: "https://scrollscan.com/",
       jsonRpcUrl: "https://rpc.ankr.com/scroll",
       entrypoint: EntryPointAddress.v07,
-      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.fuse: Chain(
       chainId: 122,
       explorer: "https://explorer.fuse.io",
       jsonRpcUrl: "https://rpc.fuse.io",
       entrypoint: EntryPointAddress.v07,
-      accountFactory: Constants.safeProxyFactoryAddress,
     ),
     Network.sepolia: Chain(
-      chainId: 11155111,
-      explorer: "https://sepolia.etherscan.io/",
-      jsonRpcUrl: "https://rpc.ankr.com/eth_sepolia",
-      entrypoint: EntryPointAddress.v07,
-      accountFactory: Constants.safeProxyFactoryAddress,
-    ),
+        chainId: 11155111,
+        explorer: "https://sepolia.etherscan.io/",
+        jsonRpcUrl: "https://rpc.ankr.com/eth_sepolia",
+        entrypoint: EntryPointAddress.v07,
+        testnet: true),
     Network.baseTestnet: Chain(
-      chainId: 84532,
-      explorer: "https://sepolia.basescan.org/",
-      jsonRpcUrl: "https://rpc.ankr.com/base_sepolia",
-      entrypoint: EntryPointAddress.v07,
-      accountFactory: Constants.safeProxyFactoryAddress,
-    )
+        chainId: 84532,
+        explorer: "https://sepolia.basescan.org/",
+        jsonRpcUrl: "https://rpc.ankr.com/base_sepolia",
+        entrypoint: EntryPointAddress.v07,
+        testnet: true)
   };
 
   const Chains._();
