@@ -1,5 +1,8 @@
-// Generated code, do not modify. Run `build_runner build` to re-generate!
-// @dart=2.12
+// @dart=3.0
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// ignore_for_file: unused_local_variable, unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:web3dart/web3dart.dart' as _i1;
 import 'dart:typed_data' as _i2;
@@ -42,17 +45,19 @@ class Entrypoint extends _i1.GeneratedContract {
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<void> _validateSenderAndPaymaster(
-    _i2.Uint8List initCode,
-    _i1.EthereumAddress sender,
-    _i2.Uint8List paymasterAndData, {
+    ({
+      _i2.Uint8List initCode,
+      _i1.EthereumAddress sender,
+      _i2.Uint8List paymasterAndData
+    }) args, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[1];
     assert(checkSignature(function, '957122ab'));
     final params = [
-      initCode,
-      sender,
-      paymasterAndData,
+      args.initCode,
+      args.sender,
+      args.paymasterAndData,
     ];
     final response = await read(
       function,
@@ -65,13 +70,13 @@ class Entrypoint extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> addStake(
-    BigInt unstakeDelaySec, {
+    ({BigInt unstakeDelaySec}) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[2];
     assert(checkSignature(function, '0396cb60'));
-    final params = [unstakeDelaySec];
+    final params = [args.unstakeDelaySec];
     return write(
       credentials,
       transaction,
@@ -84,12 +89,12 @@ class Entrypoint extends _i1.GeneratedContract {
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<BigInt> balanceOf(
-    _i1.EthereumAddress account, {
+    ({_i1.EthereumAddress account}) args, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[3];
     assert(checkSignature(function, '70a08231'));
-    final params = [account];
+    final params = [args.account];
     final response = await read(
       function,
       params,
@@ -102,13 +107,13 @@ class Entrypoint extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> depositTo(
-    _i1.EthereumAddress account, {
+    ({_i1.EthereumAddress account}) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[4];
     assert(checkSignature(function, 'b760faf9'));
-    final params = [account];
+    final params = [args.account];
     return write(
       credentials,
       transaction,
@@ -121,12 +126,12 @@ class Entrypoint extends _i1.GeneratedContract {
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<Deposits> deposits(
-    _i1.EthereumAddress $param6, {
+    ({_i1.EthereumAddress $param6}) args, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[5];
     assert(checkSignature(function, 'fc7e286d'));
-    final params = [$param6];
+    final params = [args.$param6];
     final response = await read(
       function,
       params,
@@ -139,12 +144,12 @@ class Entrypoint extends _i1.GeneratedContract {
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<dynamic> getDepositInfo(
-    _i1.EthereumAddress account, {
+    ({_i1.EthereumAddress account}) args, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[6];
     assert(checkSignature(function, '5287ce12'));
-    final params = [account];
+    final params = [args.account];
     final response = await read(
       function,
       params,
@@ -157,15 +162,14 @@ class Entrypoint extends _i1.GeneratedContract {
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<BigInt> getNonce(
-    _i1.EthereumAddress sender,
-    BigInt key, {
+    ({_i1.EthereumAddress sender, BigInt key}) args, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[7];
     assert(checkSignature(function, '35567e1a'));
     final params = [
-      sender,
-      key,
+      args.sender,
+      args.key,
     ];
     final response = await read(
       function,
@@ -179,13 +183,13 @@ class Entrypoint extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> getSenderAddress(
-    _i2.Uint8List initCode, {
+    ({_i2.Uint8List initCode}) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[8];
     assert(checkSignature(function, '9b249f69'));
-    final params = [initCode];
+    final params = [args.initCode];
     return write(
       credentials,
       transaction,
@@ -198,12 +202,12 @@ class Entrypoint extends _i1.GeneratedContract {
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<_i2.Uint8List> getUserOpHash(
-    dynamic userOp, {
+    ({dynamic userOp}) args, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[9];
     assert(checkSignature(function, 'a6193531'));
-    final params = [userOp];
+    final params = [args.userOp];
     final response = await read(
       function,
       params,
@@ -216,16 +220,15 @@ class Entrypoint extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> handleAggregatedOps(
-    List<dynamic> opsPerAggregator,
-    _i1.EthereumAddress beneficiary, {
+    ({List<dynamic> opsPerAggregator, _i1.EthereumAddress beneficiary}) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[10];
     assert(checkSignature(function, '4b1d7cf5'));
     final params = [
-      opsPerAggregator,
-      beneficiary,
+      args.opsPerAggregator,
+      args.beneficiary,
     ];
     return write(
       credentials,
@@ -239,16 +242,15 @@ class Entrypoint extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> handleOps(
-    List<dynamic> ops,
-    _i1.EthereumAddress beneficiary, {
+    ({List<dynamic> ops, _i1.EthereumAddress beneficiary}) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[11];
     assert(checkSignature(function, '1fad948c'));
     final params = [
-      ops,
-      beneficiary,
+      args.ops,
+      args.beneficiary,
     ];
     return write(
       credentials,
@@ -262,13 +264,13 @@ class Entrypoint extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> incrementNonce(
-    BigInt key, {
+    ({BigInt key}) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[12];
     assert(checkSignature(function, '0bd28e3b'));
-    final params = [key];
+    final params = [args.key];
     return write(
       credentials,
       transaction,
@@ -281,18 +283,16 @@ class Entrypoint extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> innerHandleOp(
-    _i2.Uint8List callData,
-    dynamic opInfo,
-    _i2.Uint8List context, {
+    ({_i2.Uint8List callData, dynamic opInfo, _i2.Uint8List context}) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[13];
     assert(checkSignature(function, '1d732756'));
     final params = [
-      callData,
-      opInfo,
-      context,
+      args.callData,
+      args.opInfo,
+      args.context,
     ];
     return write(
       credentials,
@@ -306,15 +306,14 @@ class Entrypoint extends _i1.GeneratedContract {
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<BigInt> nonceSequenceNumber(
-    _i1.EthereumAddress $param20,
-    BigInt $param21, {
+    ({_i1.EthereumAddress $param20, BigInt $param21}) args, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[14];
     assert(checkSignature(function, '1b2e01b8'));
     final params = [
-      $param20,
-      $param21,
+      args.$param20,
+      args.$param21,
     ];
     final response = await read(
       function,
@@ -328,18 +327,20 @@ class Entrypoint extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> simulateHandleOp(
-    dynamic op,
-    _i1.EthereumAddress target,
-    _i2.Uint8List targetCallData, {
+    ({
+      dynamic op,
+      _i1.EthereumAddress target,
+      _i2.Uint8List targetCallData
+    }) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[15];
     assert(checkSignature(function, 'd6383f94'));
     final params = [
-      op,
-      target,
-      targetCallData,
+      args.op,
+      args.target,
+      args.targetCallData,
     ];
     return write(
       credentials,
@@ -353,13 +354,13 @@ class Entrypoint extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> simulateValidation(
-    dynamic userOp, {
+    ({dynamic userOp}) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[16];
     assert(checkSignature(function, 'ee219423'));
-    final params = [userOp];
+    final params = [args.userOp];
     return write(
       credentials,
       transaction,
@@ -390,13 +391,13 @@ class Entrypoint extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> withdrawStake(
-    _i1.EthereumAddress withdrawAddress, {
+    ({_i1.EthereumAddress withdrawAddress}) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[18];
     assert(checkSignature(function, 'c23a5cea'));
-    final params = [withdrawAddress];
+    final params = [args.withdrawAddress];
     return write(
       credentials,
       transaction,
@@ -409,16 +410,15 @@ class Entrypoint extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> withdrawTo(
-    _i1.EthereumAddress withdrawAddress,
-    BigInt withdrawAmount, {
+    ({_i1.EthereumAddress withdrawAddress, BigInt withdrawAmount}) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[19];
     assert(checkSignature(function, '205c2878'));
     final params = [
-      withdrawAddress,
-      withdrawAmount,
+      args.withdrawAddress,
+      args.withdrawAmount,
     ];
     return write(
       credentials,

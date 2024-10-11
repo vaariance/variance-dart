@@ -1,3 +1,10 @@
+## 0.1.3
+
+* replace Simple account with Alchemy light account
+* hardcoded safe proxy creation code to reduce network requests
+* add light account abi and signature prefix
+* separate constants from chains
+
 ## 0.1.2
 
 * Update web3-signers

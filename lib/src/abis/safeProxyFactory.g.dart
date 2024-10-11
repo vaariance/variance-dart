@@ -1,5 +1,8 @@
-// Generated code, do not modify. Run `build_runner build` to re-generate!
-// @dart=2.12
+// @dart=3.0
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// ignore_for_file: unused_local_variable, unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:web3dart/web3dart.dart' as _i1;
 import 'dart:typed_data' as _i2;
@@ -27,18 +30,20 @@ class SafeProxyFactory extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> createChainSpecificProxyWithNonce(
-    _i1.EthereumAddress _singleton,
-    _i2.Uint8List initializer,
-    BigInt saltNonce, {
+    ({
+      _i1.EthereumAddress singleton,
+      _i2.Uint8List initializer,
+      BigInt saltNonce
+    }) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[0];
     assert(checkSignature(function, 'ec9e80bb'));
     final params = [
-      _singleton,
-      initializer,
-      saltNonce,
+      args.singleton,
+      args.initializer,
+      args.saltNonce,
     ];
     return write(
       credentials,
@@ -52,20 +57,22 @@ class SafeProxyFactory extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> createProxyWithCallback(
-    _i1.EthereumAddress _singleton,
-    _i2.Uint8List initializer,
-    BigInt saltNonce,
-    _i1.EthereumAddress callback, {
+    ({
+      _i1.EthereumAddress singleton,
+      _i2.Uint8List initializer,
+      BigInt saltNonce,
+      _i1.EthereumAddress callback
+    }) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[1];
     assert(checkSignature(function, 'd18af54d'));
     final params = [
-      _singleton,
-      initializer,
-      saltNonce,
-      callback,
+      args.singleton,
+      args.initializer,
+      args.saltNonce,
+      args.callback,
     ];
     return write(
       credentials,
@@ -79,18 +86,20 @@ class SafeProxyFactory extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> createProxyWithNonce(
-    _i1.EthereumAddress _singleton,
-    _i2.Uint8List initializer,
-    BigInt saltNonce, {
+    ({
+      _i1.EthereumAddress singleton,
+      _i2.Uint8List initializer,
+      BigInt saltNonce
+    }) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[2];
     assert(checkSignature(function, '1688f0b9'));
     final params = [
-      _singleton,
-      initializer,
-      saltNonce,
+      args.singleton,
+      args.initializer,
+      args.saltNonce,
     ];
     return write(
       credentials,

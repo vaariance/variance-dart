@@ -1,5 +1,8 @@
-// Generated code, do not modify. Run `build_runner build` to re-generate!
-// @dart=2.12
+// @dart=3.0
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// ignore_for_file: unused_local_variable, unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:web3dart/web3dart.dart' as _i1;
 import 'dart:typed_data' as _i2;
@@ -27,16 +30,15 @@ class P256AccountFactory extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> createP256Account(
-    BigInt salt,
-    _i2.Uint8List creation, {
+    ({BigInt salt, _i2.Uint8List creation}) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[1];
     assert(checkSignature(function, '8bb4387f'));
     final params = [
-      salt,
-      creation,
+      args.salt,
+      args.creation,
     ];
     return write(
       credentials,
@@ -50,15 +52,14 @@ class P256AccountFactory extends _i1.GeneratedContract {
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<_i1.EthereumAddress> getP256AccountAddress(
-    BigInt salt,
-    _i2.Uint8List creation, {
+    ({BigInt salt, _i2.Uint8List creation}) args, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[2];
     assert(checkSignature(function, '28ef50f0'));
     final params = [
-      salt,
-      creation,
+      args.salt,
+      args.creation,
     ];
     final response = await read(
       function,

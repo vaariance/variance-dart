@@ -75,9 +75,9 @@ In order to create a smart wallet client you need to set up a signer, which will
 
 > You have to use the correct signer for the type of account you want to create.
 
-1. `PrivateKeys` - use with simple accounts and safe accounts only
+1. `PrivateKeys` - use with light accounts and safe accounts only
 2. `Passkey` - use with p256 smart accounts and safe Passkey accounts only
-3. `EOA Wallet (Seed Phrases)` - use with simple smart accounts and safe accounts only
+3. `EOA Wallet (Seed Phrases)` - use with light smart accounts and safe accounts only
 4. `HardWare Signers (Secure Enclave/Keystore)` - use with p256 smart accounts only
 
 ### Smart Wallet Factory
@@ -88,11 +88,11 @@ The smart wallet factory handles the creation of smart wallet instances. Make su
 final SmartWalletFactory smartWalletFactory = SmartWalletFactory(chain, signer);
 ```
 
-#### To Create a Simple Smart Account
+#### To Create an Alchemy Light Account
 
 ```dart
-final Smartwallet wallet = await smartWalletFactory.createSimpleAccount(salt);
-print("simple wallet address: ${wallet.address.hex}");
+final Smartwallet wallet = await smartWalletFactory.createAlchemyLightAccount(salt);
+print("light account wallet address: ${wallet.address.hex}");
 ```
 
 #### To create a P256 Smart Account (Secure Enclave/Keystore)
