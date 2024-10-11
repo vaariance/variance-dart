@@ -158,6 +158,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
       op = await plugin<Paymaster>('paymaster').intercept(op);
     }
 
+    op = applyCustomGasSettings(op);
     // Validate the user operation
     op.validate(op.nonce > BigInt.zero, initCode);
 
@@ -209,14 +210,11 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
           .then((value) => Uint256(value[0]))
           .catchError((e) => throw NonceError(e.toString(), _walletAddress)));
 
-  /// Returns the balance for the Smart Wallet address from the entrypoint.
+  /// Returns the balance for the Smart Wallet address.
   ///
   /// If an error occurs during the balance retrieval process, a [FetchBalanceError] exception is thrown.
   Future<EtherAmount> _getBalance() => plugin<Contract>("contract")
-      .read(_chain.entrypoint.address, ContractAbis.get('getBalance'),
-          "balanceOf",
-          params: [_walletAddress])
-      .then((value) => EtherAmount.fromBigInt(EtherUnit.wei, value[0]))
+      .getBalance(_walletAddress)
       .catchError((e) => throw FetchBalanceError(e.toString(), _walletAddress));
 
   /// Updates the user operation with the latest nonce and gas prices.
@@ -234,23 +232,21 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
             initCode: responses[0] > Uint256.zero ? Uint8List(0) : null,
             signature: dummySignature);
 
-        return _updateUserOperationGas(op, feePerGas: responses[1]);
+        return _updateUserOperationGas(op, responses[1]);
       });
 
   /// Updates the gas information for the user operation.
   ///
   /// [op] is the user operation to update.
-  /// [feePerGas] is an optional map containing the gas prices.
+  /// [fee] is an optional Fee containing the gas prices.
   ///
   /// Returns a [Future] that resolves to the updated [UserOperation] object.
   ///
   /// If an error occurs during the gas estimation process, a [GasEstimationError] exception is thrown.
-  Future<UserOperation> _updateUserOperationGas(UserOperation op,
-          {Map<String, EtherAmount>? feePerGas}) =>
+  Future<UserOperation> _updateUserOperationGas(UserOperation op, Fee fee) =>
       plugin<BundlerProviderBase>('bundler')
           .estimateUserOperationGas(
               op.toMap(_chain.entrypoint.version), _chain.entrypoint)
-          .then((opGas) => op.updateOpGas(opGas, feePerGas))
-          .then((op) => applyCustomGasSettings(op))
+          .then((opGas) => op.updateOpGas(opGas, fee))
           .catchError((e) => throw GasEstimationError(e.toString(), op));
 }

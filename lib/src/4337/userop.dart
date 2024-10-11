@@ -252,15 +252,13 @@ class UserOperation implements UserOperationBase {
   }
 
   @override
-  UserOperation updateOpGas(
-      UserOperationGas? opGas, Map<String, dynamic>? feePerGas) {
+  UserOperation updateOpGas([UserOperationGas? opGas, Fee? fee]) {
     return copyWith(
       callGasLimit: opGas?.callGasLimit,
       verificationGasLimit: opGas?.verificationGasLimit,
       preVerificationGas: opGas?.preVerificationGas,
-      maxFeePerGas: (feePerGas?["maxFeePerGas"] as EtherAmount?)?.getInWei,
-      maxPriorityFeePerGas:
-          (feePerGas?["maxPriorityFeePerGas"] as EtherAmount?)?.getInWei,
+      maxFeePerGas: fee?.maxFeePerGas,
+      maxPriorityFeePerGas: fee?.maxPriorityFeePerGas,
     );
   }
 

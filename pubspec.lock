@@ -178,7 +178,7 @@ packages:
     source: hosted
     version: "2.3.6"
   eip1559:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: eip1559
       sha256: c2b81ac85f3e0e71aaf558201dd9a4600f051ece7ebacd0c5d70065c9b458004

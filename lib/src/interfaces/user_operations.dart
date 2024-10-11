@@ -71,7 +71,7 @@ abstract class UserOperationBase {
   ///
   /// Parameters:
   ///   - `opGas`: Optional parameter of type [UserOperationGas] for specifying gas-related information.
-  ///   - `feePerGas`: Optional parameter of type [Map<String, EtherAmount>] for specifying maxFeePerGas and maxPriorityFeePerGas.
+  ///   - `fee`: Optional parameter of type [Fee] for specifying maxFeePerGas and maxPriorityFeePerGas.
   ///
   /// Returns:
   ///   A [UserOperation] instance created from the provided map.
@@ -85,8 +85,7 @@ abstract class UserOperationBase {
   ///   // Other parameters can be updated as needed.
   /// );
   /// ```
-  UserOperation updateOpGas(
-      UserOperationGas? opGas, Map<String, EtherAmount>? feePerGas);
+  UserOperation updateOpGas([UserOperationGas? opGas, Fee? fee]);
 
   /// Validates the user operation fields for accuracy
   ///

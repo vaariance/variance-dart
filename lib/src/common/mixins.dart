@@ -51,6 +51,8 @@ mixin _GasSettings {
   UserOperation applyCustomGasSettings(UserOperation op) {
     final multiplier = _gasParams.gasMultiplierPercentage / 100 + 1;
 
+    if (multiplier == 1) return op;
+
     return op.copyWith(
         callGasLimit: BigInt.from(op.callGasLimit.toDouble() * multiplier),
         verificationGasLimit:

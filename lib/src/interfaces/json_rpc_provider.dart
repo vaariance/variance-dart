@@ -1,5 +1,15 @@
 part of 'interfaces.dart';
 
+enum GasEstimation {
+  low(rate: 0),
+  normal(rate: 1),
+  high(rate: 2);
+
+  final int rate;
+
+  const GasEstimation({required this.rate});
+}
+
 /// Abstract base class for interacting with an Bundler RPC provider.
 ///
 /// Implementations of this class are expected to provide functionality for specifically interacting
@@ -59,18 +69,6 @@ abstract class JsonRPCProviderBase {
     bool isContainFullObj = true,
   });
 
-  /// Asynchronously retrieves the EIP-1559 gas prices, including `maxFeePerGas` and `maxPriorityFeePerGas`.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with a [Map] containing the gas prices in [EtherAmount].
-  ///
-  /// Example:
-  /// ```dart
-  /// var gasPrices = await getEip1559GasPrice();
-  /// ```
-  /// This method uses an ethereum jsonRPC to fetch EIP-1559 gas prices from the Ethereum node.
-  Future<Map<String, EtherAmount>> getEip1559GasPrice();
-
   /// Asynchronously retrieves the gas prices, supporting both EIP-1559 and legacy gas models.
   ///
   /// Returns:
@@ -81,17 +79,5 @@ abstract class JsonRPCProviderBase {
   /// var gasPrices = await getGasPrice();
   /// ```
   /// This method first attempts to fetch EIP-1559 gas prices and falls back to legacy gas prices if it fails.
-  Future<Map<String, EtherAmount>> getGasPrice();
-
-  /// Asynchronously retrieves the legacy gas price from the Ethereum node.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with an [EtherAmount] representing the legacy gas price in [Wei].
-  ///
-  /// Example:
-  /// ```dart
-  /// var legacyGasPrice = await getLegacyGasPrice();
-  /// ```
-  /// This method uses an ethereum jsonRPC to fetch the legacy gas price from the Ethereum node.
-  Future<EtherAmount> getLegacyGasPrice();
+  Future<Fee> getGasPrice([GasEstimation rate = GasEstimation.normal]);
 }

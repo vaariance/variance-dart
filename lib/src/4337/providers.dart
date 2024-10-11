@@ -100,37 +100,25 @@ class JsonRPCProvider implements JsonRPCProviderBase {
   }
 
   @override
-  Future<Map<String, EtherAmount>> getEip1559GasPrice() async {
-    final fee = await rpc.send<String>("eth_maxPriorityFeePerGas");
-    final tip = Uint256.fromHex(fee);
-    final mul = Uint256(BigInt.from(100 * 13));
-    final buffer = tip / mul;
-    final maxPriorityFeePerGas = tip + buffer;
-    final maxFeePerGas = maxPriorityFeePerGas;
-    return {
-      'maxFeePerGas': EtherAmount.fromBigInt(EtherUnit.wei, maxFeePerGas.value),
-      'maxPriorityFeePerGas':
-          EtherAmount.fromBigInt(EtherUnit.wei, maxPriorityFeePerGas.value)
-    };
-  }
-
-  @override
-  Future<Map<String, EtherAmount>> getGasPrice() async {
+  Future<Fee> getGasPrice([GasEstimation rate = GasEstimation.normal]) async {
     try {
-      return await getEip1559GasPrice();
+      final [low, medium, high] = await getGasInEIP1559(rpc.url);
+      switch (rate) {
+        case GasEstimation.low:
+          return low;
+        case GasEstimation.normal:
+          return medium;
+        case GasEstimation.high:
+          return high;
+      }
     } catch (e) {
-      final value = await getLegacyGasPrice();
-      return {
-        'maxFeePerGas': value,
-        'maxPriorityFeePerGas': value,
-      };
+      final data = await rpc.send<String>('eth_gasPrice');
+      final gasPrice = hexToInt(data);
+      return Fee(
+          maxPriorityFeePerGas: gasPrice,
+          maxFeePerGas: gasPrice,
+          estimatedGas: gasPrice);
     }
-  }
-
-  @override
-  Future<EtherAmount> getLegacyGasPrice() async {
-    final data = await rpc.send<String>('eth_gasPrice');
-    return EtherAmount.fromBigInt(EtherUnit.wei, hexToInt(data));
   }
 }
 

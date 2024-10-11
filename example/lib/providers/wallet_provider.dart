@@ -23,8 +23,7 @@ class WalletProvider extends ChangeNotifier {
       EthereumAddress.fromHex("0xf5bb7f874d8e3f41821175c0aa9910d30d10e193");
 
   final salt = Uint256.zero;
-  static const rpc =
-      "https://api.pimlico.io/v2/84532/rpc?apikey=pim_NuuL4a9tBdyfoogF5LtP5A";
+  static const rpc = "https://api.pimlico.io/v2/84532/rpc?apikey=API_KEY";
 
   WalletProvider()
       : _chain = Chains.getChain(Network.baseTestnet)
@@ -67,8 +66,6 @@ class WalletProvider extends ChangeNotifier {
   Future<void> createEOAWallet() async {
     final signer = EOAWallet.createWallet(
         WordLength.word_12, const SignatureOptions(prefix: [0]));
-    log("signer: ${signer.getAddress()}");
-
     final SmartWalletFactory walletFactory = SmartWalletFactory(_chain, signer);
 
     try {
@@ -87,14 +84,11 @@ class WalletProvider extends ChangeNotifier {
 
     final signer = PrivateKeySigner.create(privateKey, "123456", random,
         options: const SignatureOptions(prefix: [0]));
-    log("signer: ${signer.getAddress()}");
-    log("pk: ${hexlify(privateKey.privateKey)}");
-
     final SmartWalletFactory walletFactory = SmartWalletFactory(_chain, signer);
 
     try {
       _wallet = await walletFactory.createAlchemyLightAccount(salt);
-      log("pk wallet created ${_wallet?.address.hex} ");
+      log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
@@ -106,40 +100,26 @@ class WalletProvider extends ChangeNotifier {
     _chain.accountFactory = Constants.safeProxyFactoryAddress;
 
     final signer = EOAWallet.createWallet();
-    log("signer: ${signer.getAddress()}");
-
     final SmartWalletFactory walletFactory = SmartWalletFactory(_chain, signer);
 
     try {
       _wallet = await walletFactory.createSafeAccount(salt);
-      log("safe created ${_wallet?.address.hex} ");
+      log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
       log("something happened: $e");
     }
   }
 
   Future<void> mintNFt() async {
-    // pimlico requires us to get the gasfees from their bundler.
-    // that cannot be built into the sdk so we modify the internal fees manually
-    if (_chain.entrypoint.version == 0.7) {
-      _wallet?.gasSettings = GasSettings(
-          gasMultiplierPercentage: 5,
-          userDefinedMaxFeePerGas: BigInt.parse("0x524e1909"),
-          userDefinedMaxPriorityFeePerGas: BigInt.parse("0x52412100"));
-    }
-    // mints nft
-    log(DateTime.timestamp().toString());
+    // simple tx
     final tx1 = await _wallet?.sendTransaction(
         nft,
         Contract.encodeFunctionCall("safeMint", nft,
             ContractAbis.get("ERC721_SafeMint"), [_wallet?.address]));
     await tx1?.wait();
 
-    await sendBatchedTransaction();
-  }
-
-  Future<void> sendBatchedTransaction() async {
-    final tx = await _wallet?.sendBatchedTransaction([
+    // batch tx
+    final tx2 = await _wallet?.sendBatchedTransaction([
       erc20,
       erc20
     ], [
@@ -152,21 +132,18 @@ class WalletProvider extends ChangeNotifier {
           erc20, deployer, w3d.EtherAmount.fromInt(w3d.EtherUnit.ether, 20))
     ]);
 
-    await tx?.wait();
+    await tx2?.wait();
   }
 
   Future<void> sendTransaction(String recipient, String amount) async {
-    if (_wallet != null) {
-      final etherAmount = w3d.EtherAmount.fromBigInt(w3d.EtherUnit.wei,
-          BigInt.from(double.parse(amount) * math.pow(10, 18)));
+    final etherAmount = w3d.EtherAmount.fromBigInt(w3d.EtherUnit.wei,
+        BigInt.from(double.parse(amount) * math.pow(10, 18)));
 
-      final response =
-          await _wallet?.send(EthereumAddress.fromHex(recipient), etherAmount);
-      final receipt = await response?.wait();
+    final response = await _wallet?.send(
+        EthereumAddress.fromHex("0xF5bB7F874D8e3f41821175c0Aa9910d30d10e193"),
+        etherAmount);
+    final receipt = await response?.wait();
 
-      log("Transaction receipt Hash: ${receipt?.userOpHash}");
-    } else {
-      log("No wallet available to send transaction");
-    }
+    log("Transaction receipt Hash: ${receipt?.userOpHash}");
   }
 }

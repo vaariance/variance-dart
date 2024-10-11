@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:eip1559/eip1559.dart';
 import 'package:http/http.dart' as http;
 import 'package:web3_signers/web3_signers.dart';
 import 'package:web3dart/crypto.dart';
@@ -13,7 +14,6 @@ import 'package:web3dart/web3dart.dart';
 import 'src/abis/abis.dart';
 import 'src/interfaces/interfaces.dart';
 
-export 'package:web3_signers/web3_signers.dart' show Logger;
 export 'src/abis/abis.dart' show ContractAbis;
 
 part 'src/4337/chains.dart';

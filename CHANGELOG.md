@@ -1,3 +1,11 @@
+## 0.1.5
+
+* improve gas fees estimation
+* reduce copywith trigger in gas settings
+* change position of custom gas overrides to post sponsor useroperation
+* default to p256 precompile over contract verifiers.
+* revert to direct balance checking
+
 ## 0.1.4
 
 * add surpport for web3_signers v0.1+

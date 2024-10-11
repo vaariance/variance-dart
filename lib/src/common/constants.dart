@@ -28,7 +28,7 @@ class Constants {
   static final EthereumAddress safeMultiSendaddress =
       EthereumAddress.fromHex("0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526");
   static final EthereumAddress p256VerifierAddress =
-      EthereumAddress.fromHex("0x445a0683e494ea0c5AF3E83c5159fBE47Cf9e765");
+      EthereumAddress.fromHex("0x0000000000000000000000000000000000000100");
 
   Constants._();
 }
