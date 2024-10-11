@@ -144,3 +144,19 @@ class SendError extends Error {
     ''';
   }
 }
+
+class FetchBalanceError extends Error {
+  final String message;
+  final EthereumAddress? address;
+
+  FetchBalanceError(this.message, this.address);
+
+  @override
+  String toString() {
+    return '''
+        Error fetching user account balance for address  ${address?.hex}! 
+        --------------------------------------------------
+        Failed with error: $message  
+      ''';
+  }
+}

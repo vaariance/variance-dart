@@ -19,13 +19,16 @@ class Constants {
       EthereumAddress.fromHex("0x75cf11467937ce3F2f357CE24ffc3DBF8fD5c226");
   static final EthereumAddress safeSingletonAddress =
       EthereumAddress.fromHex("0x41675C099F32341bf84BFc5382aF534df5C7461a");
+  static final EthereumAddress safeL2SingletonAddress =
+      EthereumAddress.fromHex("0x29fcB43b46531BcA003ddC8FCB67FFE91900C762");
   static final EthereumAddress safeModuleSetupAddressv06 =
       EthereumAddress.fromHex("0x8EcD4ec46D4D2a6B64fE960B3D64e8B94B2234eb");
   static final EthereumAddress safeModuleSetupAddressv07 =
       EthereumAddress.fromHex("0x2dd68b007B46fBe91B9A7c3EDa5A7a1063cB5b47");
   static final EthereumAddress safeMultiSendaddress =
       EthereumAddress.fromHex("0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526");
-  static final defaultBytePrefix = Uint8List(1);
+  static final EthereumAddress p256VerifierAddress =
+      EthereumAddress.fromHex("0x445a0683e494ea0c5AF3E83c5159fBE47Cf9e765");
 
   Constants._();
 }

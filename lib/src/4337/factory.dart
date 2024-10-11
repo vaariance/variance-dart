@@ -24,12 +24,6 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     _contract = Contract(_jsonRpc.rpc);
   }
 
-  /// A getter for the P256AccountFactory contract instance.
-  _P256AccountFactory get _p256Accountfactory => _P256AccountFactory(
-      address: _chain.accountFactory!,
-      chainId: _chain.chainId,
-      rpc: _jsonRpc.rpc);
-
   /// A getter for the SafePlugin instance.
   _SafePlugin get _safePlugin => _SafePlugin(
       address:
@@ -50,48 +44,41 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       rpc: _jsonRpc.rpc);
 
   @override
-  Future<SmartWallet> createP256Account<T>(T keyPair, Uint256 salt,
-      [EthereumAddress? recoveryAddress]) {
-    switch (keyPair.runtimeType) {
-      case const (PassKeyPair):
-        return _createPasskeyAccount(
-            keyPair as PassKeyPair, salt, recoveryAddress);
-      case const (P256Credential):
-        return _createSecureEnclaveAccount(
-            keyPair as P256Credential, salt, recoveryAddress);
-      default:
-        throw ArgumentError.value(keyPair, 'keyPair',
-            'createP256Account: An instance of `PassKeyPair` or `P256Credential` is expected, but got: ${keyPair.runtimeType}');
+  Future<SmartWallet> createSafeAccountWithPasskey(PassKeyPair keyPair,
+      Uint256 salt, EthereumAddress safeWebauthnSharedSigner,
+      [EthereumAddress? p256Verifier]) {
+    final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
+    final verifier = p256Verifier ?? Constants.p256VerifierAddress;
+
+    encodeWebAuthnConfigure() {
+      return Contract.encodeFunctionCall("configure", safeWebauthnSharedSigner,
+          ContractAbis.get("enableWebauthn"), [
+        [
+          keyPair.authData.publicKey.item1.value,
+          keyPair.authData.publicKey.item2.value,
+          hexToInt(verifier.hexNo0x.padLeft(44, '0')),
+        ]
+      ]);
     }
+
+    encodeWebauthnSetup(Uint8List Function() encodeModuleSetup) {
+      return _safePlugin.getSafeMultisendCallData(
+          [module.setup, safeWebauthnSharedSigner],
+          null,
+          [encodeModuleSetup(), encodeWebAuthnConfigure()],
+          [intToBytes(BigInt.one), intToBytes(BigInt.one)]);
+    }
+
+    return _createSafeAccount(
+        salt, safeWebauthnSharedSigner, module, encodeWebauthnSetup);
   }
 
   @override
-  Future<SmartWallet> createSafeAccount(Uint256 salt) async {
+  Future<SmartWallet> createSafeAccount(Uint256 salt) {
     final signer = EthereumAddress.fromHex(_signer.getAddress());
+    final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
 
-    // Get the initializer data for the Safe account
-    final initializer = _safeProxyFactory.getInitializer([signer], 1,
-        Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version));
-
-    // Get the proxy creation code for the Safe account
-    final creation = await _safeProxyFactory.proxyCreationCode();
-
-    // Predict the address of the Safe account
-    final address =
-        _safeProxyFactory.getPredictedSafe(initializer, salt, creation);
-
-    // Encode the call data for the `createProxyWithNonce` function
-    // This function is used to create the Safe account with the given initializer data and salt
-    final initCallData = _safeProxyFactory.self
-        .function("createProxyWithNonce")
-        .encodeCall([Constants.safeSingletonAddress, initializer, salt.value]);
-
-    // Generate the initialization code by combining the account factory address and the encoded call data
-    final initCode = _getInitCode(initCallData);
-
-    // Create the SmartWallet instance for the Safe account
-    return _createAccount(_chain, address, initCode)
-      ..addPlugin<_SafePlugin>('safe', _safePlugin);
+    return _createSafeAccount(salt, signer, module);
   }
 
   @override
@@ -114,8 +101,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     final initCode = _getInitCode(initCalldata);
 
     // Create the SmartWallet instance for the light account
-    return _createAccount(
-        _chain, address, initCode, Constants.defaultBytePrefix);
+    return _createAccount(_chain, address, initCode);
   }
 
   @override
@@ -124,6 +110,38 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     Uint8List initCode,
   ) async {
     return _createAccount(_chain, address, initCode);
+  }
+
+  Future<SmartWallet> _createSafeAccount(
+      Uint256 salt, EthereumAddress signer, Safe4337ModuleAddress module,
+      [Uint8List Function(Uint8List Function())? setup]) async {
+    final singleton = _chain.chainId == 1
+        ? Constants.safeSingletonAddress
+        : Constants.safeL2SingletonAddress;
+
+    // Get the initializer data for the Safe account
+    final initializer =
+        _safeProxyFactory.getInitializer([signer], 1, module, setup);
+
+    // Get the proxy creation code for the Safe account
+    final creation = await _safeProxyFactory.proxyCreationCode();
+
+    // Predict the address of the Safe account
+    final address = _safeProxyFactory.getPredictedSafe(
+        initializer, salt, creation, singleton);
+
+    // Encode the call data for the `createProxyWithNonce` function
+    // This function is used to create the Safe account with the given initializer data and salt
+    final initCallData = _safeProxyFactory.self
+        .function("createProxyWithNonce")
+        .encodeCall([singleton, initializer, salt.value]);
+
+    // Generate the initialization code by combining the account factory address and the encoded call data
+    final initCode = _getInitCode(initCallData);
+
+    // Create the SmartWallet instance for the Safe account
+    return _createAccount(_chain, address, initCode)
+      ..addPlugin<_SafePlugin>('safe', _safePlugin);
   }
 
   /// Creates a new [SmartWallet] instance with the provided chain, address, and initialization code.
@@ -140,9 +158,11 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   ///
   /// Returns a [SmartWallet] instance representing the created account.
   SmartWallet _createAccount(
-      Chain chain, EthereumAddress address, Uint8List initCalldata,
-      [Uint8List? prefix]) {
-    final wallet = SmartWallet(chain, address, initCalldata, prefix)
+    Chain chain,
+    EthereumAddress address,
+    Uint8List initCalldata,
+  ) {
+    final wallet = SmartWallet(chain, address, initCalldata)
       ..addPlugin<MSI>('signer', _signer)
       ..addPlugin<BundlerProviderBase>('bundler', _bundler)
       ..addPlugin<JsonRPCProviderBase>('jsonRpc', _jsonRpc)
@@ -153,88 +173,6 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     }
 
     return wallet;
-  }
-
-  /// Creates a new passkey account with the provided [PassKeyPair], salt, and optional recovery address.
-  ///
-  /// [pkp] is the [PassKeyPair] instance used to create the account.
-  /// [salt] is the salt value used in the account creation process.
-  /// [recoveryAddress] is an optional recovery address for the account.
-  ///
-  /// Returns a [Future] that resolves to a [SmartWallet] instance representing
-  /// the created passkey account.
-  ///
-  /// The process involves:
-  /// 1. Encoding the account creation data with the provided [PassKeyPair], [salt], and [recoveryAddress].
-  ///    - The encoded data includes the recovery address, credential hex, and public key components.
-  /// 2. Calling the `createP256Account` function on the `_p256AccountFactory` contract with the encoded data and [salt].
-  ///    - This function initiates the account creation process on the Ethereum blockchain.
-  /// 3. Getting the initialization code by combining the account factory address and the encoded call data.
-  ///    - The initialization code is required to create the account on the client-side.
-  /// 4. Predicting the account address using the `_p256AccountFactory` contract's `getP256AccountAddress` function.
-  ///    - This function predicts the address of the account based on the creation data and salt.
-  /// 5. Creating a new [SmartWallet] instance with the predicted address and initialization code.
-  Future<SmartWallet> _createPasskeyAccount(PassKeyPair pkp, Uint256 salt,
-      [EthereumAddress? recoveryAddress]) async {
-    final Uint8List creation = abi.encode([
-      'address',
-      'bytes32',
-      'uint256',
-      'uint256'
-    ], [
-      recoveryAddress ?? Constants.zeroAddress,
-      hexToBytes(pkp.authData.hexCredential),
-      pkp.authData.publicKey.item1.value,
-      pkp.authData.publicKey.item2.value,
-    ]);
-
-    final initCalldata = _p256Accountfactory.self
-        .function('createP256Account')
-        .encodeCall([salt.value, creation]);
-    final initCode = _getInitCode(initCalldata);
-    final address = await _p256Accountfactory
-        .getP256AccountAddress((salt: salt.value, creation: creation));
-    return _createAccount(_chain, address, initCode);
-  }
-
-  /// Creates a new secure enclave account with the provided [P256Credential], salt, and optional recovery address.
-  ///
-  /// [p256] is the [P256Credential] instance used to create the account.
-  /// [salt] is the salt value used in the account creation process.
-  /// [recoveryAddress] is an optional recovery address for the account.
-  ///
-  /// Returns a [Future] that resolves to a [SmartWallet] instance representing
-  /// the created secure enclave account.
-  ///
-  /// The process is similar to [_createPasskeyAccount] but with a different encoding for the account creation data.
-  /// 1. Encoding the account creation data with the provided [P256Credential], [salt], and [recoveryAddress].
-  ///    - The encoded data includes the recovery address, an empty bytes32 value, and the public key components.
-  /// 2. Calling the `createP256Account` function on the `_p256AccountFactory` contract with the encoded data and [salt].
-  /// 3. Getting the initialization code by combining the account factory address and the encoded call data.
-  /// 4. Predicting the account address using the `_p256AccountFactory` contract's `getP256AccountAddress` function.
-  /// 5. Creating a new [SmartWallet] instance with the predicted address and initialization code.
-  Future<SmartWallet> _createSecureEnclaveAccount(
-      P256Credential p256, Uint256 salt,
-      [EthereumAddress? recoveryAddress]) async {
-    final Uint8List creation = abi.encode([
-      'address',
-      'bytes32',
-      'uint256',
-      'uint256'
-    ], [
-      recoveryAddress ?? Constants.zeroAddress,
-      Uint8List(32),
-      p256.publicKey.item1.value,
-      p256.publicKey.item2.value,
-    ]);
-
-    final initCalldata = _p256Accountfactory.self
-        .function('createP256Account')
-        .encodeCall([salt.value, creation]);
-    final initCode = _getInitCode(initCalldata);
-    final address = await _p256Accountfactory
-        .getP256AccountAddress((salt: salt.value, creation: creation));
-    return _createAccount(_chain, address, initCode);
   }
 
   /// Returns the initialization code for the account by concatenating the account factory address with the provided initialization call data.

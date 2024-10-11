@@ -17,13 +17,13 @@ dependencies:
   google_fonts: 6.1.0
   flutter_screenutil: ^5.9.0
   qr_flutter: ^4.1.0
-  web3dart: ^2.7.2
+  web3dart: ^2.7.3
   shared_preferences: ^2.2.2
   path_provider: ^2.1.1
   fluttertoast: ^8.2.4
   variance_dart:
     path: ../
-  web3_signers: ^0.0.14-alpha-01
+  web3_signers: ^0.1.6
 
 dev_dependencies:
   flutter_test:

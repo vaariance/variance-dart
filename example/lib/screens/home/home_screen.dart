@@ -1,8 +1,6 @@
 import 'dart:developer';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
@@ -167,9 +165,6 @@ class NFT extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final wallet = context.select(
-      (WalletProvider provider) => provider.wallet,
-    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[

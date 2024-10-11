@@ -60,7 +60,11 @@ class ContractAbis {
         break;
       case 'getNonce':
         abi =
-            '[{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"uint192","name":"key","type":"uint192"}],"name":"getNonce","outputs":[{"internalType":"uint256","name":"nonce","type":"uint256"}],"stateMutability":"view","type":"function"    }]';
+            '[{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"uint192","name":"key","type":"uint192"}],"name":"getNonce","outputs":[{"internalType":"uint256","name":"nonce","type":"uint256"}],"stateMutability":"view","type":"function"}]';
+        break;
+      case 'getBalance':
+        abi =
+            '[{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"balance","type":"uint256"}],"stateMutability":"view","type":"function"}]';
         break;
       case 'execute':
         abi =
@@ -77,6 +81,10 @@ class ContractAbis {
       case 'enableModules':
         abi =
             '[{"type":"function","name":"enableModules","inputs":[{"name":"modules","type":"address[]","internalType":"address[]"}],"outputs":[],"stateMutability":"nonpayable"}]';
+        break;
+      case 'enableWebauthn':
+        abi =
+            '[{"inputs":[{"components":[{"internalType":"uint256","name":"x","type":"uint256"},{"internalType":"uint256","name":"y","type":"uint256"},{"internalType":"P256.Verifiers","name":"verifiers","type":"uint176"}],"internalType":"struct SafeWebAuthnSharedSigner.Signer","name":"signer","type":"tuple"}],"name":"configure","outputs":[],"stateMutability":"nonpayable","type":"function"}]';
         break;
       case 'setup':
         abi =

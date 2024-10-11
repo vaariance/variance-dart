@@ -3,18 +3,17 @@ part of 'interfaces.dart';
 abstract class SmartWalletFactoryBase {
   /// Creates a new P256 account using the provided key pair and salt.
   ///
-  /// [keyPair] is the key pair used to create the account. It can be either a
-  /// [PassKeyPair] or a [P256Credential] instance.
+  /// [PassKeyPair] is the key pair used to create the account.
   /// [salt] is the salt value used in the account creation process.
-  /// [recoveryAddress] is an optional recovery address for the account.
+  /// [safeWebauthnSharedSigner] is the address of the Safe Webauthn shared signer.
   ///
   /// Returns a [Future] that resolves to a [SmartWallet] instance representing
   /// the created account.
   ///
   /// Throws an [ArgumentError] if the provided [keyPair] is not a
-  /// [PassKeyPair] or [P256Credential] instance.
-  Future<SmartWallet> createP256Account<T>(T keyPair, Uint256 salt,
-      [EthereumAddress? recoveryAddress]);
+  /// [PassKeyPair] instance.
+  Future<SmartWallet> createSafeAccountWithPasskey(PassKeyPair keyPair,
+      Uint256 salt, EthereumAddress safeWebauthnSharedSigner);
 
   /// Creates a new Safe account with the provided salt and optional owners and threshold.
   ///

@@ -134,8 +134,48 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           }
                         },
                         icon: const Icon(Icons.key),
-                        label: const Text('Create Safe Smart Account')),
-                  )
+                        label: const Text(
+                            'Create Alchemy Light Account with private key')),
+                  ),
+                  18.verticalSpace,
+                  Container(
+                      margin: const EdgeInsets.only(left: 135),
+                      child: Text('OR', style: TextStyle(fontSize: 18.sp))),
+                  24.verticalSpace,
+                  Container(
+                    margin: const EdgeInsets.only(left: 30),
+                    child: TextButton.icon(
+                        onPressed: () {
+                          try {
+                            context.read<WalletProvider>().createEOAWallet();
+                            Navigator.pushNamed(context, '/home');
+                          } catch (e) {
+                            'Something went wrong: $e';
+                          }
+                        },
+                        icon: const Icon(Icons.key),
+                        label: const Text(
+                            'Create Alchemy Light Account with seed phrase')),
+                  ),
+                  18.verticalSpace,
+                  Container(
+                      margin: const EdgeInsets.only(left: 135),
+                      child: Text('OR', style: TextStyle(fontSize: 18.sp))),
+                  24.verticalSpace,
+                  Container(
+                    margin: const EdgeInsets.only(left: 30),
+                    child: TextButton.icon(
+                        onPressed: () {
+                          try {
+                            context.read<WalletProvider>().createSafeWallet();
+                            Navigator.pushNamed(context, '/home');
+                          } catch (e) {
+                            'Something went wrong: $e';
+                          }
+                        },
+                        icon: const Icon(Icons.key),
+                        label: const Text('Create default Safe Account')),
+                  ),
                 ],
               ),
             );
