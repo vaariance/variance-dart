@@ -1,14 +1,14 @@
 # Variance SDK
 
-Variance is a Dart SDK designed to simplify interaction with Ethereum-based blockchains and enables flutter developers to implement account abstraction with minimal efforts. It provides functionalities such as encoding and decoding ABI data, handling Ethereum transactions, working with ERC20 and ERC721 tokens, and managing Ethereum smart accounts.
+Variance is an Account Abstraction Developer toolkit that is designed to simplify the development of Ethereum smart accounts and Entrypoint interactions. It relies on the [Web3dart](https://pub.dev/packages/web3dart) library.
 
 ## Features
 
 - **ABI Encoding/Decoding:** Easily encode and decode ABI data for Ethereum smart contract and Entrypoint interactions.
 - **Transaction Handling:** Simplify the process of creating and sending UserOperations.
 - **Token Operations:** Work with ERC20 and ERC721 tokens, including transfer and approval functionalities.
-- **Web3 Functionality:** Interact with Ethereum nodes and bundlers using abstracted methods over, `eth_sendTransaction`, and `eth_sendUserOperation`.
-- **SecP256r1 Signatures:** Sign transactions with SecP256r1 signatures.
+- **Web3 Functionality:** Interact with Ethereum nodes and bundlers.
+- **SecP256r1 Signatures:** Sign transactions with Passkeys.
 
 ## Getting Started
 
@@ -19,49 +19,44 @@ open your terminal and run the following command:
 ```sh
 flutter pub add variance_dart
 flutter pub add web3_signers
-
-# optionally
 flutter pub add web3dart
 ```
 
 ### Usage
 
 ```dart
-// Import the package
+// Import the packages
 import 'package:web3_signers/web3_signers.dart';
 import 'package:variance_dart/variance_dart.dart';
-
-// optionally
 import 'package:web3dart/web3dart.dart';
 ```
 
 ### Chain Configuration
 
 ```dart
-const String rpcUrl = 'http://localhost:8545';
-const String bundlerUrl = 'http://localhost:3000/rpc';
-const Uint256 salt = const Uint256.zero;
+static const rpc = "https://api.pimlico.io/v2/84532/rpc?apikey=API_KEY";
+final Uint256 salt = Uint256.zero;
 
-final Chain chain = Chains.getChain(Network.localhost)
-    ..jsonRpcUrl = rpcUrl
-    ..bundlerUrl = bundlerUrl;
+final Chain chain = Chains.getChain(Network.baseTestnet)
+    ..accountFactory = Constants.lightAccountFactoryAddressv07
+    ..bundlerUrl = rpc
+    ..paymasterUrl = rpc;
 ```
 
-> There are 8 available networks: ethereum, polygon, optimism, base, arbitrumOne, linea, opBnB and scroll. 3 available testnets: sepolia, mumbai and baseTestent. You can also develop on localHost.
+> For Safe Accounts, use `Constants.safeProxyFactoryAddress` as the account factory.
+> There are 8 available networks: ethereum, polygon, optimism, base, arbitrum, linea, fuse and scroll. 2 available testnets: sepolia and baseTestent.
 
-Additionally, you can specify a different Entrypoint address. By default, the entrypoin v0.6 is used.
+Additionally, you can specify a different Entrypoint address. By default, the entrypoin v0.7 is used. If you wish to use v0.6, you can do so as follows:
 
 ```dart
-final EntryPointAddress entrypointAddress = EntryPointAddress.v07;
+final EntryPointAddress entrypointAddress = EntryPointAddress.v06;
 chain.entrypoint = entrypointAddress;
+
+// OR append it to the chain
+   ..entrypoint = EntryPointAddress.v06;
 ```
 
-Also if wish to use paymasters with your smart wallet you can do so by specifying the endpoint of the paymaster. By default the paymaster is set to null. This would add a paymaster Plugin to the smart wallet.
-
-```dart
-final String paymasterUrl = 'https://api.pimlico.io/v2/84532/rpc?apikey=...';
-chain.paymasterUrl = paymasterUrl;
-```
+> By default the paymaster is set to null. If wish to use paymasters with your smart wallet you can do so by specifying the rpc endpoint of the paymaster. This would add a paymaster Plugin to the smart wallet.
 
 If you have additional context for the paymaster, you will be able to add it to the smart wallet after creation or before initiating a transaction.
 
@@ -75,10 +70,18 @@ In order to create a smart wallet client you need to set up a signer, which will
 
 > You have to use the correct signer for the type of account you want to create.
 
-1. `PrivateKeys` - use with light accounts and safe accounts only
-2. `Passkey` - use with p256 smart accounts and safe Passkey accounts only
-3. `EOA Wallet (Seed Phrases)` - use with light smart accounts and safe accounts only
-4. `HardWare Signers (Secure Enclave/Keystore)` - use with p256 smart accounts only
+1. `PrivateKeys` - use with light accounts and safe accounts
+2. `Passkey` - use with safe Passkey accounts only
+3. `EOA Wallet` - use with light smart accounts and safe accounts
+
+For more information, please check out the [web3signers](https://pub.dev/packages/web3_signers) package documentation.
+
+##### **What is the difference between `PrivateKeys` and `EOA Wallet`?**
+
+- The `PrivateKey` signer generates only a single private key for use with a smart account. The private key requires a password, and the private key can be serialized into JSON format for storage.
+- The `EOA Wallet` signer generates a HD wallet with multiple accounts for use with a smart account. Additionally the `EOA Wallet` signer allows the smart account to sign transactions with different accounts by specifying the account index.
+
+>With `EOA Wallet` signer, users receive the mnemonic phrase but with `PrivateKey` signer they dont.
 
 ### Smart Wallet Factory
 
@@ -90,35 +93,56 @@ final SmartWalletFactory smartWalletFactory = SmartWalletFactory(chain, signer);
 
 #### To Create an Alchemy Light Account
 
+The [Alchemy Light Account](https://accountkit.alchemy.com/smart-contracts/light-account) requires the signer to have a prefix. When creating a web3_signer for your smart wallet make sure to provide a `Uint8` value prefix. This will be appended to the signature generated by the signers.
+Example:
+
 ```dart
+const prefix = const SignatureOptions(prefix: [0])
+final signer = EOAWallet.createWallet(WordLength.word_12, prefix);
+final smartWalletFactory = SmartWalletFactory(chain, signer);
+
 final Smartwallet wallet = await smartWalletFactory.createAlchemyLightAccount(salt);
 print("light account wallet address: ${wallet.address.hex}");
-```
-
-#### To create a P256 Smart Account (Secure Enclave/Keystore)
-
-```dart
-final Smartwallet wallet = await smartWalletFactory.createP256Account(keypair, salt);
-print("p256 wallet address: ${wallet.address.hex}");
-```
-
-Your keypair must be either be the `PassKeyPair` or `P256Credential` return when registering with your secp256r1 signer.
-Additionally, you can pass a recovery address to the `createP256Account` method.
-
-```dart
-final Smartwallet wallet = await smartWalletFactory.createP256Account(keypair, salt, recoveryAddress);
-print("p256 wallet address: ${wallet.address.hex}");
 ```
 
 #### To create a [Safe](https://safe.global) Smart Account
 
 ```dart
-final Smartwallet wallet = await smartWalletFactory
-    .createSafeAccount(salt);
+// No prefix is required. word_12 is the default
+final signer = EOAWallet.createWallet();
+final smartWalletFactory = SmartWalletFactory(chain, signer);
+
+final Smartwallet wallet = await smartWalletFactory.createSafeAccount(salt);
 print("safe wallet address: ${wallet.address.hex}");
 ```
 
-> Safe SecP256r1 signers can not be used with this SDK yet.
+#### To create a [Safe](https://safe.global) Smart Account with Passkey
+
+```dart
+final sharedWebauthnSigner = EthereumAddress.fromHex("0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9");
+final options = PassKeysOptions(
+        ...
+        sharedWebauthnSigner: sharedWebauthnSigner,);
+
+final signer = PassKeySigner(options: options);
+final smartWalletFactory = SmartWalletFactory(chain, signer);
+final keypair = await signer.register(name, displayName); // email can be used in place of name
+
+final Smartwallet wallet = await smartWalletFactory.createSafeAccountWithPasskey(
+           keypair, salt, sharedWebauthnSigner);
+print("p256 wallet address: ${wallet.address.hex}");
+```
+
+> Your keypair must be a `PassKeyPair` object received when registering with your `PasskeySigner` signer.
+> Keypair can serialized and stored by the app
+
+Additionally, you can pass a `p256Verifier` address to the `createSafeAccountWithPasskey` method, by default the [RIP-7212](https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md) precompile is used.
+
+```dart
+final Smartwallet wallet = await smartWalletFactory.createSafeAccountWithPasskey(
+          keypair, salt, sharedWebauthnSigner, p256Verifier);
+print("p256 wallet address: ${wallet.address.hex}");
+```
 
 ### Interacting with the Smart Wallet
 
