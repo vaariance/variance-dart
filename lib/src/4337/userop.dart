@@ -196,8 +196,6 @@ class UserOperation implements UserOperationBase {
         [encoded, chain.entrypoint.address, BigInt.from(chain.chainId)]));
   }
 
-  /// uses pimlico v07 useroperation standard, which requires only pimlico bundlers
-  /// this is a training wheel and will revert to which ever schema bundlers accept in concensus
   @override
   Map<String, String> packUserOperation() {
     Map<String, String> op = {

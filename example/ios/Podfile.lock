@@ -14,9 +14,7 @@ PODS:
     - Flutter
     - FlutterMacOS
   - Toast (4.1.0)
-  - ua_client_hints (1.2.2):
-    - Flutter
-  - web3_signers (0.0.1):
+  - ua_client_hints (1.4.0):
     - Flutter
 
 DEPENDENCIES:
@@ -27,7 +25,6 @@ DEPENDENCIES:
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - ua_client_hints (from `.symlinks/plugins/ua_client_hints/ios`)
-  - web3_signers (from `.symlinks/plugins/web3_signers/ios`)
 
 SPEC REPOS:
   trunk:
@@ -48,20 +45,17 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   ua_client_hints:
     :path: ".symlinks/plugins/ua_client_hints/ios"
-  web3_signers:
-    :path: ".symlinks/plugins/web3_signers/ios"
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_native_splash: 52501b97d1c0a5f898d687f1646226c1f93c56ef
-  fluttertoast: 31b00dabfa7fb7bacd9e7dbee580d7a2ff4bf265
+  flutter_native_splash: edf599c81f74d093a4daf8e17bd7a018854bc778
+  fluttertoast: e9a18c7be5413da53898f660530c56f35edfba9c
   passkeys_ios: fdae8c06e2178a9fcb9261a6cb21fb9a06a81d53
-  path_provider_foundation: 3784922295ac71e43754bd15e0653ccfd36a147c
-  shared_preferences_foundation: b4c3b4cddf1c21f02770737f147a3f5da9d39695
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   Toast: ec33c32b8688982cecc6348adeae667c1b9938da
-  ua_client_hints: 7f4e0f5d390685e8f7efd6eb363594f760108926
-  web3_signers: 5f49d582ab0d1fe673b3220aa6ecf25bb3cbed6b
+  ua_client_hints: 46bb5817a868f9e397c0ba7e3f2f5c5d90c35156
 
-PODFILE CHECKSUM: 8e101fac9760a9fc2bf6ef04178c5d9c7f894567
+PODFILE CHECKSUM: 4c438addb11b6da45ed7ae408823d68256222460
 
-COCOAPODS: 1.14.2
+COCOAPODS: 1.15.2

@@ -3,8 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:variance_dart/variance_dart.dart';
-import 'package:web3dart/credentials.dart';
-import 'package:web3dart/web3dart.dart' as w3d;
+import 'package:web3dart/web3dart.dart';
 
 class WalletProvider extends ChangeNotifier {
   final Chain _chain;
@@ -38,9 +37,6 @@ class WalletProvider extends ChangeNotifier {
     final options = PassKeysOptions(
         name: "variance",
         namespace: "variance.space",
-        origin: "https://variance.space",
-        userVerification: "required",
-        requireResidentKey: true,
         sharedWebauthnSigner: EthereumAddress.fromHex(
             "0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9"));
     final pkpSigner = PassKeySigner(options: options);
@@ -79,11 +75,8 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> createPrivateKeyWallet() async {
-    final random = math.Random.secure();
-    final privateKey = EthPrivateKey.createRandom(random);
-
-    final signer = PrivateKeySigner.create(privateKey, "123456", random,
-        options: const SignatureOptions(prefix: [0]));
+    final signer = PrivateKeySigner.createRandom(
+        "password", const SignatureOptions(prefix: [0]));
     final SmartWalletFactory walletFactory = SmartWalletFactory(_chain, signer);
 
     try {
@@ -126,18 +119,18 @@ class WalletProvider extends ChangeNotifier {
       Contract.encodeFunctionCall(
           "mint", erc20, ContractAbis.get("ERC20_Mint"), [
         _wallet?.address,
-        w3d.EtherAmount.fromInt(w3d.EtherUnit.ether, 20).getInWei
+        EtherAmount.fromInt(EtherUnit.ether, 20).getInWei
       ]),
       Contract.encodeERC20TransferCall(
-          erc20, deployer, w3d.EtherAmount.fromInt(w3d.EtherUnit.ether, 20))
+          erc20, deployer, EtherAmount.fromInt(EtherUnit.ether, 20))
     ]);
 
     await tx2?.wait();
   }
 
   Future<void> sendTransaction(String recipient, String amount) async {
-    final etherAmount = w3d.EtherAmount.fromBigInt(w3d.EtherUnit.wei,
-        BigInt.from(double.parse(amount) * math.pow(10, 18)));
+    final etherAmount = EtherAmount.fromBigInt(
+        EtherUnit.wei, BigInt.from(double.parse(amount) * math.pow(10, 18)));
 
     final response = await _wallet?.send(
         EthereumAddress.fromHex("0xF5bB7F874D8e3f41821175c0Aa9910d30d10e193"),
