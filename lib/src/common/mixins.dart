@@ -7,7 +7,9 @@ class GasSettings {
   /// The percentage by which the gas limits should be multiplied.
   ///
   /// This value should be between 0 and 100.
-  Percent gasMultiplierPercentage;
+  Percent callGasMultiplierPercentage;
+  Percent verificationGasMultiplierPercentage;
+  Percent preVerificationGasMultiplierPercentage;
 
   /// The user-defined maximum fee per gas for the transaction.
   BigInt? userDefinedMaxFeePerGas;
@@ -26,10 +28,16 @@ class GasSettings {
   ///
   /// An assertion is made to ensure that [gasMultiplierPercentage] is between 0 and 100.
   GasSettings({
-    this.gasMultiplierPercentage = 0,
+    this.callGasMultiplierPercentage = 0,
+    this.verificationGasMultiplierPercentage = 0,
+    this.preVerificationGasMultiplierPercentage = 0,
     this.userDefinedMaxFeePerGas,
     this.userDefinedMaxPriorityFeePerGas,
-  }) : assert(gasMultiplierPercentage >= 0,
+  }) : assert(
+            callGasMultiplierPercentage >= 0 &&
+                callGasMultiplierPercentage <= 100 &&
+                verificationGasMultiplierPercentage >= 0 &&
+                preVerificationGasMultiplierPercentage >= 0,
             RangeOutOfBounds("Wrong Gas multiplier percentage", 0, 100));
 }
 
@@ -49,16 +57,23 @@ mixin _GasSettings {
   ///
   /// Returns a new [UserOperation] object with the updated gas settings.
   UserOperation applyCustomGasSettings(UserOperation op) {
-    final multiplier = _gasParams.gasMultiplierPercentage / 100 + 1;
+    final cglMultiplier = _gasParams.callGasMultiplierPercentage / 100 + 1;
+    final vglMultiplier =
+        _gasParams.verificationGasMultiplierPercentage / 100 + 1;
+    final preVglMultiplier =
+        _gasParams.preVerificationGasMultiplierPercentage / 100 + 1;
+    final multiplier = cglMultiplier * vglMultiplier * preVglMultiplier;
 
-    if (multiplier == 1) return op;
+    if (multiplier == 1 &&
+        _gasParams.userDefinedMaxFeePerGas == null &&
+        _gasParams.userDefinedMaxPriorityFeePerGas == null) return op;
 
     return op.copyWith(
-        callGasLimit: BigInt.from(op.callGasLimit.toDouble() * multiplier),
+        callGasLimit: BigInt.from(op.callGasLimit.toDouble() * cglMultiplier),
         verificationGasLimit:
-            BigInt.from(op.verificationGasLimit.toDouble() * multiplier),
+            BigInt.from(op.verificationGasLimit.toDouble() * vglMultiplier),
         preVerificationGas:
-            BigInt.from(op.preVerificationGas.toDouble() * multiplier),
+            BigInt.from(op.preVerificationGas.toDouble() * preVglMultiplier),
         maxFeePerGas: _gasParams.userDefinedMaxFeePerGas,
         maxPriorityFeePerGas: _gasParams.userDefinedMaxPriorityFeePerGas);
   }

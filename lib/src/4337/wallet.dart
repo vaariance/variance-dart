@@ -144,6 +144,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   @override
   Future<UserOperationResponse> sendUserOperation(UserOperation op) =>
       prepareUserOperation(op)
+          .then(applyCustomGasSettings)
           .then(signUserOperation)
           .then(sendSignedUserOperation);
 
@@ -152,16 +153,12 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
       {bool update = true}) async {
     // Update the user operation with the latest nonce and gas prices if needed
     if (update) op = await _updateUserOperation(op);
-
     // If the 'paymaster' plugin is enabled, intercept the user operation
     if (hasPlugin('paymaster')) {
       op = await plugin<Paymaster>('paymaster').intercept(op);
     }
-
-    op = applyCustomGasSettings(op);
     // Validate the user operation
     op.validate(op.nonce > BigInt.zero, initCode);
-
     return op;
   }
 
@@ -171,7 +168,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
     final blockInfo =
         await plugin<JsonRPCProviderBase>('jsonRpc').getBlockInformation();
 
-    calculateOperationHash(UserOperation op, BlockInformation blockInfo) async {
+    calculateOperationHash(UserOperation op) async {
       if (isSafe) {
         return plugin<_SafePlugin>('safe').getSafeOperationHash(op, blockInfo);
       } else {
@@ -190,7 +187,7 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
       return signatureHex;
     }
 
-    final opHash = await calculateOperationHash(op, blockInfo);
+    final opHash = await calculateOperationHash(op);
     op.signature = await signOperationHash(opHash, index);
     return op;
   }

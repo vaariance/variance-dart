@@ -15,30 +15,38 @@ class WalletProvider extends ChangeNotifier {
   String get errorMessage => _errorMessage;
 
   final EthereumAddress nft =
-      EthereumAddress.fromHex("0x4B509a7e891Dc8fd45491811d67a8B9e7ef547B9");
+      EthereumAddress.fromHex("0x3661b40C520a273214d281bd84730BA68604d874");
   final EthereumAddress erc20 =
-      EthereumAddress.fromHex("0xAEaF19097D8a8da728438D6B57edd9Bc5DAc4795");
+      EthereumAddress.fromHex("0x69583ED4AA579fdc83FB6CCF13A5Ffd9B39F62aF");
   final EthereumAddress deployer =
       EthereumAddress.fromHex("0xf5bb7f874d8e3f41821175c0aa9910d30d10e193");
+  final EthereumAddress sharedSigner =
+      EthereumAddress.fromHex("0x94a4F6affBd8975951142c3999aEAB7ecee555c2");
+  final EthereumAddress p256Verifier =
+      EthereumAddress.fromHex("0xc2b78104907F722DABAc4C69f826a522B2754De4");
 
   final salt = Uint256.zero;
-  static const rpc = "https://api.pimlico.io/v2/84532/rpc?apikey=API_KEY";
+  static const rpc =
+      "https://api.pimlico.io/v2/123/rpc?apikey=${"PIMLICO_API_KEY"}";
 
   WalletProvider()
-      : _chain = Chains.getChain(Network.baseTestnet)
-          ..accountFactory = Constants.lightAccountFactoryAddressv07
-          ..bundlerUrl = rpc
-          ..paymasterUrl = rpc;
+      : _chain = Chain(
+            bundlerUrl: rpc,
+            // paymasterUrl: rpc, // for fuse network, not really working.
+            testnet: true,
+            chainId: 123,
+            jsonRpcUrl: "https://rpc.fusespark.io",
+            accountFactory: Constants.safeProxyFactoryAddress,
+            explorer: "https://explorer.fusespark.io/",
+            entrypoint: EntryPointAddress.v07);
 
   Future<void> registerWithPassKey(String name,
       {bool? requiresUserVerification}) async {
-    _chain.accountFactory = Constants.safeProxyFactoryAddress;
-
     final options = PassKeysOptions(
-        name: "variance",
-        namespace: "variance.space",
-        sharedWebauthnSigner: EthereumAddress.fromHex(
-            "0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9"));
+      name: "variance",
+      namespace: "variance.space",
+      sharedWebauthnSigner: sharedSigner,
+    );
     final pkpSigner = PassKeySigner(options: options);
 
     try {
@@ -48,8 +56,8 @@ class WalletProvider extends ChangeNotifier {
           "${DateTime.timestamp().millisecondsSinceEpoch}@variance.space",
           name);
       _wallet = await walletFactory.createSafeAccountWithPasskey(
-          keypair, salt, options.sharedWebauthnSigner);
-
+          keypair, salt, options.sharedWebauthnSigner, p256Verifier);
+      overrideGas();
       log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
       _errorMessage = e.toString();
@@ -60,6 +68,8 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> createEOAWallet() async {
+    _chain.accountFactory = Constants.lightAccountFactoryAddressv07;
+
     final signer = EOAWallet.createWallet(
         WordLength.word_12, const SignatureOptions(prefix: [0]));
     final SmartWalletFactory walletFactory = SmartWalletFactory(_chain, signer);
@@ -75,6 +85,8 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> createPrivateKeyWallet() async {
+    _chain.accountFactory = Constants.lightAccountFactoryAddressv07;
+
     final signer = PrivateKeySigner.createRandom(
         "password", const SignatureOptions(prefix: [0]));
     final SmartWalletFactory walletFactory = SmartWalletFactory(_chain, signer);
@@ -90,13 +102,12 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> createSafeWallet() async {
-    _chain.accountFactory = Constants.safeProxyFactoryAddress;
-
     final signer = EOAWallet.createWallet();
     final SmartWalletFactory walletFactory = SmartWalletFactory(_chain, signer);
 
     try {
       _wallet = await walletFactory.createSafeAccount(salt);
+      overrideGas();
       log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
       log("something happened: $e");
@@ -132,11 +143,21 @@ class WalletProvider extends ChangeNotifier {
     final etherAmount = EtherAmount.fromBigInt(
         EtherUnit.wei, BigInt.from(double.parse(amount) * math.pow(10, 18)));
 
-    final response = await _wallet?.send(
-        EthereumAddress.fromHex("0xF5bB7F874D8e3f41821175c0Aa9910d30d10e193"),
-        etherAmount);
+    final response = await _wallet?.send(deployer, etherAmount);
     final receipt = await response?.wait();
 
     log("Transaction receipt Hash: ${receipt?.userOpHash}");
+  }
+
+  overrideGas() {
+    //@dev use only when using contract verifier,
+    // do not use this function with precompiles.
+    // for the safe deployment transaction do not use the multiplier
+    // multiply verification gas until it exceeds 400k gas
+    _wallet?.gasSettings = GasSettings(
+        verificationGasMultiplierPercentage:
+            650, //7.5x higher than base - about 410k. adjust if needed
+        userDefinedMaxFeePerGas: BigInt.from(24500000000),
+        userDefinedMaxPriorityFeePerGas: BigInt.from(12300000000));
   }
 }
