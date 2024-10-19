@@ -44,14 +44,17 @@ class _SafeProxyFactory extends SafeProxyFactory
     final setup = {
       "owners": owners.toList(),
       "threshold": BigInt.from(threshold),
-      "to": module.setup,
-      "data": encodeModuleSetup(),
+      "to": null,
+      "data": null,
       "fallbackHandler": module.address,
     };
 
     if (encodeWebauthnSetup != null) {
       setup["to"] = Constants.safeMultiSendaddress;
       setup["data"] = encodeWebauthnSetup(encodeModuleSetup);
+    } else {
+      setup["to"] = module.setup;
+      setup["data"] = encodeModuleSetup();
     }
 
     return Contract.encodeFunctionCall(

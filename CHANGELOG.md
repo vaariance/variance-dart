@@ -1,3 +1,9 @@
+## 0.1.6
+
+* Remove repetated function call in safe plugin
+* Split gas overrides individually
+* Change point of gas override
+
 ## 0.1.5
 
 * improve gas fees estimation
