@@ -1,3 +1,8 @@
+## 0.1.7
+
+* Add surpport for user defined safe singleton
+* Add transaction receipt to user operation receipt
+
 ## 0.1.6
 
 * Remove repetated function call in safe plugin

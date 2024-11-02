@@ -341,19 +341,20 @@ class UserOperationReceipt {
   final bool success;
   String? reason;
   final List logs;
+  final TransactionReceipt txReceipt;
 
   UserOperationReceipt(
-    this.userOpHash,
-    this.entrypoint,
-    this.sender,
-    this.nonce,
-    this.paymaster,
-    this.actualGasCost,
-    this.actualGasUsed,
-    this.success,
-    this.reason,
-    this.logs,
-  );
+      this.userOpHash,
+      this.entrypoint,
+      this.sender,
+      this.nonce,
+      this.paymaster,
+      this.actualGasCost,
+      this.actualGasUsed,
+      this.success,
+      this.reason,
+      this.logs,
+      this.txReceipt);
 
   factory UserOperationReceipt.fromMap(Map<String, dynamic> map) {
     return UserOperationReceipt(
@@ -367,6 +368,7 @@ class UserOperationReceipt {
       map['success'],
       map['reason'],
       List.castFrom(map['logs']),
+      TransactionReceipt.fromMap(map['txReceipt']),
     );
   }
 }
@@ -411,5 +413,55 @@ class UserOperationResponse {
 
     throw TimeoutException(
         "can't find useroperation with hash $userOpHash", timeout);
+  }
+}
+
+class TransactionReceipt {
+  final String transactionHash;
+  final String transactionIndex;
+  final String blockHash;
+  final String blockNumber;
+  final String from;
+  final String to;
+  final String cumulativeGasUsed;
+  final String gasUsed;
+  final String? contractAddress;
+  final List logs;
+  final String? logsBloom;
+  final String status;
+  final String effectiveGasPrice;
+
+  TransactionReceipt(
+    this.transactionHash,
+    this.transactionIndex,
+    this.blockHash,
+    this.blockNumber,
+    this.from,
+    this.to,
+    this.cumulativeGasUsed,
+    this.gasUsed,
+    this.contractAddress,
+    this.logs,
+    this.logsBloom,
+    this.status,
+    this.effectiveGasPrice,
+  );
+
+  factory TransactionReceipt.fromMap(Map<String, dynamic> map) {
+    return TransactionReceipt(
+      map['transactionHash'],
+      map['transactionIndex'],
+      map['blockHash'],
+      map['blockNumber'],
+      map['from'],
+      map['to'],
+      map['cumulativeGasUsed'],
+      map['gasUsed'],
+      map['contractAddress'],
+      List.castFrom(map['logs']),
+      map['logsBloom'],
+      map['status'],
+      map['effectiveGasPrice'],
+    );
   }
 }
