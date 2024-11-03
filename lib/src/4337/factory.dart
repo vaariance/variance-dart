@@ -136,7 +136,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     // This function is used to create the Safe account with the given initializer data and salt
     final initCallData = _safeProxyFactory.self
         .function("createProxyWithNonce")
-        .encodeCall([singleton, initializer, salt.value]);
+        .encodeCall([singleton.address, initializer, salt.value]);
 
     // Generate the initialization code by combining the account factory address and the encoded call data
     final initCode = _getInitCode(initCallData);
