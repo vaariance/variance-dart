@@ -46,7 +46,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   @override
   Future<SmartWallet> createSafeAccountWithPasskey(PassKeyPair keyPair,
       Uint256 salt, EthereumAddress safeWebauthnSharedSigner,
-      [EthereumAddress? p256Verifier]) {
+      [EthereumAddress? p256Verifier, SafeSingletonAddress? singleton]) {
     final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
     final verifier = p256Verifier ?? Constants.p256VerifierAddress;
 
@@ -70,15 +70,16 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     }
 
     return _createSafeAccount(
-        salt, safeWebauthnSharedSigner, module, encodeWebauthnSetup);
+        salt, safeWebauthnSharedSigner, module, encodeWebauthnSetup, singleton);
   }
 
   @override
-  Future<SmartWallet> createSafeAccount(Uint256 salt) {
+  Future<SmartWallet> createSafeAccount(Uint256 salt,
+      [SafeSingletonAddress? singleton]) {
     final signer = EthereumAddress.fromHex(_signer.getAddress());
     final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
 
-    return _createSafeAccount(salt, signer, module);
+    return _createSafeAccount(salt, signer, module, null, singleton);
   }
 
   @override
@@ -114,10 +115,11 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
 
   Future<SmartWallet> _createSafeAccount(
       Uint256 salt, EthereumAddress signer, Safe4337ModuleAddress module,
-      [Uint8List Function(Uint8List Function())? setup]) async {
-    final singleton = _chain.chainId == 1
-        ? Constants.safeSingletonAddress
-        : Constants.safeL2SingletonAddress;
+      [Uint8List Function(Uint8List Function())? setup,
+      SafeSingletonAddress? singleton]) async {
+    singleton = _chain.chainId == 1
+        ? SafeSingletonAddress.l1
+        : singleton ?? SafeSingletonAddress.l2;
 
     // Get the initializer data for the Safe account
     final initializer =
@@ -128,13 +130,13 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
 
     // Predict the address of the Safe account
     final address = _safeProxyFactory.getPredictedSafe(
-        initializer, salt, creation, singleton);
+        initializer, salt, creation, singleton.address);
 
     // Encode the call data for the `createProxyWithNonce` function
     // This function is used to create the Safe account with the given initializer data and salt
     final initCallData = _safeProxyFactory.self
         .function("createProxyWithNonce")
-        .encodeCall([singleton, initializer, salt.value]);
+        .encodeCall([singleton.address, initializer, salt.value]);
 
     // Generate the initialization code by combining the account factory address and the encoded call data
     final initCode = _getInitCode(initCallData);
