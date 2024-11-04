@@ -1,3 +1,8 @@
+## 0.1.8
+
+* Fix incorrect useroperation receipt map key
+* Fix safeSingleton type incosistency in create account
+
 ## 0.1.7
 
 * Add surpport for user defined safe singleton
