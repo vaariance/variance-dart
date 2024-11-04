@@ -248,3 +248,18 @@ class Safe4337ModuleAddress {
     }
   }
 }
+
+class SafeSingletonAddress {
+  static SafeSingletonAddress l1 =
+      SafeSingletonAddress(Constants.safeSingletonAddress);
+
+  static SafeSingletonAddress l2 =
+      SafeSingletonAddress(Constants.safeL2SingletonAddress);
+
+  static SafeSingletonAddress custom(EthereumAddress address) =>
+      SafeSingletonAddress(address);
+
+  final EthereumAddress address;
+
+  SafeSingletonAddress(this.address);
+}
