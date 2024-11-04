@@ -368,7 +368,7 @@ class UserOperationReceipt {
       map['success'],
       map['reason'],
       List.castFrom(map['logs']),
-      TransactionReceipt.fromMap(map['txReceipt']),
+      TransactionReceipt.fromMap(map['receipt']),
     );
   }
 }
