@@ -148,31 +148,26 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
 
   @override
   Future<UserOperationResponse> sendUserOperation(UserOperation op) =>
-      _prepareAndSignOperation(op).then(sendSignedUserOperation);
-
-  Future<UserOperation> _prepareAndSignOperation(UserOperation op) async {
-    final prepared = await prepareUserOperation(op);
-    return signUserOperation(prepared);
-  }
+      prepareUserOperation(op)
+          .then(applyCustomGasSettings)
+          .then(sponsorUserOperation)
+          .then(signUserOperation)
+          .then(sendSignedUserOperation);
 
   @override
   Future<UserOperation> prepareUserOperation(UserOperation op,
       {bool update = true}) async {
-    op = await _updateIfNeeded(op, update);
-    op = await _applyPlugins(op);
+    if (update) op = await _updateUserOperation(op);
     op.validate(op.nonce > BigInt.zero, initCode);
     return op;
   }
 
-  Future<UserOperation> _updateIfNeeded(UserOperation op, bool update) async {
-    if (!update) return op;
-    op = await _updateUserOperation(op);
-    return applyCustomGasSettings(op);
-  }
-
-  Future<UserOperation> _applyPlugins(UserOperation op) async {
-    if (!hasPlugin('paymaster')) return op;
-    return plugin<Paymaster>('paymaster').intercept(op);
+  @override
+  Future<UserOperation> sponsorUserOperation(UserOperation op) async {
+    if (hasPlugin('paymaster')) {
+      op = await plugin<Paymaster>('paymaster').intercept(op);
+    }
+    return op;
   }
 
   @override

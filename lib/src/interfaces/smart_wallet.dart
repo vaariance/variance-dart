@@ -80,7 +80,6 @@ abstract class SmartWalletBase {
   void dangerouslySetInitCode(Uint8List code);
 
   /// Prepares a user operation by updating it with the latest nonce and gas prices,
-  /// intercepting it with a paymaster (if enabled), and validating it.
   ///
   /// [op] is the user operation to prepare.
   /// [update] is a flag indicating whether to update the user operation with the
@@ -89,6 +88,13 @@ abstract class SmartWalletBase {
   /// Returns a [Future] that resolves to the prepared [UserOperation] object.
   Future<UserOperation> prepareUserOperation(UserOperation op,
       {bool update = true});
+
+  /// Sponsors a user operation by intercepting it with the paymaster plugin, if present.
+  ///
+  /// [op] is the user operation to sponsor.
+  ///
+  /// Returns a [Future] that resolves to the sponsored [UserOperation] object.
+  Future<UserOperation> sponsorUserOperation(UserOperation op);
 
   /// Asynchronously transfers native Token (ETH) to the specified recipient with the given amount.
   ///

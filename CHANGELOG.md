@@ -1,3 +1,7 @@
+## 0.1.9
+
+* Fix user-operation modififications post paymaster sponsorship
+
 ## 0.1.8
 
 * Fix incorrect useroperation receipt map key
