@@ -20,32 +20,35 @@ class WalletProvider extends ChangeNotifier {
       EthereumAddress.fromHex("0x69583ED4AA579fdc83FB6CCF13A5Ffd9B39F62aF");
   final EthereumAddress deployer =
       EthereumAddress.fromHex("0xf5bb7f874d8e3f41821175c0aa9910d30d10e193");
-  final EthereumAddress sharedSigner =
-      EthereumAddress.fromHex("0x94a4F6affBd8975951142c3999aEAB7ecee555c2");
   final EthereumAddress p256Verifier =
       EthereumAddress.fromHex("0xc2b78104907F722DABAc4C69f826a522B2754De4");
 
   final salt = Uint256.zero;
   static const rpc =
-      "https://api.pimlico.io/v2/123/rpc?apikey=${"PIMLICO_API_KEY"}";
+      "https://api.pimlico.io/v2/84532/rpc?apikey=${'PIMLICO_API_KEY'}";
 
   WalletProvider()
-      : _chain = Chain(
-            bundlerUrl: rpc,
-            // paymasterUrl: rpc, // for fuse network, not really working.
-            testnet: true,
-            chainId: 123,
-            jsonRpcUrl: "https://rpc.fusespark.io",
-            accountFactory: Constants.safeProxyFactoryAddress,
-            explorer: "https://explorer.fusespark.io/",
-            entrypoint: EntryPointAddress.v07);
+      : _chain = Chains.getChain(Network.baseTestnet)
+          ..accountFactory = Constants.safeProxyFactoryAddress
+          ..bundlerUrl = rpc
+          ..paymasterUrl = rpc
+          ..testnet = true;
+  // Chain(
+  //       bundlerUrl: rpc,
+  //       paymasterUrl: rpc,
+  //       testnet: true,
+  //       chainId: 123,
+  //       jsonRpcUrl: "https://rpc.fusespark.io",
+  //       accountFactory: Constants.safeProxyFactoryAddress,
+  //       explorer: "https://explorer.fusespark.io/",
+  //       entrypoint: EntryPointAddress.v07);
 
   Future<void> registerWithPassKey(String name,
       {bool? requiresUserVerification}) async {
     final options = PassKeysOptions(
       name: "variance",
       namespace: "variance.space",
-      sharedWebauthnSigner: sharedSigner,
+      sharedWebauthnSigner: Constants.sharedSignerAddress,
     );
     final pkpSigner = PassKeySigner(options: options);
 
@@ -55,8 +58,8 @@ class WalletProvider extends ChangeNotifier {
       final keypair = await pkpSigner.register(
           "${DateTime.timestamp().millisecondsSinceEpoch}@variance.space",
           name);
-      _wallet = await walletFactory.createSafeAccountWithPasskey(
-          keypair, salt, options.sharedWebauthnSigner, p256Verifier);
+      _wallet = await walletFactory.createSafeAccountWithPasskey(keypair, salt,
+          p256Verifier: p256Verifier);
       overrideGas();
       log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
@@ -111,6 +114,34 @@ class WalletProvider extends ChangeNotifier {
       log("wallet created ${_wallet?.address.hex} ");
     } catch (e) {
       log("something happened: $e");
+    }
+  }
+
+  Future<void> createSafe7579Wallet() async {
+    final signer = EOAWallet.createWallet();
+    final SmartWalletFactory walletFactory = SmartWalletFactory(_chain, signer);
+
+    try {
+      _wallet = await walletFactory.createSafe7579Account(salt,
+          EthereumAddress.fromHex("0x4bb6ea91bc1257876301e16424cdd215bb73b225"),
+          attesters: [
+            EthereumAddress.fromHex(
+                "0x000000333034E9f539ce08819E12c1b8Cb29084d")
+          ],
+          validators: [
+            ModuleInit(
+                EthereumAddress.fromHex(
+                    "0x2483DA3A338895199E5e538530213157e931Bf06"),
+                Uint8List(64))
+          ],
+          attestersThreshold: 1);
+      // overrideGas();
+      log("wallet created ${_wallet?.address.hex} ");
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      log("something happened: $e");
+      rethrow;
     }
   }
 

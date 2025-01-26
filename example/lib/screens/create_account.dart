@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -133,7 +134,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                             'Something went wrong: $e';
                           }
                         },
-                        icon: const Icon(Icons.key),
+                        icon: const Icon(Icons.bolt_outlined),
                         label: const Text(
                             'Create Alchemy Light Account with private key')),
                   ),
@@ -153,7 +154,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                             'Something went wrong: $e';
                           }
                         },
-                        icon: const Icon(Icons.key),
+                        icon: const Icon(Icons.bolt),
                         label: const Text(
                             'Create Alchemy Light Account with seed phrase')),
                   ),
@@ -173,8 +174,30 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                             'Something went wrong: $e';
                           }
                         },
-                        icon: const Icon(Icons.key),
+                        icon: const Icon(Icons.shield_outlined),
                         label: const Text('Create default Safe Account')),
+                  ),
+                  18.verticalSpace,
+                  Container(
+                      margin: const EdgeInsets.only(left: 135),
+                      child: Text('OR', style: TextStyle(fontSize: 18.sp))),
+                  24.verticalSpace,
+                  Container(
+                    margin: const EdgeInsets.only(left: 30),
+                    child: TextButton.icon(
+                        onPressed: () {
+                          try {
+                            context
+                                .read<WalletProvider>()
+                                .createSafe7579Wallet();
+                            Navigator.pushNamed(context, '/home');
+                          } catch (e) {
+                            'Something went wrong: $e';
+                          }
+                        },
+                        icon: const Icon(
+                            CupertinoIcons.square_stack_3d_down_right),
+                        label: const Text('Create Safe 7579 modular account')),
                   ),
                 ],
               ),

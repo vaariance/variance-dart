@@ -29,6 +29,8 @@ class Constants {
       EthereumAddress.fromHex("0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526");
   static final EthereumAddress p256VerifierAddress =
       EthereumAddress.fromHex("0x0000000000000000000000000000000000000100");
+  static final EthereumAddress sharedSignerAddress =
+      EthereumAddress.fromHex("0x94a4F6affBd8975951142c3999aEAB7ecee555c2");
 
   Constants._();
 }

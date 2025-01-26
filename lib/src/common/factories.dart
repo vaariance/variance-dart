@@ -24,52 +24,6 @@ class _SafeProxyFactory extends SafeProxyFactory
         "0x608060405234801561001057600080fd5b506040516101e63803806101e68339818101604052602081101561003357600080fd5b8101908080519060200190929190505050600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff1614156100ca576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260228152602001806101c46022913960400191505060405180910390fd5b806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055505060ab806101196000396000f3fe608060405273ffffffffffffffffffffffffffffffffffffffff600054167fa619486e0000000000000000000000000000000000000000000000000000000060003514156050578060005260206000f35b3660008037600080366000845af43d6000803e60008114156070573d6000fd5b3d6000f3fea264697066735822122003d1488ee65e08fa41e58e888a9865554c535f2c77126a82cb4c0f917f31441364736f6c63430007060033496e76616c69642073696e676c65746f6e20616464726573732070726f7669646564");
   }
 
-  /// Generates the initializer data for deploying a new Safe contract.
-  ///
-  /// [owners] is an iterable of owner addresses for the Safe.
-  /// [threshold] is the required number of confirmations for executing transactions.
-  /// [module] is the address of the Safe module to enable.
-  ///
-  /// Returns a [Uint8List] containing the encoded initializer data.
-  Uint8List getInitializer(Iterable<EthereumAddress> owners, int threshold,
-      Safe4337ModuleAddress module,
-      [Uint8List Function(Uint8List Function())? encodeWebauthnSetup]) {
-    encodeModuleSetup() {
-      return Contract.encodeFunctionCall(
-          "enableModules", module.setup, ContractAbis.get("enableModules"), [
-        [module.address]
-      ]);
-    }
-
-    final setup = {
-      "owners": owners.toList(),
-      "threshold": BigInt.from(threshold),
-      "to": null,
-      "data": null,
-      "fallbackHandler": module.address,
-    };
-
-    if (encodeWebauthnSetup != null) {
-      setup["to"] = Constants.safeMultiSendaddress;
-      setup["data"] = encodeWebauthnSetup(encodeModuleSetup);
-    } else {
-      setup["to"] = module.setup;
-      setup["data"] = encodeModuleSetup();
-    }
-
-    return Contract.encodeFunctionCall(
-        "setup", Constants.safeL2SingletonAddress, ContractAbis.get("setup"), [
-      setup["owners"],
-      setup["threshold"],
-      setup["to"],
-      setup["data"],
-      setup["fallbackHandler"],
-      Constants.zeroAddress,
-      BigInt.zero,
-      Constants.zeroAddress,
-    ]);
-  }
-
   /// Predicts the address of the Safe Smart Account based on the initializer data, salt, and creation code.
   ///
   /// [initializer] is the initializer data for deploying the Safe contract.

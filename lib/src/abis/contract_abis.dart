@@ -94,6 +94,14 @@ class ContractAbis {
         abi =
             '[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"bytes","name":"transactions","type":"bytes"}],"name":"multiSend","outputs":[],"stateMutability":"payable","type":"function"}]';
         break;
+      case 'initSafe7579':
+        abi =
+            '[{"type":"function","name":"initSafe7579","inputs":[{"name":"safe7579","type":"address","internalType":"address"},{"name":"executors","type":"tuple[]","internalType":"struct ModuleInit[]","components":[{"name":"module","type":"address","internalType":"address"},{"name":"initData","type":"bytes","internalType":"bytes"}]},{"name":"fallbacks","type":"tuple[]","internalType":"struct ModuleInit[]","components":[{"name":"module","type":"address","internalType":"address"},{"name":"initData","type":"bytes","internalType":"bytes"}]},{"name":"hooks","type":"tuple[]","internalType":"struct ModuleInit[]","components":[{"name":"module","type":"address","internalType":"address"},{"name":"initData","type":"bytes","internalType":"bytes"}]},{"name":"attesters","type":"address[]","internalType":"address[]"},{"name":"threshold","type":"uint8","internalType":"uint8"}],"outputs":[],"stateMutability":"nonpayable"}]';
+        break;
+      case 'preValidationSetup':
+        abi =
+            '[{"type":"function","name":"preValidationSetup","inputs":[{"name":"initHash","type":"bytes32","internalType":"bytes32"},{"name":"to","type":"address","internalType":"address"},{"name":"preInit","type":"bytes","internalType":"bytes"}],"outputs":[],"stateMutability":"nonpayable"}]';
+        break;
       default:
         throw 'ABI of $name is not available by default. Please provide the ABI manually.';
     }
