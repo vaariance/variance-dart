@@ -10,7 +10,6 @@ import '../../variance_dart.dart'
         EntryPointAddress,
         InvalidBundlerMethod,
         ModuleInit,
-        PaymasterResponse,
         SafeSingletonAddress,
         SmartWallet,
         UserOperation,

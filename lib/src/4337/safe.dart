@@ -1,12 +1,5 @@
 part of '../../variance_dart.dart';
 
-class ModuleInit<T1 extends EthereumAddress, T2 extends Uint8List> {
-  final T1 module;
-  final T2 initData;
-
-  ModuleInit(this.module, this.initData);
-}
-
 class _Safe7579Initializer extends _SafeInitializer {
   final EthereumAddress launchpad;
   final Iterable<ModuleInit>? validators;
@@ -30,44 +23,24 @@ class _Safe7579Initializer extends _SafeInitializer {
     this.attestersThreshold,
   });
 
-  Uint8List get7579SetupData() {
-    return Contract.encodeFunctionCall(
-        "initSafe7579", launchpad, ContractAbis.get("initSafe7579"), [
-      module.address,
-      executors?.map((e) => [e.module, e.initData]).toList() ?? [],
-      fallbacks?.map((e) => [e.module, e.initData]).toList() ?? [],
-      hooks?.map((e) => [e.module, e.initData]).toList() ?? [],
-      attesters?.toList() ?? [],
-      BigInt.from(attestersThreshold ?? 0),
-    ]);
-  }
-
   @override
   Uint8List getInitializer() {
-    final initData = get7579SetupData();
-    final encodedData = abi.encode([
-      "address",
-      "address[]",
-      "uint256",
-      "address",
-      "bytes",
-      "address",
-      "(address,bytes)[]"
-    ], [
-      singleton.address,
-      owners.toList(),
-      BigInt.from(threshold),
-      launchpad,
-      initData,
-      module.address,
-      validators?.map((e) => [e.module, e.initData]).toList() ?? []
-    ]);
-    final initHash = keccak256(encodedData);
-    return Contract.encodeFunctionCall(
-        "preValidationSetup",
-        launchpad,
-        ContractAbis.get("preValidationSetup"),
-        [initHash, Constants.zeroAddress, Uint8List(0)]);
+    final initData = encode7579LaunchpadInitdata(
+        launchpad: launchpad,
+        module: module,
+        attesters: attesters,
+        executors: executors,
+        fallbacks: fallbacks,
+        hooks: hooks,
+        attestersThreshold: attestersThreshold);
+    final initHash = get7579InitHash(
+        initData: initData,
+        launchpad: launchpad,
+        owners: owners,
+        threshold: threshold,
+        module: module,
+        singleton: singleton);
+    return encode7579InitCalldata(launchpad: launchpad, initHash: initHash);
   }
 }
 
@@ -106,7 +79,7 @@ class _SafeInitializer {
     };
 
     if (encodeWebauthnSetup != null) {
-      setup["to"] = Constants.safeMultiSendaddress;
+      setup["to"] = Addresses.safeMultiSendaddress;
       setup["data"] = encodeWebauthnSetup!(encodeModuleSetup);
     } else {
       setup["to"] = module.setup;
@@ -120,22 +93,22 @@ class _SafeInitializer {
       setup["to"],
       setup["data"],
       setup["fallbackHandler"],
-      Constants.zeroAddress,
+      Addresses.zeroAddress,
       BigInt.zero,
-      Constants.zeroAddress,
+      Addresses.zeroAddress,
     ]);
   }
 }
 
 /// A class that extends the Safe4337Module and implements the Safe4337ModuleBase interface.
-/// It provides functionality related to Safe accounts and user operations on an Ethereum-like blockchain.
-class _SafePlugin extends Safe4337Module implements Safe4337ModuleBase {
+/// It provides functionality related to Safe accounts and user operations on an EVM blockchain.
+class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
   /// Creates a new instance of the _SafePlugin class.
   ///
   /// [address] is the address of the Safe 4337 module.
   /// [chainId] is the ID of the blockchain chain.
   /// [client] is the client used for interacting with the blockchain.
-  _SafePlugin({
+  _SafeModule({
     required super.address,
     super.chainId,
     required super.client,
@@ -167,7 +140,7 @@ class _SafePlugin extends Safe4337Module implements Safe4337ModuleBase {
 
     return Contract.encodeFunctionCall(
         "multiSend",
-        Constants.safeMultiSendaddress,
+        Addresses.safeMultiSendaddress,
         ContractAbis.get("multiSend"),
         [packedCallData]);
   }

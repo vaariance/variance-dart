@@ -103,7 +103,7 @@ class UserOperation implements UserOperationBase {
     BigInt? maxPriorityFeePerGas,
   }) =>
       UserOperation(
-        sender: sender ?? Constants.zeroAddress,
+        sender: sender ?? Addresses.zeroAddress,
         nonce: nonce ?? BigInt.zero,
         initCode: initCode ?? Uint8List(0),
         callData: callData,

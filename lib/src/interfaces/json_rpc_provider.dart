@@ -15,6 +15,73 @@ enum GasEstimation {
 /// Implementations of this class are expected to provide functionality for specifically interacting
 /// with bundlers only.
 abstract class JsonRPCProviderBase {
+  /// Asynchronously checks whether a smart contract is deployed at the specified address.
+  ///
+  /// Parameters:
+  ///   - `address`: The [EthereumAddress] of the smart contract.
+  ///   - `atBlock`: The [BlockNum] specifying the block to check for deployment. Defaults to the current block.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with a [bool] indicating whether the smart contract is deployed.
+  ///
+  /// Example:
+  /// ```dart
+  /// var isDeployed = await deployed(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   atBlock: BlockNum.exact(123456), // optional
+  /// );
+  /// ```
+  /// This method uses an ethereum jsonRPC to check if a smart contract is deployed at the specified address.
+  Future<bool> deployed(EthereumAddress? address,
+      {BlockNum atBlock = const BlockNum.current()});
+
+  /// Asynchronously retrieves the balance of an Ethereum address.
+  ///
+  /// Parameters:
+  ///   - `address`: The [EthereumAddress] for which to retrieve the balance.
+  ///   - `atBlock`: The [BlockNum] specifying the block at which to check the balance. Defaults to the current block.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with an [EtherAmount] representing the balance.
+  ///
+  /// Example:
+  /// ```dart
+  /// var balance = await getBalance(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   atBlock: BlockNum.exact(123456), // optional
+  /// );
+  /// ```
+  /// This method uses an ethereum jsonRPC to  fetch the balance of the specified Ethereum address.
+  Future<EtherAmount> balanceOf(EthereumAddress? address,
+      {BlockNum atBlock = const BlockNum.current()});
+
+  /// Asynchronously calls a function on a smart contract with the provided parameters.
+  ///
+  /// Parameters:
+  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
+  ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
+  ///   - `methodName`: The name of the method to call on the smart contract.
+  ///   - `params`: Optional parameters for the function call.
+  ///   - `sender`: The [EthereumAddress] of the sender, if applicable.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with a list of dynamic values representing the result of the function call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var result = await read(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   myErc20ContractAbi,
+  ///   'balanceOf',
+  ///   params: [ EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432')],
+  /// );
+  /// ```
+  /// This method uses the an Ethereum jsonRPC to `staticcall` a function on the specified smart contract.
+  /// **Note:** This method does not support contract calls with state changes.
+  Future<List<dynamic>> readContract(
+      EthereumAddress contractAddress, ContractAbi abi, String methodName,
+      {List<dynamic>? params, EthereumAddress? sender});
+
   /// Asynchronously estimates the gas cost for a transaction to the specified address with the given calldata.
   ///
   /// Parameters:

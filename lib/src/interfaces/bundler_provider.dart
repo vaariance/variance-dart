@@ -83,7 +83,7 @@ abstract class BundlerProviderBase {
   /// );
   /// ```
   /// This method uses the bundled RPC to send the specified user operation for execution and returns the response.
-  Future<UserOperationResponse> sendUserOperation(
+  Future<UserOperationResponse> sendRawUserOperation(
       Map<String, dynamic> userOp, EntryPointAddress entrypoint);
 
   /// Asynchronously retrieves a list of supported entrypoints from the bundler.

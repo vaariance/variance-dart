@@ -1,5 +1,22 @@
 part of '../../variance_dart.dart';
 
+/// A class that extends [LightAccountFactory] and implements [LightAccountFactoryBase].
+/// It creates an instance of [LightAccountFactory] with a custom [RPCBase] client.
+/// Used to create instances of [SmartWallet] for light accounts.
+class _LightAccountFactory extends LightAccountFactory
+    implements LightAccountFactoryBase {
+  /// Creates a new instance of [_LightAccountFactory].
+  ///
+  /// [address] is the address of the light account factory.
+  /// [chainId] is the ID of the blockchain chain.
+  /// [rpc] is the [RPCBase] client used for communication with the blockchain.
+  _LightAccountFactory({
+    required super.address,
+    super.chainId,
+    required RPCBase rpc,
+  }) : super(client: Web3Client.custom(rpc));
+}
+
 /// A class that extends [SafeProxyFactory] and implements [SafeProxyFactoryBase].
 /// It creates an instance of [SafeProxyFactory] with a custom [RPCBase] client.
 /// Used to create instances of [SmartWallet] for Safe accounts.
@@ -16,13 +33,6 @@ class _SafeProxyFactory extends SafeProxyFactory
     super.chainId,
     required RPCBase rpc,
   }) : super(client: Web3Client.custom(rpc));
-
-  /// Returns the proxy creation code without making a network request
-  @override
-  Future<Uint8List> proxyCreationCode({BlockNum? atBlock}) async {
-    return hexToBytes(
-        "0x608060405234801561001057600080fd5b506040516101e63803806101e68339818101604052602081101561003357600080fd5b8101908080519060200190929190505050600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff1614156100ca576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260228152602001806101c46022913960400191505060405180910390fd5b806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055505060ab806101196000396000f3fe608060405273ffffffffffffffffffffffffffffffffffffffff600054167fa619486e0000000000000000000000000000000000000000000000000000000060003514156050578060005260206000f35b3660008037600080366000845af43d6000803e60008114156070573d6000fd5b3d6000f3fea264697066735822122003d1488ee65e08fa41e58e888a9865554c535f2c77126a82cb4c0f917f31441364736f6c63430007060033496e76616c69642073696e676c65746f6e20616464726573732070726f7669646564");
-  }
 
   /// Predicts the address of the Safe Smart Account based on the initializer data, salt, and creation code.
   ///
@@ -51,21 +61,11 @@ class _SafeProxyFactory extends SafeProxyFactory
 
     return EthereumAddress(Uint8List.fromList(hash.skip(12).take(20).toList()));
   }
-}
 
-/// A class that extends [LightAccountFactory] and implements [LightAccountFactoryBase].
-/// It creates an instance of [LightAccountFactory] with a custom [RPCBase] client.
-/// Used to create instances of [SmartWallet] for light accounts.
-class _LightAccountFactory extends LightAccountFactory
-    implements LightAccountFactoryBase {
-  /// Creates a new instance of [_LightAccountFactory].
-  ///
-  /// [address] is the address of the light account factory.
-  /// [chainId] is the ID of the blockchain chain.
-  /// [rpc] is the [RPCBase] client used for communication with the blockchain.
-  _LightAccountFactory({
-    required super.address,
-    super.chainId,
-    required RPCBase rpc,
-  }) : super(client: Web3Client.custom(rpc));
+  /// Returns the proxy creation code without making a network request
+  @override
+  Future<Uint8List> proxyCreationCode({BlockNum? atBlock}) async {
+    return hexToBytes(
+        "0x608060405234801561001057600080fd5b506040516101e63803806101e68339818101604052602081101561003357600080fd5b8101908080519060200190929190505050600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff1614156100ca576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260228152602001806101c46022913960400191505060405180910390fd5b806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055505060ab806101196000396000f3fe608060405273ffffffffffffffffffffffffffffffffffffffff600054167fa619486e0000000000000000000000000000000000000000000000000000000060003514156050578060005260206000f35b3660008037600080366000845af43d6000803e60008114156070573d6000fd5b3d6000f3fea264697066735822122003d1488ee65e08fa41e58e888a9865554c535f2c77126a82cb4c0f917f31441364736f6c63430007060033496e76616c69642073696e676c65746f6e20616464726573732070726f7669646564");
+  }
 }

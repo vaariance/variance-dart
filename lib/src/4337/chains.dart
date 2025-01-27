@@ -68,7 +68,7 @@ class Chain {
 
 //predefined Chains you can use
 class Chains {
-  static Map<Network, Chain> chains = {
+  static final Map<Network, Chain> _chains = {
     Network.mainnet: Chain(
       chainId: 1,
       explorer: "https://etherscan.io/",
@@ -147,7 +147,7 @@ class Chains {
   /// final sepoliaChain = Chain.getChain(Network.sepolia);
   /// ```
   static Chain getChain(Network network) {
-    return chains[network]!;
+    return _chains[network]!;
   }
 }
 
@@ -165,101 +165,4 @@ enum Network {
   // testnet
   sepolia,
   baseTestnet,
-}
-
-/// Represents the address of an EntryPoint contract on the Ethereum blockchain.
-class EntryPointAddress {
-  /// Returns the EntryPoint address for version 0.6 of the EntryPoint contract.
-  static EntryPointAddress get v06 => EntryPointAddress(
-        0.6,
-        Constants.entrypointv06,
-      );
-
-  /// Returns the EntryPoint address for version 0.7 of the EntryPoint contract.
-  static EntryPointAddress get v07 => EntryPointAddress(
-        0.7,
-        Constants.entrypointv07,
-      );
-
-  /// The version of the EntryPoint contract.
-  final double version;
-
-  /// The Ethereum address of the EntryPoint contract.
-  final EthereumAddress address;
-
-  /// Creates a new instance of the [EntryPointAddress] class.
-  ///
-  /// [version] is the version of the EntryPoint contract.
-  /// [address] is the Ethereum address of the EntryPoint contract.
-  const EntryPointAddress(this.version, this.address);
-}
-
-/// Represents the address of the Safe4337Module contract on the Ethereum blockchain.
-class Safe4337ModuleAddress {
-  /// The address of the Safe4337Module contract for version 0.6.
-  static Safe4337ModuleAddress v06 = Safe4337ModuleAddress(
-    0.6,
-    Constants.safe4337ModuleAddressv06,
-    Constants.safeModuleSetupAddressv06,
-  );
-
-  /// The address of the Safe4337Module contract for version 0.7.
-  static Safe4337ModuleAddress v07 = Safe4337ModuleAddress(
-    0.7,
-    Constants.safe4337ModuleAddressv07,
-    Constants.safeModuleSetupAddressv07,
-  );
-
-  /// The version of the Safe4337Module contract.
-  final double version;
-
-  /// The Ethereum address of the Safe4337Module contract.
-  final EthereumAddress address;
-
-  /// The address of the SafeModuleSetup contract.
-  final EthereumAddress setup;
-
-  /// Creates a new instance of the [Safe4337ModuleAddress] class.
-  ///
-  /// [version] is the version of the Safe4337Module contract.
-  /// [address] is the Ethereum address of the Safe4337Module contract.
-  /// [setup] is the address of the SafeModuleSetup contract.
-  const Safe4337ModuleAddress(this.version, this.address, this.setup);
-
-  /// Creates a new instance of the [Safe4337ModuleAddress] class from a given version.
-  ///
-  /// [version] is the version of the Safe4337Module contract.
-  ///
-  /// If the provided version is not supported, an [Exception] will be thrown.
-  ///
-  /// Example:
-  ///
-  /// ```dart
-  /// final moduleAddress = Safe4337ModuleAddress.fromVersion(0.6);
-  /// ```
-  factory Safe4337ModuleAddress.fromVersion(double version) {
-    switch (version) {
-      case 0.6:
-        return Safe4337ModuleAddress.v06;
-      case 0.7:
-        return Safe4337ModuleAddress.v07;
-      default:
-        throw Exception("Unsupported version: $version");
-    }
-  }
-}
-
-class SafeSingletonAddress {
-  static SafeSingletonAddress l1 =
-      SafeSingletonAddress(Constants.safeSingletonAddress);
-
-  static SafeSingletonAddress l2 =
-      SafeSingletonAddress(Constants.safeL2SingletonAddress);
-
-  static SafeSingletonAddress custom(EthereumAddress address) =>
-      SafeSingletonAddress(address);
-
-  final EthereumAddress address;
-
-  SafeSingletonAddress(this.address);
 }

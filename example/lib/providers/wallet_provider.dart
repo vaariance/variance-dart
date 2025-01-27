@@ -29,7 +29,7 @@ class WalletProvider extends ChangeNotifier {
 
   WalletProvider()
       : _chain = Chains.getChain(Network.baseTestnet)
-          ..accountFactory = Constants.safeProxyFactoryAddress
+          ..accountFactory = Addresses.safeProxyFactoryAddress
           ..bundlerUrl = rpc
           ..paymasterUrl = rpc
           ..testnet = true;
@@ -48,7 +48,7 @@ class WalletProvider extends ChangeNotifier {
     final options = PassKeysOptions(
       name: "variance",
       namespace: "variance.space",
-      sharedWebauthnSigner: Constants.sharedSignerAddress,
+      sharedWebauthnSigner: Addresses.sharedSignerAddress,
     );
     final pkpSigner = PassKeySigner(options: options);
 
@@ -71,7 +71,7 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> createEOAWallet() async {
-    _chain.accountFactory = Constants.lightAccountFactoryAddressv07;
+    _chain.accountFactory = Addresses.lightAccountFactoryAddressv07;
 
     final signer = EOAWallet.createWallet(
         WordLength.word_12, const SignatureOptions(prefix: [0]));
@@ -88,7 +88,7 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> createPrivateKeyWallet() async {
-    _chain.accountFactory = Constants.lightAccountFactoryAddressv07;
+    _chain.accountFactory = Addresses.lightAccountFactoryAddressv07;
 
     final signer = PrivateKeySigner.createRandom(
         "password", const SignatureOptions(prefix: [0]));
@@ -185,7 +185,7 @@ class WalletProvider extends ChangeNotifier {
     // do not use this function with precompiles.
     // for the safe deployment transaction do not use the multiplier
     // multiply verification gas until it exceeds 400k gas
-    _wallet?.gasSettings = GasSettings(
+    _wallet?.gasOverride = GasSettings(
         verificationGasMultiplierPercentage:
             650, //7.5x higher than base - about 410k. adjust if needed
         userDefinedMaxFeePerGas: BigInt.from(24500000000),

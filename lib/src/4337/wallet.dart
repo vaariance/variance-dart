@@ -24,12 +24,22 @@ part of '../../variance_dart.dart';
 /// final amount = EtherAmount.fromUnitAndValue(EtherUnit.ether, 1);
 /// final response = await wallet.send(recipient, amount);
 /// ```
-class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
+class SmartWallet extends SmartWalletBase
+    with
+        _callActions,
+        _bundlerActions,
+        _jsonRPCActions,
+        _paymasterActions,
+        _gasOverridesActions,
+        _7579Actions {
   /// The chain configuration.
   final Chain _chain;
 
   /// The address of the Smart Wallet.
   final EthereumAddress _walletAddress;
+
+  /// A valid signer instance
+  final MSI _signer;
 
   /// The initialization code for deploying the Smart Wallet contract.
   Uint8List _initCode;
@@ -39,7 +49,8 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   /// [_chain] is an object representing the blockchain chain configuration.
   /// [_walletAddress] is the address of the Smart Wallet.
   /// [_initCode] is the initialization code for deploying the Smart Wallet contract.
-  SmartWallet(this._chain, this._walletAddress, this._initCode);
+  /// [_signer] A valid signer instance
+  SmartWallet(this._chain, this._walletAddress, this._signer, this._initCode);
 
   @override
   EthereumAddress get address => _walletAddress;
@@ -48,38 +59,28 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   Future<EtherAmount> get balance => _getBalance();
 
   @override
-  Future<bool> get isDeployed =>
-      plugin<Contract>("contract").deployed(_walletAddress);
+  Chain get chain => _chain;
+
+  @override
+  @Deprecated("Get the dummy signature directly from the signer")
+  String get dummySignature => _signer.getDummySignature();
 
   @override
   String get initCode => hexlify(_initCode);
 
   @override
-  Future<BigInt> get initCodeGas => _initCodeGas;
+  Future<BigInt> get initCodeGas =>
+      estimateGas(_chain.entrypoint.address, initCode);
+
+  @override
+  Future<bool> get isDeployed => deployed(_walletAddress);
 
   @override
   Future<Uint256> get nonce => _getNonce();
 
   @override
+  @Deprecated("get `hex` from wallet [address]. e.g walletInstance.address.hex")
   String? get toHex => _walletAddress.hexEip55;
-
-  @override
-  String get dummySignature => plugin<MSI>('signer').getDummySignature();
-
-  bool get isSafe => hasPlugin("safe");
-
-  /// Returns the estimated gas required for deploying the Smart Wallet contract.
-  ///
-  /// The gas estimation is performed by interacting with the 'jsonRpc' plugin
-  /// and estimating the gas for the initialization code.
-  Future<BigInt> get _initCodeGas => plugin<JsonRPCProviderBase>('jsonRpc')
-      .estimateGas(_chain.entrypoint.address, initCode);
-
-  @override
-  @Deprecated("Not recommended to modify the initcode")
-  void dangerouslySetInitCode(Uint8List code) {
-    _initCode = code;
-  }
 
   @override
   UserOperation buildUserOperation({
@@ -94,65 +95,10 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   }
 
   @override
-  Future<UserOperationResponse> send(
-      EthereumAddress recipient, EtherAmount amount) {
-    final cd = Contract.execute(_walletAddress,
-        to: recipient, amount: amount, isSafe: isSafe);
-    return sendUserOperation(buildUserOperation(callData: cd));
+  @Deprecated("Not recommended to modify the initcode externally")
+  void dangerouslySetInitCode(Uint8List code) {
+    _initCode = code;
   }
-
-  @override
-  Future<UserOperationResponse> sendTransaction(
-      EthereumAddress to, Uint8List encodedFunctionData,
-      {EtherAmount? amount}) {
-    final cd = Contract.execute(_walletAddress,
-        to: to,
-        amount: amount,
-        innerCallData: encodedFunctionData,
-        isSafe: isSafe);
-    return sendUserOperation(buildUserOperation(callData: cd));
-  }
-
-  @override
-  Future<UserOperationResponse> sendBatchedTransaction(
-      List<EthereumAddress> recipients, List<Uint8List> calls,
-      {List<EtherAmount>? amounts}) {
-    Uint8List cd;
-    if (isSafe) {
-      final innerCall = plugin<_SafePlugin>('safe')
-          .getSafeMultisendCallData(recipients, amounts, calls);
-      cd = Contract.executeBatch(
-          walletAddress: _walletAddress,
-          recipients: [Constants.safeMultiSendaddress],
-          amounts: [],
-          innerCalls: [innerCall],
-          isSafe: true);
-      return sendUserOperation(buildUserOperation(callData: cd));
-    } else {
-      cd = Contract.executeBatch(
-          walletAddress: _walletAddress,
-          recipients: recipients,
-          amounts: amounts,
-          innerCalls: calls);
-      return sendUserOperation(buildUserOperation(callData: cd));
-    }
-  }
-
-  @override
-  Future<UserOperationResponse> sendSignedUserOperation(UserOperation op) {
-    return plugin<BundlerProviderBase>('bundler')
-        .sendUserOperation(
-            op.toMap(_chain.entrypoint.version), _chain.entrypoint)
-        .catchError((e) => throw SendError(e.toString(), op));
-  }
-
-  @override
-  Future<UserOperationResponse> sendUserOperation(UserOperation op) =>
-      prepareUserOperation(op)
-          .then(applyCustomGasSettings)
-          .then(sponsorUserOperation)
-          .then(signUserOperation)
-          .then(sendSignedUserOperation);
 
   @override
   Future<UserOperation> prepareUserOperation(UserOperation op,
@@ -163,41 +109,64 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   }
 
   @override
-  Future<UserOperation> sponsorUserOperation(UserOperation op) async {
-    if (hasPlugin('paymaster')) {
-      op = await plugin<Paymaster>('paymaster').intercept(op);
-    }
-    return op;
+  Future<UserOperationResponse> send(
+      EthereumAddress recipient, EtherAmount amount) {
+    final cd = getExecuteCalldata(to: recipient, amount: amount);
+    return sendUserOperation(buildUserOperation(callData: cd));
+  }
+
+  @override
+  Future<UserOperationResponse> sendTransaction(
+      EthereumAddress to, Uint8List encodedFunctionData,
+      {EtherAmount? amount}) {
+    final cd = getExecuteCalldata(
+        to: to, amount: amount, innerCallData: encodedFunctionData);
+    return sendUserOperation(buildUserOperation(callData: cd));
+  }
+
+  @override
+  Future<UserOperationResponse> sendBatchedTransaction(
+      List<EthereumAddress> recipients, List<Uint8List> calls,
+      {List<EtherAmount>? amounts}) {
+    final cd = getExecuteBatchCalldata(
+        recipients: recipients, amounts: amounts, innerCalls: calls);
+    return sendUserOperation(buildUserOperation(callData: cd));
   }
 
   @override
   Future<UserOperation> signUserOperation(UserOperation op,
       {int? index}) async {
-    final blockInfo =
-        await plugin<JsonRPCProviderBase>('jsonRpc').getBlockInformation();
+    final blockInfo = await getBlockInformation();
 
-    calculateOperationHash(UserOperation op) async {
-      if (isSafe) {
-        return plugin<_SafePlugin>('safe').getSafeOperationHash(op, blockInfo);
-      } else {
-        return op.hash(_chain);
-      }
-    }
+    getHashFn() => getUserOperationHash(op, blockInfo);
+    final sign = _getUserOperationSignHandler(getHashFn);
+    final getSignature = await sign(_signer.personalSign, index);
 
-    signOperationHash(Uint8List opHash, int? index) async {
-      final signature =
-          await plugin<MSI>('signer').personalSign(opHash, index: index);
-      final signatureHex = hexlify(signature);
-      if (isSafe) {
-        return plugin<_SafePlugin>('safe')
-            .getSafeSignature(signatureHex, blockInfo);
-      }
-      return signatureHex;
-    }
-
-    final opHash = await calculateOperationHash(op);
-    op.signature = await signOperationHash(opHash, index);
+    op.signature = getSignature(blockInfo);
     return op;
+  }
+
+  @override
+  Future<UserOperationResponse> sendSignedUserOperation(UserOperation op) {
+    return sendRawUserOperation(
+            op.toMap(_chain.entrypoint.version), _chain.entrypoint)
+        .catchError((e) => throw SendError(e.toString(), op));
+  }
+
+  @override
+  Future<UserOperationResponse> sendUserOperation(UserOperation op) =>
+      prepareUserOperation(op)
+          .then(_applyGasOverrides)
+          .then(sponsorUserOperation)
+          .then(signUserOperation)
+          .then(sendSignedUserOperation);
+
+  /// Returns the balance for the Smart Wallet address.
+  ///
+  /// If an error occurs during the balance retrieval process, a [FetchBalanceError] exception is thrown.
+  Future<EtherAmount> _getBalance() {
+    return balanceOf(_walletAddress).catchError(
+        (e) => throw FetchBalanceError(e.toString(), _walletAddress));
   }
 
   /// Returns the nonce for the Smart Wallet address.
@@ -209,20 +178,10 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   Future<Uint256> _getNonce() {
     return isDeployed.then((deployed) => !deployed
         ? Future.value(Uint256.zero)
-        : plugin<Contract>("contract")
-            .read(_chain.entrypoint.address, ContractAbis.get('getNonce'),
-                "getNonce",
-                params: [_walletAddress, BigInt.zero])
+        : readContract(_chain.entrypoint.address, ContractAbis.get('getNonce'),
+                "getNonce", params: [_walletAddress, BigInt.zero])
             .then((value) => Uint256(value[0]))
             .catchError((e) => throw NonceError(e.toString(), _walletAddress)));
-  }
-
-  /// Returns the balance for the Smart Wallet address.
-  ///
-  /// If an error occurs during the balance retrieval process, a [FetchBalanceError] exception is thrown.
-  Future<EtherAmount> _getBalance() {
-    return plugin<Contract>("contract").getBalance(_walletAddress).catchError(
-        (e) => throw FetchBalanceError(e.toString(), _walletAddress));
   }
 
   /// Updates the user operation with the latest nonce and gas prices.
@@ -231,13 +190,12 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   ///
   /// Returns a [Future] that resolves to the updated [UserOperation] object.
   Future<UserOperation> _updateUserOperation(UserOperation op) async {
-    final responses = await Future.wait<dynamic>(
-        [_getNonce(), plugin<JsonRPCProviderBase>('jsonRpc').getGasPrice()]);
+    final responses = await Future.wait<dynamic>([_getNonce(), getGasPrice()]);
 
     op = op.copyWith(
         nonce: op.nonce > BigInt.zero ? op.nonce : responses[0].value,
         initCode: responses[0] > Uint256.zero ? Uint8List(0) : null,
-        signature: dummySignature);
+        signature: _signer.getDummySignature());
 
     return _updateUserOperationGas(op, responses[1]);
   }
@@ -251,10 +209,29 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   ///
   /// If an error occurs during the gas estimation process, a [GasEstimationError] exception is thrown.
   Future<UserOperation> _updateUserOperationGas(UserOperation op, Fee fee) {
-    return plugin<BundlerProviderBase>('bundler')
-        .estimateUserOperationGas(
+    return estimateUserOperationGas(
             op.toMap(_chain.entrypoint.version), _chain.entrypoint)
         .then((opGas) => op.updateOpGas(opGas, fee))
         .catchError((e) => throw GasEstimationError(e.toString(), op));
+  }
+
+  /// Initializes the smart wallet instance with required components and actions
+  ///
+  /// @dev prevents a smartwallet instance from being instantiated without using the factory
+  /// [type] The type of smart wallet to initialize
+  /// [rpc] Optional RPC client, will create new one if not provided
+  /// [safe] Optional Safe module for [SmartWalletType.Safe] accounts
+  void _initialize(SmartWalletType type, [RPCBase? rpc, _SafeModule? safe]) {
+    // Create new RPC client if none provided, using chain's JSON RPC URL
+    rpc = rpc ?? RPCBase(_chain.jsonRpcUrl!);
+
+    // Set the Safe module if provided
+    _safe = safe;
+
+    // Initialize all required action modules
+    _setup7579Actions(type); // Setup ERC-7579 related actions
+    _setupBundlerActions(_chain); // Setup bundler communication
+    _setupJsonRpcActions(rpc); // Setup JSON RPC interactions
+    _setupPaymasterActions(); // Setup paymaster related functionality
   }
 }

@@ -42,13 +42,16 @@ class GasSettings {
 }
 
 /// A mixin that provides methods for managing gas settings for user operations.
-mixin _GasSettings {
+mixin _gasOverridesActions {
   /// The gas settings for user operations.
   GasSettings _gasParams = GasSettings();
+
+  set gasOverride(GasSettings gasParams) => _gasParams = gasParams;
 
   /// Sets the gas settings for user operations.
   ///
   /// [gasParams] is an instance of the [GasSettings] class containing the gas settings.
+  @Deprecated("use [gasOverride] method")
   set gasSettings(GasSettings gasParams) => _gasParams = gasParams;
 
   /// Applies the gas settings to a user operation, by multiplying the gas limits by a certain percentage.
@@ -56,7 +59,7 @@ mixin _GasSettings {
   /// [op] is the user operation to which the gas settings should be applied.
   ///
   /// Returns a new [UserOperation] object with the updated gas settings.
-  UserOperation applyCustomGasSettings(UserOperation op) {
+  UserOperation _applyGasOverrides(UserOperation op) {
     final cglMultiplier = _gasParams.callGasMultiplierPercentage / 100 + 1;
     final vglMultiplier =
         _gasParams.verificationGasMultiplierPercentage / 100 + 1;
@@ -66,7 +69,9 @@ mixin _GasSettings {
 
     if (multiplier == 1 &&
         _gasParams.userDefinedMaxFeePerGas == null &&
-        _gasParams.userDefinedMaxPriorityFeePerGas == null) return op;
+        _gasParams.userDefinedMaxPriorityFeePerGas == null) {
+      return op;
+    }
 
     return op.copyWith(
         callGasLimit: BigInt.from(op.callGasLimit.toDouble() * cglMultiplier),
@@ -76,71 +81,5 @@ mixin _GasSettings {
             BigInt.from(op.preVerificationGas.toDouble() * preVglMultiplier),
         maxFeePerGas: _gasParams.userDefinedMaxFeePerGas,
         maxPriorityFeePerGas: _gasParams.userDefinedMaxPriorityFeePerGas);
-  }
-}
-
-/// Used to manage the plugins used in the [Smartwallet] instance
-mixin _PluginManager {
-  final Map<String, dynamic> _plugins = {};
-
-  ///returns a list of all active plugins
-  List<String> activePlugins() {
-    return _plugins.keys.toList(growable: false);
-  }
-
-  /// Adds a plugin by name.
-  ///
-  /// Parameters:
-  ///   - `name`: The name of the plugin to add.
-  ///   - `module`: The instance of the plugin.
-  ///
-  /// Example:
-  /// ```dart
-  /// addPlugin('logger', Logger());
-  /// ```
-  void addPlugin<T>(String name, T module) {
-    _plugins[name] = module;
-  }
-
-  /// checks if a plugin exists
-  ///
-  /// Parameters:
-  ///   - `name`: The name of the plugin to check
-  ///
-  /// Returns:
-  ///   true if the plugin exists
-  bool hasPlugin(String name) {
-    return _plugins.containsKey(name);
-  }
-
-  /// Gets a plugin by name.
-  ///
-  /// Parameters:
-  ///   - `name`: Optional. The name of the plugin to retrieve.
-  ///
-  /// Returns:
-  ///   The plugin with the specified name.
-  T plugin<T>([String? name]) {
-    if (name == null) {
-      for (var plugin in _plugins.values) {
-        if (plugin is T) {
-          return plugin;
-        }
-      }
-    }
-    return _plugins[name] as T;
-  }
-
-  /// Removes an unwanted plugin by name.
-  ///
-  /// Parameters:
-  ///   - `name`: The name of the plugin to remove.
-  ///
-  /// Example:
-  /// ```dart
-  /// removePlugin('logger');
-  /// ```
-  void removePlugin(String name) {
-    _plugins.remove(name);
   }
 }

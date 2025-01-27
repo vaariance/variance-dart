@@ -1,5 +1,14 @@
 part of 'interfaces.dart';
 
+enum SmartWalletType {
+  Vendor,
+  LightAccount,
+  Safe,
+  Safe7579,
+  // Safe7702,
+  SafeWithPasskey;
+}
+
 /// An abstract class representing the base structure of a Smart Wallet.
 ///
 /// The SmartWalletBase class defines the common structure and methods that
@@ -8,7 +17,7 @@ part of 'interfaces.dart';
 /// common interface.
 abstract class SmartWalletBase {
   /// The Ethereum address of the Smart Wallet.
-  EthereumAddress? get address;
+  EthereumAddress get address;
 
   /// Returns the balance of the Smart Wallet.
   ///
@@ -38,6 +47,9 @@ abstract class SmartWalletBase {
 
   /// Returns the hexadecimal representation of the Smart Wallet address in EIP-55 format.
   String? get toHex;
+
+  /// Returns the current chain information of the account
+  Chain get chain;
 
   /// Builds a [UserOperation] instance with the specified parameters.
   ///
