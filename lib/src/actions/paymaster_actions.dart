@@ -54,7 +54,7 @@ mixin _paymasterActions implements PaymasterBase {
   /// information to the Paymaster when sponsoring user operations.
   Map<String, String>? _context;
 
-  late final bool _paymasterEnabled;
+  late final bool _paymasterActionsEnabled;
 
   Chain get chain;
 
@@ -70,7 +70,7 @@ mixin _paymasterActions implements PaymasterBase {
 
   @override
   Future<UserOperation> sponsorUserOperation(UserOperation op) async {
-    if (!_paymasterEnabled) {
+    if (!_paymasterActionsEnabled) {
       return op;
     }
     if (_paymasterAddress != null) {
@@ -104,9 +104,9 @@ mixin _paymasterActions implements PaymasterBase {
       _paymasterRpc = RPCBase(chain.paymasterUrl!);
       _paymasterAddress = paymasterAddress;
       _context = context;
-      _paymasterEnabled = true;
+      _paymasterActionsEnabled = true;
     } else {
-      _paymasterEnabled = false;
+      _paymasterActionsEnabled = false;
     }
   }
 
