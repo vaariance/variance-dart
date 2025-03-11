@@ -23,9 +23,8 @@ class _Safe7579Initializer extends _SafeInitializer {
     this.attestersThreshold,
   });
 
-  @override
-  Uint8List getInitializer() {
-    final initData = encode7579LaunchpadInitdata(
+  Uint8List getLaunchpadInitData() {
+    return encode7579LaunchpadInitdata(
         launchpad: launchpad,
         module: module,
         attesters: attesters,
@@ -33,6 +32,11 @@ class _Safe7579Initializer extends _SafeInitializer {
         fallbacks: fallbacks,
         hooks: hooks,
         attestersThreshold: attestersThreshold);
+  }
+
+  @override
+  Uint8List getInitializer() {
+    final initData = getLaunchpadInitData();
     final initHash = get7579InitHash(
         initData: initData,
         launchpad: launchpad,

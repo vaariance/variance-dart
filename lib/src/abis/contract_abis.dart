@@ -90,6 +90,9 @@ class ContractAbis {
         abi =
             '[{"type":"function","name":"setup","inputs":[{"name":"_owners","type":"address[]","internalType":"address[]"},{"name":"_threshold","type":"uint256","internalType":"uint256"},{"name":"to","type":"address","internalType":"address"},{"name":"data","type":"bytes","internalType":"bytes"},{"name":"fallbackHandler","type":"address","internalType":"address"},{"name":"paymentToken","type":"address","internalType":"address"},{"name":"payment","type":"uint256","internalType":"uint256"},{"name":"paymentReceiver","type":"address","internalType":"address payable"}],"outputs":[],"stateMutability":"nonpayable"}]';
         break;
+      case 'setup7579Safe':
+        abi =
+            '[{"type":"function","name":"setupSafe","inputs":[{"name":"initData","type":"tuple","internalType":"struct Safe7579Launchpad.InitData","components":[{"name":"singleton","type":"address","internalType":"address"},{"name":"owners","type":"address[]","internalType":"address[]"},{"name":"threshold","type":"uint256","internalType":"uint256"},{"name":"setupTo","type":"address","internalType":"address"},{"name":"setupData","type":"bytes","internalType":"bytes"},{"name":"safe7579","type":"address","internalType":"contract ISafe7579"},{"name":"validators","type":"tuple[]","internalType":"struct ModuleInit[]","components":[{"name":"module","type":"address","internalType":"address"},{"name":"initData","type":"bytes","internalType":"bytes"}]},{"name":"callData","type":"bytes","internalType":"bytes"}]}],"outputs":[],"stateMutability":"nonpayable"}]';
       case 'multiSend':
         abi =
             '[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"bytes","name":"transactions","type":"bytes"}],"name":"multiSend","outputs":[],"stateMutability":"payable","type":"function"}]';
@@ -102,6 +105,9 @@ class ContractAbis {
         abi =
             '[{"type":"function","name":"preValidationSetup","inputs":[{"name":"initHash","type":"bytes32","internalType":"bytes32"},{"name":"to","type":"address","internalType":"address"},{"name":"preInit","type":"bytes","internalType":"bytes"}],"outputs":[],"stateMutability":"nonpayable"}]';
         break;
+      case 'execute7579':
+        abi =
+            '[{"type":"function","name":"execute","inputs":[{"name":"execMode","type":"bytes32","internalType":"ExecMode"},{"name":"executionCalldata","type":"bytes","internalType":"bytes"}],"outputs":[],"stateMutability":"payable"}]';
       default:
         throw 'ABI of $name is not available by default. Please provide the ABI manually.';
     }

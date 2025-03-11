@@ -11,3 +11,26 @@ class ModuleInit<T1 extends EthereumAddress, T2 extends Uint8List> {
 
   ModuleInit(this.module, this.initData);
 }
+
+enum CallType {
+  call(value: 0x00),
+  batchcall(value: 0x01),
+  delegatecall(value: 0xff);
+
+  final int value;
+
+  const CallType({required this.value});
+}
+
+class ExecutionMode {
+  final CallType type;
+  bool revertOnError;
+  Uint8List? selector;
+  Uint8List? context;
+
+  ExecutionMode(
+      {required this.type,
+      this.revertOnError = false,
+      this.selector,
+      this.context});
+}

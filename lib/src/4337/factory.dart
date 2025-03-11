@@ -54,8 +54,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     final initCode = _getInitCode(initCalldata);
 
     // Create the SmartWallet instance for the light account
-    return _createAccount(
-        SmartWalletType.LightAccount, _chain, address, initCode);
+    return _createAccount(_chain, address, initCode);
   }
 
   @override
@@ -89,7 +88,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       attestersThreshold: attestersThreshold,
     );
 
-    return _createSafeAccount(salt, initializer, SmartWalletType.Safe7579);
+    return _createSafeAccount(salt, initializer);
   }
 
   @override
@@ -109,7 +108,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       singleton: singleton,
     );
 
-    return _createSafeAccount(salt, initializer, SmartWalletType.Safe);
+    return _createSafeAccount(salt, initializer);
   }
 
   @override
@@ -150,8 +149,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       encodeWebauthnSetup: encodeWebauthnSetup,
     );
 
-    return _createSafeAccount(
-        salt, initializer, SmartWalletType.SafeWithPasskey);
+    return _createSafeAccount(salt, initializer);
   }
 
   @override
@@ -159,7 +157,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     EthereumAddress address,
     Uint8List initCode,
   ) async {
-    return _createAccount(SmartWalletType.Vendor, _chain, address, initCode);
+    return _createAccount(_chain, address, initCode);
   }
 
   /// Creates a new [SmartWallet] instance with the provided chain, address, and initialization code.
@@ -176,22 +174,18 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   ///
   /// Returns a [SmartWallet] instance representing the created account.
   SmartWallet _createAccount(
-    SmartWalletType type,
-    Chain chain,
-    EthereumAddress address,
-    Uint8List initCalldata, [
-    _SafeModule? safe,
-  ]) {
+      Chain chain, EthereumAddress address, Uint8List initCalldata,
+      [_SafeModule? safe, _SafeInitializer? initializer]) {
     final wallet = SmartWallet(chain, address, _signer, initCalldata)
-      .._initialize(type, _rpc, safe);
+      .._initialize(_rpc, safe, initializer);
     return wallet;
   }
 
   Future<SmartWallet> _createSafeAccount(
-      Uint256 salt, _SafeInitializer initializer, SmartWalletType type) async {
-    final singletonOrLaunchpad = initializer is _Safe7579Initializer
-        ? initializer.launchpad
-        : initializer.singleton.address;
+      Uint256 salt, _SafeInitializer initializer) async {
+    final is7579 = initializer is _Safe7579Initializer;
+    final singletonOrLaunchpad =
+        is7579 ? initializer.launchpad : initializer.singleton.address;
 
     // Get the initializer data for the Safe account
     final initializationData = initializer.getInitializer();
@@ -213,7 +207,8 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     final initCode = _getInitCode(initCallData);
 
     // Create the SmartWallet instance for the Safe account
-    return _createAccount(type, _chain, address, initCode, _safeModule);
+    return _createAccount(
+        _chain, address, initCode, _safeModule, is7579 ? initializer : null);
   }
 
   /// Returns the initialization code for the account by concatenating the account factory address with the provided initialization call data.

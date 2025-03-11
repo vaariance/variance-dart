@@ -56,4 +56,56 @@ Uint8List encode7579InitCalldata(
       [initHash, Addresses.zeroAddress, Uint8List(0)]);
 }
 
-// Uint8List encodePostSetupInitCalldata(){}
+Uint8List encodeExecutionMode(ExecutionMode executionMode) {
+  final typeBytes = intToBytes(BigInt.from(executionMode.type.value));
+  final revertOnErrorBytes =
+      intToBytes(executionMode.revertOnError ? BigInt.one : BigInt.zero);
+  final selectorBytes = (executionMode.selector ?? Uint8List(0)).padToNBytes(4);
+  final contextBytes = (executionMode.context ?? Uint8List(0)).padToNBytes(22);
+
+  return typeBytes
+      .concat(revertOnErrorBytes)
+      .concat(Uint8List(0).padToNBytes(4))
+      .concat(selectorBytes)
+      .concat(contextBytes);
+}
+
+Uint8List encode7579Call(ExecutionMode mode, List<Uint8List> calldata,
+    EthereumAddress contractAddress) {
+  return Contract.encodeFunctionCall(
+      'execute', contractAddress, ContractAbis.get('execute7579'), [
+    encodeExecutionMode(mode),
+    mode.type == CallType.batchcall
+        ? encode7579BatchCall(calldata)
+        : calldata.first
+  ]);
+}
+
+Uint8List encode7579BatchCall(List<Uint8List> calldatas) {
+  return abi.encode([
+    "(address,uint256,bytes)[]"
+  ], [
+    calldatas.map((calldata) => [
+          calldata.sublist(0, 20), // address 20 bytes
+          calldata.sublist(20, 52), // value 32 bytes
+          calldata.sublist(20 + 32) // res
+        ])
+  ]);
+}
+
+Uint8List _encodePostSetupInitCalldata(_Safe7579Initializer initializer,
+    List<Uint8List> calldata, EthereumAddress contractAddress, CallType type) {
+  return Contract.encodeFunctionCall(
+      "setupSafe", initializer.launchpad, ContractAbis.get("setup7579Safe"), [
+    [
+      initializer.singleton.address,
+      initializer.owners.toList(),
+      BigInt.from(initializer.threshold),
+      initializer.launchpad,
+      initializer.getLaunchpadInitData(),
+      initializer.module.address,
+      initializer.validators?.map((e) => [e.module, e.initData]).toList() ?? [],
+      encode7579Call(ExecutionMode(type: type), calldata, contractAddress)
+    ]
+  ]);
+}

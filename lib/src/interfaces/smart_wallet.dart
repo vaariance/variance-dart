@@ -1,14 +1,5 @@
 part of 'interfaces.dart';
 
-enum SmartWalletType {
-  Vendor,
-  LightAccount,
-  Safe,
-  Safe7579,
-  // Safe7702,
-  SafeWithPasskey;
-}
-
 /// An abstract class representing the base structure of a Smart Wallet.
 ///
 /// The SmartWalletBase class defines the common structure and methods that

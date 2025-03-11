@@ -8,11 +8,9 @@ mixin _callActions on SmartWalletBase {
   /// Encodes a function call to execute a batch of operations in a smart wallet.
   ///
   /// Parameters:
-  ///   - `walletAddress`: The [EthereumAddress] of the smart wallet.
   ///   - `recipients`: A list of [EthereumAddress] instances representing the recipients for each operation.
   ///   - `amounts`: Optional list of [EtherAmount] instances representing the amounts to transfer for each operation.
   ///   - `innerCalls`: Optional list of [Uint8List] instances containing inner call data for each operation.
-  ///   - `isSafe`: An optional flag indicating whether the operation is a GnosisSafeOperation or not. defaults to false.
   ///
   /// Returns:
   ///   A [Uint8List] containing the ABI-encoded data for the 'executeBatch' function call.
@@ -20,7 +18,6 @@ mixin _callActions on SmartWalletBase {
   /// Example:
   /// ```dart
   /// var encodedCall = executeBatch(
-  ///   walletAddress: EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
   ///   recipients: [
   ///     EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
   ///     EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),

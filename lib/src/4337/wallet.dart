@@ -110,26 +110,34 @@ class SmartWallet extends SmartWalletBase
 
   @override
   Future<UserOperationResponse> send(
-      EthereumAddress recipient, EtherAmount amount) {
-    final cd = getExecuteCalldata(to: recipient, amount: amount);
+      EthereumAddress recipient, EtherAmount amount) async {
+    final cd = is7579Enabled
+        ? await get7579ExecuteCalldata(to: recipient, amount: amount)
+        : getExecuteCalldata(to: recipient, amount: amount);
     return sendUserOperation(buildUserOperation(callData: cd));
   }
 
   @override
   Future<UserOperationResponse> sendTransaction(
       EthereumAddress to, Uint8List encodedFunctionData,
-      {EtherAmount? amount}) {
-    final cd = getExecuteCalldata(
-        to: to, amount: amount, innerCallData: encodedFunctionData);
+      {EtherAmount? amount}) async {
+    final cd = is7579Enabled
+        ? await get7579ExecuteCalldata(
+            to: to, amount: amount, innerCallData: encodedFunctionData)
+        : getExecuteCalldata(
+            to: to, amount: amount, innerCallData: encodedFunctionData);
     return sendUserOperation(buildUserOperation(callData: cd));
   }
 
   @override
   Future<UserOperationResponse> sendBatchedTransaction(
       List<EthereumAddress> recipients, List<Uint8List> calls,
-      {List<EtherAmount>? amounts}) {
-    final cd = getExecuteBatchCalldata(
-        recipients: recipients, amounts: amounts, innerCalls: calls);
+      {List<EtherAmount>? amounts}) async {
+    final cd = is7579Enabled
+        ? await get7579ExecuteBatchCalldata(
+            recipients: recipients, amounts: amounts, innerCalls: calls)
+        : getExecuteBatchCalldata(
+            recipients: recipients, amounts: amounts, innerCalls: calls);
     return sendUserOperation(buildUserOperation(callData: cd));
   }
 
@@ -218,10 +226,11 @@ class SmartWallet extends SmartWalletBase
   /// Initializes the smart wallet instance with required components and actions
   ///
   /// @dev prevents a smartwallet instance from being instantiated without using the factory
-  /// [type] The type of smart wallet to initialize
+  /// [initializer] safe 7579 initializer for safeSetup
   /// [rpc] Optional RPC client, will create new one if not provided
-  /// [safe] Optional Safe module for [SmartWalletType.Safe] accounts
-  void _initialize(SmartWalletType type, [RPCBase? rpc, _SafeModule? safe]) {
+  /// [safe] Optional Safe module for safe accounts
+  void _initialize(
+      [RPCBase? rpc, _SafeModule? safe, _SafeInitializer? initializer]) {
     // Create new RPC client if none provided, using chain's JSON RPC URL
     rpc = rpc ?? RPCBase(_chain.jsonRpcUrl!);
 
@@ -229,7 +238,7 @@ class SmartWallet extends SmartWalletBase
     _safe = safe;
 
     // Initialize all required action modules
-    _setup7579Actions(type); // Setup ERC-7579 related actions
+    _setup7579Actions(initializer); // Setup ERC-7579 related actions
     _setupBundlerActions(_chain); // Setup bundler communication
     _setupJsonRpcActions(rpc); // Setup JSON RPC interactions
     _setupPaymasterActions(); // Setup paymaster related functionality
