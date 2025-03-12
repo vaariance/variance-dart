@@ -14,7 +14,7 @@ import 'package:web3dart/web3dart.dart';
 import 'src/abis/abis.dart';
 import 'src/interfaces/interfaces.dart';
 
-export 'src/abis/abis.dart' show ContractAbis;
+export 'src/abis/abis.dart' show ContractAbis, Safe7579Abis;
 
 // 4337
 part 'src/4337/chains.dart';

@@ -38,7 +38,7 @@ class _Safe7579Initializer extends _SafeInitializer {
   Uint8List getInitializer() {
     final initData = getLaunchpadInitData();
     final initHash = get7579InitHash(
-        initData: initData,
+        launchpadInitData: initData,
         launchpad: launchpad,
         owners: owners,
         threshold: threshold,

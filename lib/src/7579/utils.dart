@@ -9,7 +9,7 @@ Uint8List encode7579LaunchpadInitdata(
     Iterable<EthereumAddress>? attesters,
     int? attestersThreshold}) {
   return Contract.encodeFunctionCall(
-      "initSafe7579", launchpad, ContractAbis.get("initSafe7579"), [
+      "initSafe7579", launchpad, Safe7579Abis.get("initSafe7579"), [
     module.address,
     executors?.map((e) => [e.module, e.initData]).toList() ?? [],
     fallbacks?.map((e) => [e.module, e.initData]).toList() ?? [],
@@ -20,7 +20,7 @@ Uint8List encode7579LaunchpadInitdata(
 }
 
 Uint8List get7579InitHash(
-    {required Uint8List initData,
+    {required Uint8List launchpadInitData,
     required EthereumAddress launchpad,
     required Iterable<EthereumAddress> owners,
     required int threshold,
@@ -40,7 +40,7 @@ Uint8List get7579InitHash(
     owners.toList(),
     BigInt.from(threshold),
     launchpad,
-    initData,
+    launchpadInitData,
     module.address,
     validators?.map((e) => [e.module, e.initData]).toList() ?? []
   ]);
@@ -52,7 +52,7 @@ Uint8List encode7579InitCalldata(
   return Contract.encodeFunctionCall(
       "preValidationSetup",
       launchpad,
-      ContractAbis.get("preValidationSetup"),
+      Safe7579Abis.get("preValidationSetup"),
       [initHash, Addresses.zeroAddress, Uint8List(0)]);
 }
 
@@ -73,7 +73,7 @@ Uint8List encodeExecutionMode(ExecutionMode executionMode) {
 Uint8List encode7579Call(ExecutionMode mode, List<Uint8List> calldata,
     EthereumAddress contractAddress) {
   return Contract.encodeFunctionCall(
-      'execute', contractAddress, ContractAbis.get('execute7579'), [
+      'execute', contractAddress, Safe7579Abis.get('execute7579'), [
     encodeExecutionMode(mode),
     mode.type == CallType.batchcall
         ? encode7579BatchCall(calldata)
@@ -87,8 +87,8 @@ Uint8List encode7579BatchCall(List<Uint8List> calldatas) {
   ], [
     calldatas.map((calldata) => [
           calldata.sublist(0, 20), // address 20 bytes
-          calldata.sublist(20, 52), // value 32 bytes
-          calldata.sublist(20 + 32) // res
+          calldata.sublist(20, 52), // uint256 32 bytes
+          calldata.sublist(52) // rest
         ])
   ]);
 }
@@ -96,7 +96,7 @@ Uint8List encode7579BatchCall(List<Uint8List> calldatas) {
 Uint8List _encodePostSetupInitCalldata(_Safe7579Initializer initializer,
     List<Uint8List> calldata, EthereumAddress contractAddress, CallType type) {
   return Contract.encodeFunctionCall(
-      "setupSafe", initializer.launchpad, ContractAbis.get("setup7579Safe"), [
+      "setupSafe", initializer.launchpad, Safe7579Abis.get("setup7579Safe"), [
     [
       initializer.singleton.address,
       initializer.owners.toList(),

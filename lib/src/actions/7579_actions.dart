@@ -1,18 +1,25 @@
 part of '../../variance_dart.dart';
 
 abstract interface class _7579Interface {
-  void installModule(int a);
-  void installModules();
-  void uninstallModule();
-  void uninstallModules();
-  void supportsModule();
-  void isModuleInstalled();
-  void supportsExecutionMode();
-  void accountId();
-  void executeFromExecutor();
+  Future<UserOperationResponse> installModule(
+      ModuleType type, EthereumAddress moduleAddress, Uint8List initData);
+  Future<UserOperationResponse> installModules(List<ModuleType> types,
+      List<EthereumAddress> moduleAddresses, List<Uint8List> initDatas);
+  Future<UserOperationResponse> uninstallModule(
+      ModuleType type, EthereumAddress moduleAddress, Uint8List initData);
+  Future<UserOperationResponse> uninstallModules(List<ModuleType> types,
+      List<EthereumAddress> moduleAddresses, List<Uint8List> initDatas);
+  Future<bool?> supportsModule(ModuleType type);
+  Future<bool?> isModuleInstalled(
+      ModuleType type, EthereumAddress moduleAddress,
+      [Uint8List? context]);
+  Future<bool?> supportsExecutionMode(ExecutionMode mode);
+  Future<String?> accountId();
 }
 
-mixin _7579Actions on SmartWalletBase implements _7579Interface {
+mixin _7579Actions
+    on SmartWalletBase, JsonRPCProviderBase
+    implements _7579Interface {
   late final _SafeInitializer? _initializer;
 
   bool get is7579Enabled =>
@@ -20,35 +27,25 @@ mixin _7579Actions on SmartWalletBase implements _7579Interface {
 
   @override
   noSuchMethod(Invocation invocation) {
-    if (_initializer != null) {
+    if (is7579Enabled) {
       final posArgs = invocation.positionalArguments;
       switch (invocation.memberName) {
         case #installModule:
-          return _installModule(posArgs[0]);
+          return _installModule(posArgs[0], posArgs[1], posArgs[2]);
         case #installModules:
-          print("true");
-          return "invoked";
+          return _installModules(posArgs[0], posArgs[1], posArgs[2]);
         case #uninstallModule:
-          print("true");
-          return "invoked";
+          return _uninstallModule(posArgs[0], posArgs[1], posArgs[2]);
         case #uninstallModules:
-          print("true");
-          return "invoked";
+          return _uninstallModules(posArgs[0], posArgs[1], posArgs[2]);
         case #supportsModule:
-          print("true");
-          return "invoked";
+          return _supportsModule(posArgs[0]);
         case #isModuleInstalled:
-          print("true");
-          return "invoked";
+          return _isModuleInstalled(posArgs[0], posArgs[1], posArgs[2]);
         case #supportsExecutionMode:
-          print("true");
-          return "invoked";
+          return _supportsExecutionMode(posArgs[0]);
         case #accountId:
-          print("true");
-          return "invoked";
-        case #executeFromExecutor:
-          print("true");
-          return "invoked";
+          return _accountId();
         default:
           break;
       }
@@ -56,15 +53,108 @@ mixin _7579Actions on SmartWalletBase implements _7579Interface {
     throw NoSuchMethodError.withInvocation(this, invocation);
   }
 
-  void _installModule(int a);
-  void _installModules();
-  void _uninstallModule();
-  void _uninstallModules();
-  void _supportsModule();
-  void _isModuleInstalled();
-  void _supportsExecutionMode();
-  void _accountId();
-  void _executeFromExecutor();
+  Future<UserOperationResponse> _uninstallModules(List<ModuleType> types,
+      List<EthereumAddress> moduleAddresses, List<Uint8List> initDatas) {
+    final encodedCalldatas = types
+        .asMap()
+        .entries
+        .map(
+          (entry) => Contract.encodeFunctionCall(
+            "uninstallModule",
+            address,
+            Safe7579Abis.get("uninstallModule"),
+            [
+              BigInt.from(entry.value.value),
+              moduleAddresses[entry.key],
+              initDatas[entry.key]
+            ],
+          ),
+        )
+        .toList();
+    return sendBatchedTransaction(
+        List.filled(encodedCalldatas.length, address), encodedCalldatas);
+  }
+
+  Future<UserOperationResponse> _uninstallModule(
+      ModuleType type, EthereumAddress moduleAddress, Uint8List initData) {
+    final encodedCalldata = Contract.encodeFunctionCall(
+        "uninstallModule",
+        address,
+        Safe7579Abis.get("uninstallModule"),
+        [BigInt.from(type.value), moduleAddress, initData]);
+    return sendTransaction(address, encodedCalldata);
+  }
+
+  Future<UserOperationResponse> _installModules(List<ModuleType> types,
+      List<EthereumAddress> moduleAddresses, List<Uint8List> initDatas) {
+    final encodedCalldatas = types
+        .asMap()
+        .entries
+        .map(
+          (entry) => Contract.encodeFunctionCall(
+            "installModule",
+            address,
+            Safe7579Abis.get("installModule"),
+            [
+              BigInt.from(entry.value.value),
+              moduleAddresses[entry.key],
+              initDatas[entry.key]
+            ],
+          ),
+        )
+        .toList();
+    return sendBatchedTransaction(
+        List.filled(encodedCalldatas.length, address), encodedCalldatas);
+  }
+
+  Future<UserOperationResponse> _installModule(
+      ModuleType type, EthereumAddress moduleAddress, Uint8List initData) {
+    final encodedCalldata = Contract.encodeFunctionCall(
+        "installModule",
+        address,
+        Safe7579Abis.get("installModule"),
+        [BigInt.from(type.value), moduleAddress, initData]);
+    return sendTransaction(address, encodedCalldata);
+  }
+
+  Future<bool?> _supportsExecutionMode(ExecutionMode mode) async {
+    final encodedMode = encodeExecutionMode(mode);
+    final result = await readContract(address,
+        Safe7579Abis.get('supportsExecutionMode'), 'supportsExecutionMode',
+        sender: address, params: [encodedMode]);
+    return result.firstOrNull;
+  }
+
+  Future<bool?> _supportsModule(ModuleType type) async {
+    final result = await readContract(
+        address, Safe7579Abis.get('supportsModule'), 'supportsModule',
+        sender: address, params: [BigInt.from(type.value)]);
+    return result.firstOrNull;
+  }
+
+  Future<bool?> _isModuleInstalled(
+      ModuleType type, EthereumAddress moduleAddress,
+      [Uint8List? context]) async {
+    final result = await readContract(
+        address, Safe7579Abis.get('isModuleInstalled'), 'isModuleInstalled',
+        sender: address,
+        params: [
+          BigInt.from(type.value),
+          moduleAddress,
+          context ?? Uint8List(0),
+        ]);
+    return result.firstOrNull;
+  }
+
+  Future<String?> _accountId() async {
+    final result = await readContract(
+      address,
+      Safe7579Abis.get('accountId'),
+      'accountId',
+      sender: address,
+    );
+    return result.firstOrNull;
+  }
 
   void _setup7579Actions(_SafeInitializer? initializer) {
     _initializer = initializer;
