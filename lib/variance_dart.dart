@@ -41,6 +41,7 @@ part 'src/actions/paymaster_actions.dart';
 part 'src/actions/call_actions.dart';
 
 // 7579
+part 'src/7579/safe.dart';
 part 'src/7579/utils.dart';
 part 'src/7579/constants.dart';
 
