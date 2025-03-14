@@ -50,6 +50,10 @@ class Safe7579Abis {
         abi =
             '[{"type":"function","name":"uninstallModule","inputs":[{"name":"moduleType","type":"uint256","internalType":"uint256"},{"name":"module","type":"address","internalType":"address"},{"name":"deInitData","type":"bytes","internalType":"bytes"}],"outputs":[],"stateMutability":"nonpayable"}]';
         break;
+      case 'iModule':
+        abi =
+            '[{"type":"function","name":"isInitialized","inputs":[{"name":"smartAccount","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"isModuleType","inputs":[{"name":"moduleTypeId","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"execute","inputs":[{"name":"data","type":"bytes","internalType":"bytes"}],"outputs":[],"stateMutability":"nonpayable"}]';
+        break;
       default:
         throw 'ABI of $name is not available by default. Please provide the ABI manually.';
     }
