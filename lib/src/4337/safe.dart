@@ -1,6 +1,6 @@
 part of '../../variance_dart.dart';
 
-class _SafeInitializer implements SafeInitializerInterface {
+class _SafeInitializer implements SafeInitializer {
   @override
   final Iterable<EthereumAddress> owners;
   @override
