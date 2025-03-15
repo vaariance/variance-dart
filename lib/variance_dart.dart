@@ -31,6 +31,7 @@ part 'src/common/contract.dart';
 part 'src/common/pack.dart';
 part 'src/common/string.dart';
 part 'src/common/extensions.dart';
+part 'src/interfaces/safe_initializer_interface.dart';
 
 // actions
 part 'src/actions/7579_actions.dart';
