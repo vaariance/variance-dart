@@ -1,15 +1,14 @@
 part of '../../variance_dart.dart';
 
-class _SafeInitializer implements BaseSafeInitializer {
-  @override
+class _SafeInitializer {
   final Iterable<EthereumAddress> owners;
-  @override
+
   final int threshold;
-  @override
+
   final Safe4337ModuleAddress module;
-  @override
+
   final SafeSingletonAddress singleton;
-  @override
+
   final Uint8List Function(Uint8List Function())? encodeWebauthnSetup;
 
   _SafeInitializer({
@@ -23,7 +22,6 @@ class _SafeInitializer implements BaseSafeInitializer {
   /// Generates the initializer data for deploying a new Safe contract.
   ///
   /// Returns a [Uint8List] containing the encoded initializer data.
-  @override
   Uint8List getInitializer() {
     encodeModuleSetup() {
       return Contract.encodeFunctionCall(
