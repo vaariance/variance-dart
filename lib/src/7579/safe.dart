@@ -28,6 +28,12 @@ abstract class Safe7579Initializer extends _SafeInitializer {
   /// Optional threshold for the number of attesters required to validate a transaction.
   int? get attestersThreshold;
 
+  /// The address of the setup contract that will be used for preValidation setup.
+  EthereumAddress get setupTo;
+
+  /// The data to be passed to the setup contract for initialization.
+  Uint8List get setupData;
+
   /// Generates the initialization data for the launchpad contract.
   ///
   /// Returns a [Uint8List] containing the encoded initialization data.
@@ -49,6 +55,10 @@ class _Safe7579Initializer extends Safe7579Initializer {
   final Iterable<EthereumAddress>? attesters;
   @override
   final int? attestersThreshold;
+  @override
+  final EthereumAddress setupTo;
+  @override
+  final Uint8List setupData;
 
   _Safe7579Initializer({
     required super.owners,
@@ -56,6 +66,8 @@ class _Safe7579Initializer extends Safe7579Initializer {
     required super.module,
     required super.singleton,
     required this.launchpad,
+    required this.setupTo,
+    required this.setupData,
     this.validators,
     this.executors,
     this.fallbacks,
@@ -86,6 +98,10 @@ class _Safe7579Initializer extends Safe7579Initializer {
         threshold: threshold,
         module: module,
         singleton: singleton);
-    return encode7579InitCalldata(launchpad: launchpad, initHash: initHash);
+    return encode7579InitCalldata(
+        launchpad: launchpad,
+        initHash: initHash,
+        setupTo: setupTo,
+        setupData: setupData);
   }
 }

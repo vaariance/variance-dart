@@ -48,12 +48,12 @@ Uint8List get7579InitHash(
 }
 
 Uint8List encode7579InitCalldata(
-    {required EthereumAddress launchpad, required Uint8List initHash}) {
-  return Contract.encodeFunctionCall(
-      "preValidationSetup",
-      launchpad,
-      Safe7579Abis.get("preValidationSetup"),
-      [initHash, Addresses.zeroAddress, Uint8List(0)]);
+    {required EthereumAddress launchpad,
+    required Uint8List initHash,
+    required EthereumAddress setupTo,
+    required Uint8List setupData}) {
+  return Contract.encodeFunctionCall("preValidationSetup", launchpad,
+      Safe7579Abis.get("preValidationSetup"), [initHash, setupTo, setupData]);
 }
 
 Uint8List encodeExecutionMode(ExecutionMode executionMode) {

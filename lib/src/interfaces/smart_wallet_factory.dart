@@ -11,6 +11,17 @@ abstract class SmartWalletFactoryBase {
       Iterable<EthereumAddress>? attesters,
       int? attestersThreshold});
 
+  Future<SmartWallet> createSafe7579AccountWithPasskey(
+      PassKeyPair keyPair, Uint256 salt, EthereumAddress launchpad,
+      {EthereumAddress? p256Verifier,
+      SafeSingletonAddress? singleton,
+      Iterable<ModuleInit<EthereumAddress, Uint8List>>? validators,
+      Iterable<ModuleInit<EthereumAddress, Uint8List>>? executors,
+      Iterable<ModuleInit<EthereumAddress, Uint8List>>? fallbacks,
+      Iterable<ModuleInit<EthereumAddress, Uint8List>>? hooks,
+      Iterable<EthereumAddress>? attesters,
+      int? attestersThreshold});
+
   /// Creates a new P256 account using the provided key pair and salt.
   ///
   /// [PassKeyPair] is the key pair used to create the account.

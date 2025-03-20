@@ -86,6 +86,56 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       hooks: hooks,
       attesters: attesters,
       attestersThreshold: attestersThreshold,
+      setupTo: Addresses.zeroAddress,
+      setupData: Uint8List(0),
+    );
+
+    return _createSafeAccount(salt, initializer);
+  }
+
+  @override
+  Future<SmartWallet> createSafe7579AccountWithPasskey(
+      PassKeyPair keyPair, Uint256 salt, EthereumAddress launchpad,
+      {EthereumAddress? p256Verifier,
+      SafeSingletonAddress? singleton,
+      Iterable<ModuleInit<EthereumAddress, Uint8List>>? validators,
+      Iterable<ModuleInit<EthereumAddress, Uint8List>>? executors,
+      Iterable<ModuleInit<EthereumAddress, Uint8List>>? fallbacks,
+      Iterable<ModuleInit<EthereumAddress, Uint8List>>? hooks,
+      Iterable<EthereumAddress>? attesters,
+      int? attestersThreshold}) async {
+    final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
+    final verifier = p256Verifier ?? Addresses.p256VerifierAddress;
+
+    singleton = _chain.chainId == 1
+        ? SafeSingletonAddress.l1
+        : singleton ?? SafeSingletonAddress.l2;
+
+    encodeWebAuthnConfigure() {
+      return Contract.encodeFunctionCall("configure",
+          Addresses.sharedSignerAddress, ContractAbis.get("enableWebauthn"), [
+        [
+          keyPair.authData.publicKey.item1.value,
+          keyPair.authData.publicKey.item2.value,
+          hexToInt(verifier.hexNo0x.padLeft(44, '0')),
+        ]
+      ]);
+    }
+
+    final initializer = _Safe7579Initializer(
+      owners: [Addresses.sharedSignerAddress],
+      threshold: 1,
+      module: module,
+      singleton: singleton,
+      launchpad: launchpad,
+      validators: validators,
+      executors: executors,
+      fallbacks: fallbacks,
+      hooks: hooks,
+      attesters: attesters,
+      attestersThreshold: attestersThreshold,
+      setupTo: Addresses.sharedSignerAddress,
+      setupData: encodeWebAuthnConfigure(),
     );
 
     return _createSafeAccount(salt, initializer);
