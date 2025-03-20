@@ -104,6 +104,7 @@ abstract class SmartWalletBase {
   /// Parameters:
   ///   - `recipient`: The [EthereumAddress] of the transaction recipient.
   ///   - `amount`: The [EtherAmount] representing the amount to be sent in the transaction.
+  ///   - `nonceKey`: Optional [Uint256] representing the nonce key for the transaction. Defaults to the nonce from bundler.
   ///
   /// Returns:
   ///   A [Future] that completes with a [UserOperationResponse] containing information about the transaction.
@@ -118,9 +119,8 @@ abstract class SmartWalletBase {
   /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
   /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> send(
-    EthereumAddress recipient,
-    EtherAmount amount,
-  );
+      EthereumAddress recipient, EtherAmount amount,
+      {Uint256? nonceKey});
 
   /// Asynchronously sends a batched Ethereum transaction to multiple recipients with the given calls and optional amounts.
   ///
@@ -128,6 +128,7 @@ abstract class SmartWalletBase {
   ///   - `recipients`: A list of [EthereumAddress] representing the recipients of the batched transaction.
   ///   - `calls`: A list of [Uint8List] representing the calldata for each transaction in the batch.
   ///   - `amounts`: Optional list of [EtherAmount] representing the amounts for each transaction. Defaults to `null`.
+  ///   - `nonceKey`: Optional [Uint256] representing the nonce key for the batched transaction. Defaults to the nonce from bundler.
   ///
   /// Returns:
   ///   A [Future] that completes with a [UserOperationResponse] containing information about the batched transaction.
@@ -149,10 +150,8 @@ abstract class SmartWalletBase {
   /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
   /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> sendBatchedTransaction(
-    List<EthereumAddress> recipients,
-    List<Uint8List> calls, {
-    List<EtherAmount>? amounts,
-  });
+      List<EthereumAddress> recipients, List<Uint8List> calls,
+      {List<EtherAmount>? amounts, Uint256? nonceKey});
 
   /// Asynchronously sends a signed user operation to the bundler for execution.
   ///
@@ -174,6 +173,7 @@ abstract class SmartWalletBase {
   ///   - `to`: The [EthereumAddress] of the transaction recipient.
   ///   - `encodedFunctionData`: The [Uint8List] containing the encoded function data for the transaction.
   ///   - `amount`: Optional [EtherAmount] representing the amount to be sent in the transaction. Defaults to `null`.
+  ///   - `nonceKey`: Optional [Uint256] representing the nonce key for the transaction. Defaults to the nonce from bundler.
   ///
   /// Returns:
   ///   A [Future] that completes with a [UserOperationResponse] containing information about the transaction.
@@ -189,10 +189,8 @@ abstract class SmartWalletBase {
   /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
   /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> sendTransaction(
-    EthereumAddress to,
-    Uint8List encodedFunctionData, {
-    EtherAmount? amount,
-  });
+      EthereumAddress to, Uint8List encodedFunctionData,
+      {EtherAmount? amount, Uint256? nonceKey});
 
   /// Asynchronously sends a user operation after signing it and obtaining the required signatures.
   ///
@@ -208,7 +206,8 @@ abstract class SmartWalletBase {
   /// // when using passkey signer, the credentialId idenfies the credential that is associated with the account.
   /// var response = await sendUserOperation(myUserOperation, id: 'credentialId'); // index is effectively ignored even if provided
   /// ```
-  Future<UserOperationResponse> sendUserOperation(UserOperation op);
+  Future<UserOperationResponse> sendUserOperation(UserOperation op,
+      {Uint256? nonceKey});
 
   /// Asynchronously signs a user operation with the required signatures.
   ///
@@ -227,4 +226,12 @@ abstract class SmartWalletBase {
   /// var signedOperation = await signUserOperation(myUserOperation, index: 1); // signer 1
   /// ```
   Future<UserOperation> signUserOperation(UserOperation op, {int? index});
+
+  /// Returns the nonce for the Smart Wallet address.
+  ///
+  /// If the wallet is not deployed, returns 0.
+  /// Otherwise, retrieves the nonce by calling the 'getNonce' function on the entrypoint.
+  ///
+  /// If an error occurs during the nonce retrieval process, a [NonceError] exception is thrown.
+  Future<Uint256> getNonce([Uint256? key]);
 }

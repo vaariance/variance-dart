@@ -76,7 +76,8 @@ class SmartWallet extends SmartWalletBase
   Future<bool> get isDeployed => deployed(_walletAddress);
 
   @override
-  Future<Uint256> get nonce => _getNonce();
+  @Deprecated("Does not allow getting nonce with key, use `getNonce` instead")
+  Future<Uint256> get nonce => getNonce();
 
   @override
   @Deprecated("get `hex` from wallet [address]. e.g walletInstance.address.hex")
@@ -102,43 +103,47 @@ class SmartWallet extends SmartWalletBase
 
   @override
   Future<UserOperation> prepareUserOperation(UserOperation op,
-      {bool update = true}) async {
-    if (update) op = await _updateUserOperation(op);
+      {bool update = true, Uint256? nonceKey}) async {
+    if (update) op = await _updateUserOperation(op, nonceKey: nonceKey);
     op.validate(op.nonce > BigInt.zero, initCode);
     return op;
   }
 
   @override
   Future<UserOperationResponse> send(
-      EthereumAddress recipient, EtherAmount amount) async {
+      EthereumAddress recipient, EtherAmount amount,
+      {Uint256? nonceKey}) async {
     final cd = is7579Enabled
         ? await get7579ExecuteCalldata(to: recipient, amount: amount)
         : getExecuteCalldata(to: recipient, amount: amount);
-    return sendUserOperation(buildUserOperation(callData: cd));
+    return sendUserOperation(buildUserOperation(callData: cd),
+        nonceKey: nonceKey);
   }
 
   @override
   Future<UserOperationResponse> sendTransaction(
       EthereumAddress to, Uint8List encodedFunctionData,
-      {EtherAmount? amount}) async {
+      {EtherAmount? amount, Uint256? nonceKey}) async {
     final cd = is7579Enabled
         ? await get7579ExecuteCalldata(
             to: to, amount: amount, innerCallData: encodedFunctionData)
         : getExecuteCalldata(
             to: to, amount: amount, innerCallData: encodedFunctionData);
-    return sendUserOperation(buildUserOperation(callData: cd));
+    return sendUserOperation(buildUserOperation(callData: cd),
+        nonceKey: nonceKey);
   }
 
   @override
   Future<UserOperationResponse> sendBatchedTransaction(
       List<EthereumAddress> recipients, List<Uint8List> calls,
-      {List<EtherAmount>? amounts}) async {
+      {List<EtherAmount>? amounts, Uint256? nonceKey}) async {
     final cd = is7579Enabled
         ? await get7579ExecuteBatchCalldata(
             recipients: recipients, amounts: amounts, innerCalls: calls)
         : getExecuteBatchCalldata(
             recipients: recipients, amounts: amounts, innerCalls: calls);
-    return sendUserOperation(buildUserOperation(callData: cd));
+    return sendUserOperation(buildUserOperation(callData: cd),
+        nonceKey: nonceKey);
   }
 
   @override
@@ -162,12 +167,23 @@ class SmartWallet extends SmartWalletBase
   }
 
   @override
-  Future<UserOperationResponse> sendUserOperation(UserOperation op) =>
-      prepareUserOperation(op)
+  Future<UserOperationResponse> sendUserOperation(UserOperation op,
+          {Uint256? nonceKey}) =>
+      prepareUserOperation(op, nonceKey: nonceKey)
           .then(_applyGasOverrides)
           .then(sponsorUserOperation)
           .then(signUserOperation)
           .then(sendSignedUserOperation);
+
+  @override
+  Future<Uint256> getNonce([Uint256? key]) {
+    return isDeployed.then((deployed) => !deployed
+        ? Future.value(Uint256.zero)
+        : readContract(_chain.entrypoint.address, ContractAbis.get('getNonce'),
+                "getNonce", params: [_walletAddress, key?.value ?? BigInt.zero])
+            .then((value) => Uint256(value[0]))
+            .catchError((e) => throw NonceError(e.toString(), _walletAddress)));
+  }
 
   /// Returns the balance for the Smart Wallet address.
   ///
@@ -177,28 +193,15 @@ class SmartWallet extends SmartWalletBase
         (e) => throw FetchBalanceError(e.toString(), _walletAddress));
   }
 
-  /// Returns the nonce for the Smart Wallet address.
-  ///
-  /// If the wallet is not deployed, returns 0.
-  /// Otherwise, retrieves the nonce by calling the 'getNonce' function on the entrypoint.
-  ///
-  /// If an error occurs during the nonce retrieval process, a [NonceError] exception is thrown.
-  Future<Uint256> _getNonce() {
-    return isDeployed.then((deployed) => !deployed
-        ? Future.value(Uint256.zero)
-        : readContract(_chain.entrypoint.address, ContractAbis.get('getNonce'),
-                "getNonce", params: [_walletAddress, BigInt.zero])
-            .then((value) => Uint256(value[0]))
-            .catchError((e) => throw NonceError(e.toString(), _walletAddress)));
-  }
-
   /// Updates the user operation with the latest nonce and gas prices.
   ///
   /// [op] is the user operation to update.
   ///
   /// Returns a [Future] that resolves to the updated [UserOperation] object.
-  Future<UserOperation> _updateUserOperation(UserOperation op) async {
-    final responses = await Future.wait<dynamic>([_getNonce(), getGasPrice()]);
+  Future<UserOperation> _updateUserOperation(UserOperation op,
+      {Uint256? nonceKey}) async {
+    final responses =
+        await Future.wait<dynamic>([getNonce(nonceKey), getGasPrice()]);
 
     op = op.copyWith(
         nonce: op.nonce > BigInt.zero ? op.nonce : responses[0].value,
