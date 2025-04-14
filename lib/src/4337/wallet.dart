@@ -200,13 +200,17 @@ class SmartWallet extends SmartWalletBase
   /// Returns a [Future] that resolves to the updated [UserOperation] object.
   Future<UserOperation> _updateUserOperation(UserOperation op,
       {Uint256? nonceKey}) async {
-    final responses =
-        await Future.wait<dynamic>([getNonce(nonceKey), getGasPrice()]);
+    final responses = await Future.wait<dynamic>(
+        [getNonce(nonceKey), getGasPrice(), getBlockInformation()]);
+    final dummySignature = _signer.getDummySignature();
+    final signature = is7579Enabled
+        ? _safe?.getSafeSignature(dummySignature, responses[2])
+        : dummySignature;
 
     op = op.copyWith(
         nonce: op.nonce > BigInt.zero ? op.nonce : responses[0].value,
         initCode: responses[0] > Uint256.zero ? Uint8List(0) : null,
-        signature: _signer.getDummySignature());
+        signature: signature);
 
     return _updateUserOperationGas(op, responses[1]);
   }

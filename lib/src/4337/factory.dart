@@ -24,9 +24,10 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       address: _chain.accountFactory!, chainId: _chain.chainId, rpc: _rpc);
 
   /// A getter for the SafePlugin instance.
-  _SafeModule get _safeModule => _SafeModule(
-      address:
-          Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version).address,
+  _SafeModule _safeModule([bool safe7579 = false]) => _SafeModule(
+      address: Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version,
+              safe7579: safe7579)
+          .address,
       chainId: _chain.chainId,
       client: _safeProxyFactory.client);
 
@@ -68,7 +69,8 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       Iterable<EthereumAddress>? attesters,
       int? attestersThreshold}) async {
     final signer = EthereumAddress.fromHex(_signer.getAddress());
-    final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
+    final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version,
+        safe7579: true);
 
     singleton = _chain.chainId == 1
         ? SafeSingletonAddress.l1
@@ -104,7 +106,8 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       Iterable<ModuleInit<EthereumAddress, Uint8List>>? hooks,
       Iterable<EthereumAddress>? attesters,
       int? attestersThreshold}) async {
-    final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
+    final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version,
+        safe7579: true);
     final verifier = p256Verifier ?? Addresses.p256VerifierAddress;
 
     singleton = _chain.chainId == 1
@@ -180,7 +183,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     }
 
     encodeWebauthnSetup(Uint8List Function() encodeModuleSetup) {
-      return _safeModule.getSafeMultisendCallData(
+      return _safeModule().getSafeMultisendCallData(
           [module.setup, Addresses.sharedSignerAddress],
           null,
           [encodeModuleSetup(), encodeWebAuthnConfigure()],
@@ -257,8 +260,8 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     final initCode = _getInitCode(initCallData);
 
     // Create the SmartWallet instance for the Safe account
-    return _createAccount(
-        _chain, address, initCode, _safeModule, is7579 ? initializer : null);
+    return _createAccount(_chain, address, initCode, _safeModule(is7579),
+        is7579 ? initializer : null);
   }
 
   /// Returns the initialization code for the account by concatenating the account factory address with the provided initialization call data.

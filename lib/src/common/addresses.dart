@@ -32,6 +32,10 @@ class Addresses {
   static final EthereumAddress sharedSignerAddress =
       EthereumAddress.fromHex("0x94a4F6affBd8975951142c3999aEAB7ecee555c2");
 
+  // !!! Not Confirmed to be the official cannonical address for the safe7579 accross all chains
+  static final EthereumAddress safe7579 =
+      EthereumAddress.fromHex("0x7579EE8307284F293B1927136486880611F20002");
+
   Addresses._();
 }
 
@@ -78,6 +82,12 @@ class Safe4337ModuleAddress {
     Addresses.safeModuleSetupAddressv07,
   );
 
+  static Safe4337ModuleAddress v07_7579 = Safe4337ModuleAddress(
+    0.7,
+    Addresses.safe7579,
+    Addresses.zeroAddress,
+  );
+
   /// The version of the Safe4337Module contract.
   final double version;
 
@@ -105,12 +115,15 @@ class Safe4337ModuleAddress {
   /// ```dart
   /// final moduleAddress = Safe4337ModuleAddress.fromVersion(0.6);
   /// ```
-  factory Safe4337ModuleAddress.fromVersion(double version) {
+  factory Safe4337ModuleAddress.fromVersion(double version,
+      {bool safe7579 = false}) {
     switch (version) {
       case 0.6:
         return Safe4337ModuleAddress.v06;
       case 0.7:
-        return Safe4337ModuleAddress.v07;
+        return safe7579
+            ? Safe4337ModuleAddress.v07_7579
+            : Safe4337ModuleAddress.v07;
       default:
         throw Exception("Unsupported version: $version");
     }

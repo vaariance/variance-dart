@@ -113,7 +113,23 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
   /// Returns a Future that resolves to the hash of the user operation as a Uint8List.
   Future<Uint8List> getSafeOperationHash(
       UserOperation op, BlockInformation blockInfo) async {
-    if (self.address == Safe4337ModuleAddress.v07.address) {
+    if (self.address == Safe4337ModuleAddress.v07_7579.address) {
+      final operationData = await getSafeOp((
+        entryPoint: EntryPointAddress.v07.address,
+        userOp: [
+          op.sender,
+          op.nonce,
+          op.initCode,
+          op.callData,
+          packUints(op.verificationGasLimit, op.callGasLimit),
+          op.preVerificationGas,
+          packUints(op.maxPriorityFeePerGas, op.maxFeePerGas),
+          op.paymasterAndData,
+          hexToBytes(getSafeSignature(op.signature, blockInfo))
+        ]
+      ));
+      return keccak256(operationData.operationData);
+    } else if (self.address == Safe4337ModuleAddress.v07.address) {
       return getOperationHash$2((
         userOp: [
           op.sender,
@@ -127,22 +143,23 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
           hexToBytes(getSafeSignature(op.signature, blockInfo))
         ]
       ));
+    } else {
+      return getOperationHash((
+        userOp: [
+          op.sender,
+          op.nonce,
+          op.initCode,
+          op.callData,
+          op.callGasLimit,
+          op.verificationGasLimit,
+          op.preVerificationGas,
+          op.maxFeePerGas,
+          op.maxPriorityFeePerGas,
+          op.paymasterAndData,
+          hexToBytes(getSafeSignature(op.signature, blockInfo))
+        ]
+      ));
     }
-    return getOperationHash((
-      userOp: [
-        op.sender,
-        op.nonce,
-        op.initCode,
-        op.callData,
-        op.callGasLimit,
-        op.verificationGasLimit,
-        op.preVerificationGas,
-        op.maxFeePerGas,
-        op.maxPriorityFeePerGas,
-        op.paymasterAndData,
-        hexToBytes(getSafeSignature(op.signature, blockInfo))
-      ]
-    ));
   }
 
   /// Encodes the signature of a user operation with a validity period.

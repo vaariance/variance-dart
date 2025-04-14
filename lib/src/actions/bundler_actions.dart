@@ -10,8 +10,15 @@ mixin _bundlerActions implements BundlerProviderBase {
   @override
   Future<UserOperationGas> estimateUserOperationGas(
       Map<String, dynamic> userOp, EntryPointAddress entrypoint) async {
-    final opGas = await _bundlerRpc.send<Map<String, dynamic>>(
-        'eth_estimateUserOperationGas', [userOp, entrypoint.address.hex]);
+    final opGas = await _bundlerRpc
+        .send<Map<String, dynamic>>('eth_estimateUserOperationGas', [
+      userOp,
+      entrypoint.address.hex,
+      // ? not sure if this should be global or only applied to pimlico only
+      {
+        '${userOp['sender']}': {"balance": "0x56BC75E2D63100000"}
+      }
+    ]);
     return UserOperationGas.fromMap(opGas);
   }
 
