@@ -20,10 +20,10 @@ class InitialPage extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFFE6E6FA),
                     borderRadius: BorderRadius.circular(100),
-                    border: Border.all(color: const Color(0xFF9370DB), width: 3), // Medium purple border
+                    border: Border.all(color: const Color(0xFF9370DB), width: 3),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha:0.1),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
@@ -32,7 +32,7 @@ class InitialPage extends StatelessWidget {
                   child: const Icon(
                     Icons.account_balance_wallet_outlined,
                     size: 80,
-                    color: Color(0xFF663399), // Rebecca Purple for the icon
+                    color: Color(0xFF663399),
                   ),
                 ),
               ),
@@ -43,11 +43,11 @@ class InitialPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFFE6E6FA), // Indigo for text
+                  color: const Color(0xFFE6E6FA),
                   shadows: [
                     Shadow(
                       blurRadius: 2.0,
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha:0.2),
                       offset: const Offset(1, 1),
                     ),
                   ],
@@ -55,12 +55,12 @@ class InitialPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               // Subtitle text
-              Text(
+              const Text(
                 "Choose your preferred account abstraction solution",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Color(0xFFE6E6FA), // BlueViolet for subtitle
+                  color: Color(0xFFE6E6FA),
                   height: 1.5,
                 ),
               ),
@@ -71,16 +71,15 @@ class InitialPage extends StatelessWidget {
                 "Native Account Abstraction",
                 Icons.smart_toy_outlined,
                     () => Navigator.pushNamed(context, '/create-account'),
-                const Color(0xFF9370DB), // Medium Purple
+                const Color(0xFF9370DB),
               ),
               const SizedBox(height: 20),
-              // Second navigation button
               _buildNavigationButton(
                 context,
                 "EIP 7579 Modules",
                 Icons.security_outlined,
                     () => Navigator.pushNamed(context, '/7579'),
-                const Color(0xFF8A2BE2), // Blue Violet
+                const Color(0xFF8A2BE2),
               ),
               const Spacer(),
               // Footer text
@@ -90,7 +89,7 @@ class InitialPage extends StatelessWidget {
                   "© 2025 Account Abstraction Test",
                   style: TextStyle(
                     fontSize: 12,
-                    color:Color(0xFFE6E6FA).withOpacity(0.7),
+                    color:const Color(0xFFE6E6FA).withValues(alpha: 0.7),
                   ),
                 ),
               ),
