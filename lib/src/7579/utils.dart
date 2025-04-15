@@ -85,11 +85,13 @@ Uint8List encode7579BatchCall(List<Uint8List> calldatas) {
   return abi.encode([
     "(address,uint256,bytes)[]"
   ], [
-    calldatas.map((calldata) => [
-          calldata.sublist(0, 20), // address 20 bytes
-          calldata.sublist(20, 52), // uint256 32 bytes
-          calldata.sublist(52) // rest
-        ])
+    calldatas
+        .map((calldata) => [
+              EthereumAddress(calldata.sublist(0, 20)), // address 20 bytes
+              bytesToInt(calldata.sublist(20, 52)), // uint256 32 bytes
+              calldata.sublist(52) // rest
+            ])
+        .toList()
   ]);
 }
 
