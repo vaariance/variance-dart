@@ -25,7 +25,7 @@ class WalletProvider extends ChangeNotifier {
 
   final salt = Uint256.zero;
   static const rpc =
-      "https://api.pimlico.io/v2/84532/rpc?apikey=${'PIMLICO_API_KEY'}";
+      "https://api.pimlico.io/v2/84532/rpc?apikey=pim_jXSUBppqFS1x8r1MvczAzm";
 
   WalletProvider()
       : _chain = Chains.getChain(Network.baseTestnet)
