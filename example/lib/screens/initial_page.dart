@@ -86,7 +86,7 @@ class InitialPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 30.0),
                 child: Text(
-                  "© 2025 Account Abstraction Test",
+                  "© 2025 variance inc",
                   style: TextStyle(
                     fontSize: 12,
                     color:const Color(0xFFE6E6FA).withValues(alpha: 0.7),
