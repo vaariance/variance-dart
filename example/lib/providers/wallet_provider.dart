@@ -37,7 +37,7 @@ class WalletProvider extends ChangeNotifier {
 
   // Common parameters
   final salt = Uint256.zero;
-  static const rpc = "https://api.pimlico.io/v2/84532/rpc?apikey=pim_jXSUBppqFS1x8r1MvczAzm";
+  static const rpc = "https://api.pimlico.io/v2/84532/rpc?apikey={}";
 
   // Constructor
   WalletProvider() : _chain = Chains.getChain(Network.baseTestnet) {
