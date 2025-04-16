@@ -68,7 +68,7 @@ class InitialPage extends StatelessWidget {
               // First navigation button
               _buildNavigationButton(
                 context,
-                "Native Account Abstraction",
+                "Non Modular Accounts",
                 Icons.smart_toy_outlined,
                     () => Navigator.pushNamed(context, '/create-account'),
                 const Color(0xFF9370DB),
@@ -76,7 +76,7 @@ class InitialPage extends StatelessWidget {
               const SizedBox(height: 20),
               _buildNavigationButton(
                 context,
-                "EIP 7579 Modules",
+                "EIP 7579 Modular Accounts",
                 Icons.security_outlined,
                     () => Navigator.pushNamed(context, '/7579'),
                 const Color(0xFF8A2BE2),

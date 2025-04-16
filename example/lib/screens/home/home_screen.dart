@@ -1,210 +1,378 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
 import 'package:variancedemo/screens/home/home_widgets.dart';
-import 'package:variancedemo/utils/widgets.dart';
-import 'package:variancedemo/variance_colors.dart';
 
-class WalletHome extends StatefulWidget {
-  const WalletHome({super.key});
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  State<WalletHome> createState() => _WalletHomeState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _WalletHomeState extends State<WalletHome>
-    with SingleTickerProviderStateMixin {
-  final _formKey = GlobalKey<FormState>();
-  late TabController _tabController;
-  TextEditingController amountController = TextEditingController();
-  TextEditingController addressController = TextEditingController();
-
-  @override
-  void initState() {
-    _tabController = TabController(length: 3, vsync: this);
-    super.initState();
-  }
+class _HomeScreenState extends State<HomeScreen> {
+  bool _isLoadingTransfer = false;
+  bool _isLoadingMint = false;
+  String _transferTxHash = '';
+  String _mintTxHash = '';
 
   @override
   Widget build(BuildContext context) {
+    final walletProvider = context.watch<WalletProvider>();
+    final walletAddress = walletProvider.wallet?.address.hex ?? 'Not connected';
+
     return Scaffold(
-      backgroundColor: VarianceColors.primary,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 19.h, horizontal: 16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const WalletBalance(),
-              50.verticalSpace,
-              TabBar(
-                controller: _tabController,
-                tabs: [
-                  Tab(
-                    child: Text('Send',
-                        style: TextStyle(
-                            fontSize: 20.sp, color: VarianceColors.secondary)),
-                  ),
-                  Tab(
-                    child: Text('Receive',
-                        style: TextStyle(
-                            fontSize: 20.sp, color: VarianceColors.secondary)),
-                  ),
-                  Tab(
-                    child: Text('NFT',
-                        style: TextStyle(
-                            fontSize: 20.sp, color: VarianceColors.secondary)),
-                  ),
-                ],
-              ),
-              Expanded(
-                child: TabBarView(controller: _tabController, children: [
-                  Send(
-                      addressController: addressController,
-                      formKey: _formKey,
-                      amountController: amountController),
-                  const Receive(),
-                  const NFT(),
-                ]),
-              ),
-              60.verticalSpace,
-            ],
+      backgroundColor: Theme.of(context).colorScheme.onSurface,
+      appBar: AppBar(
+         backgroundColor: Theme.of(context).colorScheme.onSurface,
+        title: const Text('Wallet Home'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              Navigator.pushReplacementNamed(context, '/create-account');
+            },
           ),
+        ],
+        leading: BackButton(color: Theme.of(context).colorScheme.onPrimary,),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const WalletBalance(),
+            Card(
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Wallet Address',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      walletAddress,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+            // ERC20 Transfer Action
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 220,
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoadingTransfer ? null : () => _showSendDialog(context),
+                    icon: _isLoadingTransfer
+                        ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.blue,
+                      ),
+                    )
+                        : const Icon(Icons.send, color: Colors.blue),
+                    label: Text(
+                      _isLoadingTransfer ? 'Sending...' : 'Simulate ERC20 Transfer',
+                      style: const TextStyle(
+                        color: Colors.blue,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.blue,
+                      backgroundColor: Colors.blue.withOpacity(0.1),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ),
+                if (_transferTxHash.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, left: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Transaction Hash:',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _transferTxHash,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: 'monospace',
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.copy, size: 16),
+                                onPressed: () => _copyToClipboard(_transferTxHash),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 200,
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoadingMint ? null : () => _mintNFT(context),
+                    icon: _isLoadingMint
+                        ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.purple,
+                      ),
+                    )
+                        : const Icon(Icons.image, color: Colors.purple),
+                    label: Text(
+                      _isLoadingMint ? 'Minting...' : 'Simulate Mint NFT',
+                      style: const TextStyle(
+                        color: Colors.purple,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.purple,
+                      backgroundColor: Colors.purple.withOpacity(0.1),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ),
+
+                if (_mintTxHash.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, left: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Transaction Hash:',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _mintTxHash,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: 'monospace',
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.copy, size: 16),
+                                onPressed: () => _copyToClipboard(_mintTxHash),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
-}
 
-class Send extends StatelessWidget {
-  const Send({
-    super.key,
-    required this.addressController,
-    required GlobalKey<FormState> formKey,
-    required this.amountController,
-  }) : _formKey = formKey;
-
-  final TextEditingController addressController;
-  final GlobalKey<FormState> _formKey;
-  final TextEditingController amountController;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      // mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        50.verticalSpace,
-        AddressBar(
-          hintText: 'Eth Address',
-          textEditingController: addressController,
-        ),
-        18.verticalSpace,
-        TextFormField(
-            style: TextStyle(
-                fontSize: 51.sp,
-                fontWeight: FontWeight.w600,
-                color: VarianceColors.secondary),
-            key: _formKey,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter a value';
-              } else if (int.parse(value) > 100) {
-                return 'Value should be less than or equal to 100';
-              }
-              return null;
-            },
-            onChanged: (value) {
-              if (value.isEmpty) {
-                return;
-              }
-            },
-            textAlign: TextAlign.center,
-            controller: amountController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              focusColor: Colors.white,
-              fillColor: Colors.white,
-              border: InputBorder.none,
-              hintText: '0.0',
-              hintStyle:
-                  TextStyle(fontSize: 51, color: VarianceColors.secondary),
-            ),
-            cursorColor: VarianceColors.secondary,
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(
-                RegExp(r'^\.?\d*(?<!\.)\.?\d*'),
-              )
-            ]),
-        SizedBox(
-          height: 58.h,
-          width: double.infinity,
-          child: TextButton(
-              style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  backgroundColor: VarianceColors.white),
-              onPressed: () {
-                log(amountController.text);
-                log(addressController.text);
-                context.read<WalletProvider>().sendTransaction(
-                    addressController.text, amountController.text);
-              },
-              child: const Text('Send')),
-        ),
-      ],
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Copied to clipboard'),
+        duration: Duration(seconds: 2),
+      ),
     );
   }
-}
 
-class NFT extends StatelessWidget {
-  const NFT({super.key});
+  Future<void> _showSendDialog(BuildContext context) async {
+    final TextEditingController recipientController = TextEditingController();
+    final TextEditingController amountController = TextEditingController();
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        50.verticalSpace,
-        Row(
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Send Transaction'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const CircleAvatar(),
-            10.horizontalSpace,
-            const Text(
-              'NFT',
-              style: TextStyle(color: VarianceColors.secondary),
+            TextField(
+              controller: recipientController,
+              decoration: const InputDecoration(
+                labelText: 'Recipient Address',
+              ),
             ),
-            const Spacer(),
-            const Text(
-              '\$0.00',
-              style: TextStyle(color: VarianceColors.secondary),
+            const SizedBox(height: 16),
+            TextField(
+              controller: amountController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Amount',
+              ),
             ),
           ],
         ),
-        10.verticalSpace,
-        Row(children: [
-          const CircleAvatar(),
-          10.horizontalSpace,
-          const Text(
-            'NFT',
-            style: TextStyle(color: VarianceColors.secondary),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
-          const Spacer(),
-          const Text(
-            '\$0.00',
-            style: TextStyle(color: VarianceColors.secondary),
-          ),
-        ]),
-        const Spacer(),
-        ElevatedButton(
+          ElevatedButton(
             onPressed: () {
-              context.read<WalletProvider>().mintNFt();
+              _sendTransaction(
+                context,
+                recipientController.text,
+                amountController.text,
+              );
+              Navigator.pop(context);
             },
-            child: const Text('Mint')),
-      ],
+            child: const Text('Send'),
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _sendTransaction(
+      BuildContext context,
+      String recipient,
+      String amount,
+      ) async {
+    final walletProvider = context.read<WalletProvider>();
+
+    setState(() {
+      _isLoadingTransfer = true;
+    });
+
+    try {
+      final (success, hash) = await walletProvider.sendTransaction(recipient, amount);
+
+      setState(() {
+        _isLoadingTransfer = false;
+        if (success && hash.isNotEmpty) {
+          _transferTxHash = hash;
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success ? 'Transaction sent successfully' : 'Failed to send transaction',
+          ),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _isLoadingTransfer = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _mintNFT(BuildContext context) async {
+    final walletProvider = context.read<WalletProvider>();
+
+    setState(() {
+      _isLoadingMint = true;
+    });
+
+    try {
+      final (success, hash) = await walletProvider.mintNFT();
+
+      setState(() {
+        _isLoadingMint = false;
+        if (success && hash.isNotEmpty) {
+          _mintTxHash = hash;
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success ? 'NFT minted successfully' : 'Failed to mint NFT',
+          ),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _isLoadingMint = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

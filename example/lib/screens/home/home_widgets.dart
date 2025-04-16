@@ -40,7 +40,6 @@ class _WalletBalanceState extends State<WalletBalance> {
         balance = Uint256.fromWei(ether ?? EtherAmount.zero());
       });
     }
-    //if the wallet is created with a passkey
 
     getBalance();
     return Consumer<WalletProvider>(
@@ -66,12 +65,25 @@ class _WalletBalanceState extends State<WalletBalance> {
                 ),
                 const Spacer(),
                 Expanded(
-                  child: Text(
-                    address,
-                    style: const TextStyle(
-                      color: VarianceColors.secondary,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: IconButton(
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(text: address));
+                              },
+                              icon: const Icon(Icons.copy_all_rounded,
+                                  color: VarianceColors.secondary))),
+                      Expanded(
+                        child: Text(
+                          address,
+                          style: const TextStyle(
+                            color: VarianceColors.secondary,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 )
               ],

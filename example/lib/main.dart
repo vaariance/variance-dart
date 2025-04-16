@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/': (context) => const InitialPage(),
           '/create-account': (context) => const CreateAccountScreen(),
-          '/home': (context) => const WalletHome(),
+          '/home': (context) => const HomeScreen(),
           '/7579': (context) => const Eip7579Screen(),
         },
         theme: ThemeData(
