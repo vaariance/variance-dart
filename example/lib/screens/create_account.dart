@@ -29,6 +29,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.onSurface,
+        appBar: AppBar(
+          actions: [
+          ],
+        ),
         body: Consumer<WalletProvider>(
           builder: (context, value, child) {
             return Padding(
@@ -39,7 +44,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 children: [
                   const Text(
                     'Create Account',
-                    style: TextStyle(fontSize: 51, fontWeight: FontWeight.w500),
+                    style: TextStyle(fontSize: 51, fontWeight: FontWeight.w500, color: Colors.white),
                   ),
                   const SizedBox(height: 50),
                   Row(
@@ -181,24 +186,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   Container(
                       margin: const EdgeInsets.only(left: 135),
                       child: Text('OR', style: TextStyle(fontSize: 18.sp))),
-                  24.verticalSpace,
-                  Container(
-                    margin: const EdgeInsets.only(left: 30),
-                    child: TextButton.icon(
-                        onPressed: () {
-                          try {
-                            context
-                                .read<WalletProvider>()
-                                .createSafe7579Wallet();
-                            Navigator.pushNamed(context, '/home');
-                          } catch (e) {
-                            'Something went wrong: $e';
-                          }
-                        },
-                        icon: const Icon(
-                            CupertinoIcons.square_stack_3d_down_right),
-                        label: const Text('Create Safe 7579 modular account')),
-                  ),
                 ],
               ),
             );

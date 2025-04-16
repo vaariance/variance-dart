@@ -3,8 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
+import 'package:variancedemo/screens/EIP_7579_screen.dart';
 import 'package:variancedemo/screens/create_account.dart';
 import 'package:variancedemo/screens/home/home_screen.dart';
+import 'package:variancedemo/screens/initial_page.dart';
 
 final globalScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -25,8 +27,10 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Variance Dart',
         routes: {
-          '/': (context) => const CreateAccountScreen(),
+          '/': (context) => const InitialPage(),
+          '/create-account': (context) => const CreateAccountScreen(),
           '/home': (context) => const WalletHome(),
+          '/7579': (context) => const Eip7579Screen(),
         },
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xffE1FF01)),
