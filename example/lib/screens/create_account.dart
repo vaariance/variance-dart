@@ -40,7 +40,9 @@ class _CreateAccountContent extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.onSurface,
         appBar: AppBar(
           title: const Text('Create Account'),
+          backgroundColor: Theme.of(context).colorScheme.onSurface,
           elevation: 0,
+          leading: BackButton(color: Theme.of(context).colorScheme.onPrimary),
         ),
         body: LoadingOverlay(
           isLoading: accountProvider.isLoading || walletProvider.creationState == WalletCreationState.loading,

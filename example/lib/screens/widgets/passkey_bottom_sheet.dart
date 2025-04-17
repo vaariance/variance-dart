@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../utils/utils.dart';
 
-class PasskeyBottomSheet extends StatefulWidget {
+class  PasskeyBottomSheet extends StatefulWidget {
   const PasskeyBottomSheet({Key? key}) : super(key: key);
 
   static void show(BuildContext context) {
@@ -92,7 +92,7 @@ class _PasskeyBottomSheetState extends State<PasskeyBottomSheet> {
             child: ElevatedButton(
               onPressed: isLoading ? null : _handleContinue,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xffE1FF01),
+                backgroundColor: const Color(0xFF663399),
                 foregroundColor: Colors.black,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -112,6 +112,7 @@ class _PasskeyBottomSheetState extends State<PasskeyBottomSheet> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: Colors.white
                 ),
               ),
             ),
