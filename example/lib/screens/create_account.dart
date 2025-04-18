@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:variancedemo/screens/widgets/info_card.dart';
 import 'package:variancedemo/screens/widgets/loading_overlay.dart';
 import 'package:variancedemo/screens/widgets/passkey_bottom_sheet.dart';
 import '../models/signer_options.dart';

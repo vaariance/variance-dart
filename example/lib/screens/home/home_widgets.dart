@@ -11,6 +11,8 @@ import 'package:variancedemo/variance_colors.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:web3dart/web3dart.dart';
 
+import '../../utils/shorten_address.dart';
+
 String address = '';
 
 class WalletBalance extends StatefulWidget {
@@ -44,58 +46,52 @@ class _WalletBalanceState extends State<WalletBalance> {
     getBalance();
     return Consumer<WalletProvider>(
       builder: (context, value, child) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'Total Balance',
-                  style: TextStyle(
-                      color: VarianceColors.secondary, fontSize: 14.sp),
-                ),
-                10.horizontalSpace,
-                const Image(
-                  image: AssetImage(
-                    'assets/images/down-arrow.png',
+        return // For the specific layout you shared earlier:
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'Total Balance',
+                    style: TextStyle(color: VarianceColors.secondary, fontSize: 14.sp),
                   ),
-                  height: 10,
-                  width: 10,
-                  color: VarianceColors.secondary,
-                ),
-                const Spacer(),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                          child: IconButton(
-                              onPressed: () {
-                                Clipboard.setData(ClipboardData(text: address));
-                              },
-                              icon: const Icon(Icons.copy_all_rounded,
-                                  color: VarianceColors.secondary))),
-                      Expanded(
-                        child: Text(
-                          address,
-                          style: const TextStyle(
-                            color: VarianceColors.secondary,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
+                  10.horizontalSpace,
+                  const Image(
+                    image: AssetImage('assets/images/down-arrow.png'),
+                    height: 10,
+                    width: 10,
+                    color: VarianceColors.secondary,
+                  ),
+                  const Spacer(), // This is fine in a Row
+                  IconButton(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: address));
+                    },
+                    icon: const Icon(Icons.copy_all_rounded, color: VarianceColors.secondary),
+                    constraints: const BoxConstraints(),
+                    padding: EdgeInsets.zero,
+                  ),
+                  8.horizontalSpace,
+                  Flexible( // Changed from Expanded to Flexible
+                    child: Text(
+                      EthereumAddressUtils.shortenAddress(address),
+                      style: const TextStyle(
+                        color: VarianceColors.secondary,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
+                    ),
                   ),
-                )
-              ],
-            ),
-            18.verticalSpace,
-            Text(
-              '${balance.fromUnit(18)} ETH',
-              style: TextStyle(color: Colors.white, fontSize: 24.sp),
-            ),
-            18.verticalSpace,
-          ],
-        );
+                ],
+              ),
+              18.verticalSpace,
+              Text(
+                '${balance.fromUnit(18)} ETH',
+                style: TextStyle(color: Colors.white, fontSize: 24.sp),
+              ),
+              18.verticalSpace,
+            ],
+          );
       },
     );
   }
@@ -105,7 +101,7 @@ String message = address;
 final FutureBuilder<ui.Image> qrFutureBuilder = FutureBuilder<ui.Image>(
   future: _loadOverlayImage(),
   builder: (BuildContext ctx, AsyncSnapshot<ui.Image> snapshot) {
-    const double size = 280.0;
+    const double size = 150.0;
     if (!snapshot.hasData) {
       return const SizedBox(width: size, height: size);
     }
@@ -145,75 +141,19 @@ class Receive extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.89,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            50.verticalSpace,
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(10.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: qrFutureBuilder, // Replace with your content
-              ),
+      child: Column(
+        children: [
+          20.verticalSpace,
+          Container(
+            padding: const EdgeInsets.all(10.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
             ),
-            const SizedBox(height: 50),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              // margin: const EdgeInsets.symmetric(horizontal: 15),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey.shade400),
-              ),
-              child: Row(
-                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(
-                    width: 200,
-                    child: Text(
-                      message,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        overflow: TextOverflow.ellipsis,
-                        color: const Color(0xff32353E).withOpacity(0.5),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(
-                          text: message,
-                        ));
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xff32353E),
-                        padding: const EdgeInsets.only(left: 30, right: 30),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'copy',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Inter',
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+            child: qrFutureBuilder,
+          ),
+          20.verticalSpace, // Added bottom spacing
+        ],
       ),
     );
   }

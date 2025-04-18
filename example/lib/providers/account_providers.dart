@@ -8,9 +8,11 @@ class AccountProvider extends ChangeNotifier {
   bool _isLightAccountExpanded = false;
   bool _isSafeAccountExpanded = false;
 
+
   // Selected signer types
   String? _selectedLightSigner;
   String? _selectedSafeSigner;
+
 
   // Loading state
   bool _isLoading = false;
@@ -24,6 +26,7 @@ class AccountProvider extends ChangeNotifier {
   String? get selectedLightSigner => _selectedLightSigner;
   String? get selectedSafeSigner => _selectedSafeSigner;
 
+
   // Loading state getters
   bool get isLoading => _isLoading;
   String get loadingMessage => _loadingMessage;
@@ -31,10 +34,13 @@ class AccountProvider extends ChangeNotifier {
   // Account options (cached)
   final List<SignerOption> _lightAccountOptions = WalletUtils.getLightAccountOptions();
   final List<SignerOption> _safeAccountOptions = WalletUtils.getSafeAccountOptions();
+  final List<SignerOption> _7579AccountOptions = WalletUtils.get7579AccountOptions();
+  final List<SignerOption> _registryHookAccountOptions = WalletUtils.getRegistryAccountOptions();
 
   // Getters for options
   List<SignerOption> get lightAccountOptions => _lightAccountOptions;
   List<SignerOption> get safeAccountOptions => _safeAccountOptions;
+
 
   // Methods to toggle dropdown states
   void toggleLightAccountExpanded() {
@@ -66,6 +72,17 @@ class AccountProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void select7579Signer(String signerId) {
+    _selectedSafeSigner = null;
+    _selectedLightSigner = null;
+    notifyListeners();
+  }
+
+  void selectRegistryHookSigner(String signerId) {
+    _selectedSafeSigner = null;
+    _selectedLightSigner = null;
+    notifyListeners();
+  }
   // Methods to manage loading state
   void setLoading({String message = 'Creating account...'}) {
     _isLoading = true;

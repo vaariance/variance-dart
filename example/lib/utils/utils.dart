@@ -51,7 +51,51 @@ class WalletUtils {
       ),
     ];
   }
+  static List<SignerOption> get7579AccountOptions () {
+    return [
+      SignerOption(
+        id: 'safe-seedPhrase',
+        name: 'Seed Phrase Modular account',
+        icon: Icons.vpn_key,
+        description: 'Create 7579 modular account with a seed phrase (12-word mnemonic)',
+      ),
+      SignerOption(
+        id: 'safe-privateKey',
+        name: 'Private Key Modular account',
+        icon: Icons.key,
+        description: 'Create 7579 modular account with a random private key',
+      ),
+      SignerOption(
+        id: 'passkey',
+        name: 'Passkey Authentication',
+        icon: Icons.fingerprint,
+        description: 'Create 7579 modular account using passkey biometric authentication',
+      ),
+    ];
+  }
 
+  static List<SignerOption> getRegistryAccountOptions () {
+    return [
+      SignerOption(
+        id: 'safe-seedPhrase',
+        name: 'Seed Phrase Registry Account',
+        icon: Icons.vpn_key,
+        description: 'Create 7579 modular account with a seed phrase (12-word mnemonic)',
+      ),
+      SignerOption(
+        id: 'safe-privateKey',
+        name: 'Private Key Registry Account',
+        icon: Icons.key,
+        description: 'Create 7579 modular account with a random private key',
+      ),
+      SignerOption(
+        id: 'passkey',
+        name: 'Passkey Registry Account',
+        icon: Icons.fingerprint,
+        description: 'Create 7579 modular account using passkey biometric authentication',
+      ),
+    ];
+  }
   // Show toast message
   static void showToast(BuildContext context, String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(

@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:variance_dart/variance_dart.dart';
 import 'package:web3dart/web3dart.dart';
@@ -37,7 +38,7 @@ class WalletProvider extends ChangeNotifier {
 
   // Common parameters
   final salt = Uint256.zero;
-  static const rpc = "https://api.pimlico.io/v2/84532/rpc?apikey={}";
+  static var rpc = dotenv.env['BUNDLER_URL']!;
 
   // Constructor
   WalletProvider() : _chain = Chains.getChain(Network.baseTestnet) {
@@ -92,6 +93,7 @@ class WalletProvider extends ChangeNotifier {
       final options = PassKeysOptions(
         name: "variance",
         namespace: "variance.space",
+        authenticatorAttachment: "cross-platform",
         sharedWebauthnSigner: Addresses.sharedSignerAddress,
       );
       final pkpSigner = PassKeySigner(options: options);
