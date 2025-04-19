@@ -206,6 +206,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   }
 
   @override
+  @Deprecated("Use default account standards")
   Future<SmartWallet> createVendorAccount(
     EthereumAddress address,
     Uint8List initCode,
