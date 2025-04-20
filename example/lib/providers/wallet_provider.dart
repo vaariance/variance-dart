@@ -33,10 +33,10 @@ class WalletProvider extends ChangeNotifier {
 
   // Contract addresses
   final EthereumAddress nft =
-      EthereumAddress.fromHex("0x3661b40C520a273214d281bd84730BA68604d874");
+      EthereumAddress.fromHex("0xBF20E2bB8bb6859A424C898d5a2995c3659b90f2");
   final EthereumAddress erc20 =
-      EthereumAddress.fromHex("0x69583ED4AA579fdc83FB6CCF13A5Ffd9B39F62aF");
-  final EthereumAddress deployer =
+      EthereumAddress.fromHex("0xAc94c8dD3094AB2D68B092AA34A6e29A293E592a");
+  final EthereumAddress dump =
       EthereumAddress.fromHex("0xf5bb7f874d8e3f41821175c0aa9910d30d10e193");
   final EthereumAddress p256Verifier =
       EthereumAddress.fromHex("0xc2b78104907F722DABAc4C69f826a522B2754De4");
@@ -44,22 +44,18 @@ class WalletProvider extends ChangeNotifier {
   // Common parameters
   final salt = Uint256.zero;
   static var rpc = dotenv.env['BUNDLER_URL']!;
-  static const jsonRpcUrl = "https://sepolia.base.org";
 
   // Constructor
-  WalletProvider() : _chain = Chains.getChain(Network.baseTestnet) {
-    _initializeChain();
-  }
-
-  // Initialize chain configuration
-  void _initializeChain() {
-    _chain
-      ..accountFactory = Addresses.safeProxyFactoryAddress
-      ..bundlerUrl = rpc
-      ..paymasterUrl = rpc
-      ..jsonRpcUrl = jsonRpcUrl
-      ..testnet = true;
-  }
+  WalletProvider()
+      : _chain = Chain(
+            bundlerUrl: rpc,
+            paymasterUrl: rpc,
+            testnet: true,
+            chainId: 123,
+            jsonRpcUrl: "https://rpc.fusespark.io",
+            accountFactory: Addresses.safeProxyFactoryAddress,
+            explorer: "https://explorer.fusespark.io/",
+            entrypoint: EntryPointAddress.v07);
 
   // Set loading state
   void _setLoading() {
@@ -127,13 +123,14 @@ class WalletProvider extends ChangeNotifier {
             "${DateTime.timestamp().millisecondsSinceEpoch}@variance.space",
             'variance',
           );
-          _wallet = await factory.createSafeAccountWithPasskey(keypair, salt);
+          _wallet = await factory.createSafeAccountWithPasskey(keypair, salt,
+              p256Verifier: p256Verifier);
           break;
         default:
           _wallet = await factory.createSafeAccount(salt);
           break;
       }
-      // overrideGas();
+      overrideGas();
       log("Wallet created: ${_wallet?.address.hex}");
       _setSuccess();
       return WalletCreationResult(
@@ -186,8 +183,24 @@ class WalletProvider extends ChangeNotifier {
         EthereumAddress.fromHex("0x000000333034E9f539ce08819E12c1b8Cb29084d");
 
     try {
-      _wallet = await factory.createSafe7579Account(salt, launchpad,
-          attesters: [attester], attestersThreshold: 1);
+      switch (signerType) {
+        case 'passkey':
+          final keypair = await (signer as PassKeySigner).register(
+            "${DateTime.timestamp().millisecondsSinceEpoch}@variance.space",
+            'variance',
+          );
+          _wallet = await factory.createSafe7579AccountWithPasskey(
+              keypair, salt, launchpad,
+              p256Verifier: p256Verifier,
+              attesters: [attester],
+              attestersThreshold: 1);
+          break;
+        default:
+          _wallet = await factory.createSafe7579Account(salt, launchpad,
+              attesters: [attester], attestersThreshold: 1);
+          break;
+      }
+      overrideGas();
       log("Wallet created: ${_wallet?.address.hex}");
       _setSuccess();
       return WalletCreationResult(
@@ -206,14 +219,14 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<(bool, String)> simulateMint() async {
+    final mintAbi = ContractAbis.get("ERC721_SafeMint");
+    final mintCall = Contract.encodeFunctionCall(
+        "safeMint", nft, mintAbi, [_wallet?.address]);
+
     try {
-      final tx = await _wallet?.sendTransaction(
-          nft,
-          Contract.encodeFunctionCall("safeMint", nft,
-              ContractAbis.get("ERC721_SafeMint"), [_wallet?.address]));
+      final tx = await _wallet?.sendTransaction(nft, mintCall);
       final receipt = await tx?.wait();
       final txHash = receipt?.txReceipt.transactionHash;
-
       log("Transaction receipt Hash: $txHash");
       return (true, txHash ?? '');
     } catch (e) {
@@ -226,19 +239,15 @@ class WalletProvider extends ChangeNotifier {
     final mintAbi = ContractAbis.get("ERC20_Mint");
     final amount = EtherAmount.fromInt(EtherUnit.ether, 20);
 
-    try {
-      final tx = await _wallet?.sendBatchedTransaction([
-        erc20,
-        erc20
-      ], [
-        Contract.encodeFunctionCall(
-            "mint", erc20, mintAbi, [_wallet?.address, amount.getInWei]),
-        Contract.encodeERC20TransferCall(erc20, deployer, amount)
-      ]);
+    final mintCall = Contract.encodeFunctionCall(
+        "mint", erc20, mintAbi, [_wallet?.address, amount.getInWei]);
+    final transferCall = Contract.encodeERC20TransferCall(erc20, dump, amount);
 
+    try {
+      final tx = await _wallet
+          ?.sendBatchedTransaction([erc20, erc20], [mintCall, transferCall]);
       final receipt = await tx?.wait();
       final txHash = receipt?.txReceipt.transactionHash;
-
       log("Transaction receipt Hash: $txHash");
       return (true, txHash ?? '');
     } catch (e) {
