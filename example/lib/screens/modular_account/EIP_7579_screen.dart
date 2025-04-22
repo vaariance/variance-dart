@@ -131,23 +131,9 @@ Future<void> _handleOptionSelected(BuildContext context, SignerOption option) as
 Future<WalletCreationResult> _createWallet(BuildContext context, String optionId) async {
   final walletProvider = context.read<WalletProvider>();
 
-  switch (optionId) {
-    case 'seedPhrase':
-      return await walletProvider.createEOAWallet();
-
-    case 'privateKey':
-      return await walletProvider.createPrivateKeyWallet();
-
-    case 'safe-seedPhrase':
-      return await walletProvider.createSafeEOAWallet();
-
-    case 'safe-privateKey':
-      return await walletProvider.createSafePrivateKeyWallet();
-
-    case 'safeDefault':
-      return await walletProvider.createSafeWallet();
-
-    default:
-      throw ArgumentError('Unknown option ID: $optionId');
+  if(optionId == 'passkey') {
+    return await walletProvider.createModularWallet(optionId);
+  } else {
+    return await walletProvider.createModularWallet(optionId);
   }
 }

@@ -66,45 +66,7 @@ class ModularActionsCard extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Module Management Options
-            _buildActionButton(
-              context,
-              'Install Module',
-              Icons.add_circle_outline,
-                  () => _showInstallModuleDialog(context),
-              const Color(0xFF663399),
-            ),
-            const SizedBox(height: 12),
-            _buildActionButton(
-              context,
-              'Uninstall Module',
-              Icons.remove_circle_outline,
-                  () => _showUninstallModuleDialog(context),
-              const Color(0xFF8A4FC7),
-            ),
-            const SizedBox(height: 12),
-            _buildActionButton(
-              context,
-              'Check Module Support',
-              Icons.check_circle_outline,
-                  () => _checkModuleSupport(context),
-              const Color(0xFFA371E1),
-            ),
-            const SizedBox(height: 12),
-            _buildActionButton(
-              context,
-              'Verify Installed Module',
-              Icons.fact_check_outlined,
-                  () => _verifyInstalledModule(context),
-              const Color(0xFFBE9DE3),
-            ),
-            const SizedBox(height: 12),
-            _buildActionButton(
-              context,
-              'Get Account ID',
-              Icons.account_circle_outlined,
-                  () => _getAccountId(context),
-              const Color(0xFFC7B8E3),
-            ),
+            ModuleInstallSheet(accountInterface: accountInterface)
           ],
         ),
       ),
@@ -160,14 +122,14 @@ class ModularActionsCard extends StatelessWidget {
     );
   }
 
-  void _showInstallModuleDialog(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => ModuleInstallSheet(accountInterface: accountInterface),
-    );
-  }
+  // void _showInstallModuleDialog(BuildContext context) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: Colors.transparent,
+  //     builder: (context) => ,
+  //   );
+  // }
 
   void _showUninstallModuleDialog(BuildContext context) {
     showModalBottomSheet(
@@ -306,14 +268,16 @@ class ModularActionsCard extends StatelessWidget {
 
   IconData _getIconForModuleType(ModuleType type) {
     switch (type) {
-      case ModuleType.validator:
+      case ModuleType.ownableValidator:
         return Icons.verified_user;
-      case ModuleType.executor:
+      case ModuleType.ownableExecutor:
         return Icons.play_circle_outline;
-      case ModuleType.fallback:
+      case ModuleType.registryHook:
         return Icons.replay;
-      case ModuleType.hook:
+      case ModuleType.socialRecovery:
         return Icons.link;
+      case ModuleType.none:
+        throw UnimplementedError();
     }
   }
 

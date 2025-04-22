@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/enums.dart';
 import '../models/signer_options.dart';
 import '../utils/utils.dart';
 
@@ -104,6 +105,7 @@ class AccountProvider extends ChangeNotifier {
           id: '',
           name: '',
           icon: Icons.error,
+            signers: SignerTypes.none
         ),
       );
     } else if (_selectedSafeSigner != null) {
@@ -113,6 +115,7 @@ class AccountProvider extends ChangeNotifier {
           id: '',
           name: '',
           icon: Icons.error,
+            signers: SignerTypes.none
         ),
       );
     }

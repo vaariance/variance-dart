@@ -19,6 +19,7 @@ class Home7579InterfaceImpl implements ModularAccountInterface {
     return UserOperationResponse(
       success: true,
       transactionHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      type: type
     );
   }
 
@@ -34,6 +35,9 @@ class Home7579InterfaceImpl implements ModularAccountInterface {
     return UserOperationResponse(
       success: true,
       transactionHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      type: types.firstWhere(
+        (type) => type == ModuleType.ownableExecutor || type == ModuleType.ownableValidator || type == ModuleType.registryHook || type == ModuleType.socialRecovery,
+        orElse: () => ModuleType.none),
     );
   }
 

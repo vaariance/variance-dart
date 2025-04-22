@@ -152,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 200,
                     child: ElevatedButton.icon(
                       onPressed:
-                          _isLoadingMint ? null : () => _mintNFT(context),
+                          _isLoadingMint ? null : () {},
                       icon: _isLoadingMint
                           ? const SizedBox(
                               width: 20,
@@ -282,11 +282,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              _sendTransaction(
-                context,
-                recipientController.text,
-                amountController.text,
-              );
+              // _sendTransaction(
+              //   context,
+              //   recipientController.text,
+              //   amountController.text,
+              // );
               Navigator.pop(context);
             },
             child: const Text('Send'),
@@ -296,88 +296,88 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _sendTransaction(
-    BuildContext context,
-    String recipient,
-    String amount,
-  ) async {
-    final walletProvider = context.read<WalletProvider>();
+  // Future<void> _sendTransaction(
+  //   BuildContext context,
+  //   String recipient,
+  //   String amount,
+  // ) async {
+  //   final walletProvider = context.read<WalletProvider>();
+  //
+  //   setState(() {
+  //     _isLoadingTransfer = true;
+  //   });
+  //
+  //   try {
+  //     final (success, hash) =
+  //         await walletProvider.sendTransaction(recipient, amount);
+  //
+  //     setState(() {
+  //       _isLoadingTransfer = false;
+  //       if (success && hash.isNotEmpty) {
+  //         _transferTxHash = hash;
+  //       }
+  //     });
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(
+  //           success
+  //               ? 'Transaction sent successfully'
+  //               : 'Failed to send transaction',
+  //         ),
+  //         backgroundColor: success ? Colors.green : Colors.red,
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     setState(() {
+  //       _isLoadingTransfer = false;
+  //     });
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Error: ${e.toString()}'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }
 
-    setState(() {
-      _isLoadingTransfer = true;
-    });
-
-    try {
-      final (success, hash) =
-          await walletProvider.sendTransaction(recipient, amount);
-
-      setState(() {
-        _isLoadingTransfer = false;
-        if (success && hash.isNotEmpty) {
-          _transferTxHash = hash;
-        }
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success
-                ? 'Transaction sent successfully'
-                : 'Failed to send transaction',
-          ),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
-      );
-    } catch (e) {
-      setState(() {
-        _isLoadingTransfer = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _mintNFT(BuildContext context) async {
-    final walletProvider = context.read<WalletProvider>();
-
-    setState(() {
-      _isLoadingMint = true;
-    });
-
-    try {
-      final (success, hash) = await walletProvider.mintNFT();
-
-      setState(() {
-        _isLoadingMint = false;
-        if (success && hash.isNotEmpty) {
-          _mintTxHash = hash;
-        }
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? 'NFT minted successfully' : 'Failed to mint NFT',
-          ),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
-      );
-    } catch (e) {
-      setState(() {
-        _isLoadingMint = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+  // Future<void> _mintNFT(BuildContext context) async {
+  //   final walletProvider = context.read<WalletProvider>();
+  //
+  //   setState(() {
+  //     _isLoadingMint = true;
+  //   });
+  //
+  //   try {
+  //     final (success, hash) = await walletProvider.createModularWallet()
+  //
+  //     setState(() {
+  //       _isLoadingMint = false;
+  //       if (success && hash.isNotEmpty) {
+  //         _mintTxHash = hash;
+  //       }
+  //     });
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(
+  //           success ? 'NFT minted successfully' : 'Failed to mint NFT',
+  //         ),
+  //         backgroundColor: success ? Colors.green : Colors.red,
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     setState(() {
+  //       _isLoadingMint = false;
+  //     });
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Error: ${e.toString()}'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }
 }

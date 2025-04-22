@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:variancedemo/constants/enums.dart';
 import 'package:variancedemo/screens/widgets/loading_overlay.dart';
 import 'package:variancedemo/screens/widgets/passkey_bottom_sheet.dart';
 import '../models/signer_options.dart';
@@ -125,7 +126,7 @@ class _CreateAccountContent extends StatelessWidget {
     accountProvider.setLoading(message: 'Creating ${option.name}...');
 
     try {
-      final result = await _createWallet(context, option.id);
+      final result = await _createWallet(context, option.id, option.accountType);
 
       if (result.success) {
         Navigator.pushReplacementNamed(context, '/home');
@@ -145,27 +146,22 @@ class _CreateAccountContent extends StatelessWidget {
     }
   }
 
-  Future<WalletCreationResult> _createWallet(BuildContext context, String optionId) async {
+  Future<WalletCreationResult> _createWallet(BuildContext context, String optionId, AccountType accountType) async {
     final walletProvider = context.read<WalletProvider>();
 
-    switch (optionId) {
-      case 'seedPhrase':
-        return await walletProvider.createEOAWallet();
-
-      case 'privateKey':
-        return await walletProvider.createPrivateKeyWallet();
-
-      case 'safe-seedPhrase':
-        return await walletProvider.createSafeEOAWallet();
-
-      case 'safe-privateKey':
-        return await walletProvider.createSafePrivateKeyWallet();
-
-      case 'safeDefault':
-        return await walletProvider.createSafeWallet();
-
-      default:
-        throw ArgumentError('Unknown option ID: $optionId');
+    if(optionId == 'passkey') {
+      return await walletProvider.createSafeWallet(optionId);
+    } else if(optionId == 'privateKey' && accountType == AccountType.light) {
+      return await walletProvider.createLightWallet(optionId);
+    } else if (optionId == 'EOA' && accountType == AccountType.light) {
+      return await walletProvider.createSafeWallet(optionId);
+    } else if (optionId == 'privateKey' && accountType == AccountType.safe) {
+      return await walletProvider.createSafeWallet(optionId);
+    } else if (optionId == 'EOA' && accountType == AccountType.safe) {
+      return await walletProvider.createSafeWallet(optionId);
+    } else {
+      return await walletProvider.createSafeWallet(optionId);
     }
   }
+
 }

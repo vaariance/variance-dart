@@ -1,6 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:developer';
 
+import 'package:flutter/material.dart';
+import 'package:variancedemo/models/module_entry.dart';
+
+import '../constants/enums.dart';
 import '../models/signer_options.dart';
+import '../utils/utils.dart';
 
 /// A provider for managing modular account state
 class ModularAccountsProvider extends ChangeNotifier {
@@ -16,6 +21,9 @@ class ModularAccountsProvider extends ChangeNotifier {
   bool _isLoading = false;
   String _loadingMessage = 'Creating account...';
 
+  // setters
+  ModuleType? _isInstalled;
+
   // Getters
   bool get is7579AccountExpanded => _is7579AccountExpanded;
   bool get isRegistryHookAccountExpanded => _registryHookAccountExpanded;
@@ -29,14 +37,19 @@ class ModularAccountsProvider extends ChangeNotifier {
   final List<SignerOption> _registryHookAccountOptions;
 
   List<SignerOption> get modularAccountOptions => _7579AccountOptions;
-  List<SignerOption> get registryHookAccountOptions => _registryHookAccountOptions;
+  List<SignerOption> get registryHookAccountOptions =>
+      _registryHookAccountOptions;
+
+  final List<InstalledModuleEntry> _moduleEntries = WalletUtils.getModuleEntriesToInstall();
+
+  // Getter that returns the stored list
+  List<InstalledModuleEntry> get moduleEntriesToInstall => _moduleEntries;
 
   // Constructor
   ModularAccountsProvider({
     required List<SignerOption> modularAccountOptions,
     required List<SignerOption> registryHookAccountOptions,
-  }) :
-        _7579AccountOptions = modularAccountOptions,
+  })  : _7579AccountOptions = modularAccountOptions,
         _registryHookAccountOptions = registryHookAccountOptions;
 
   /// Toggle the dropdown expansion for 7579 accounts
@@ -78,6 +91,22 @@ class ModularAccountsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setInstalledModule(ModuleType moduleType) {
+    for (var i = 0; i < _moduleEntries.length; i++) {
+      if (_moduleEntries[i].type == moduleType) {
+        _moduleEntries[i] = _moduleEntries[i].copyWith(isInstalled: true);
+        notifyListeners();
+        break;
+      }
+    }
+  }
+
+  List<InstalledModuleEntry> get uninstalledModule {
+    return moduleEntriesToInstall
+        .where((module) => module.isInstalled == false)
+        .toList();
+  }
+
   /// Clear loading state
   void clearLoading() {
     _isLoading = false;
@@ -88,21 +117,15 @@ class ModularAccountsProvider extends ChangeNotifier {
   SignerOption? getSelectedSignerOption() {
     if (_selected7579Signer != null) {
       return _7579AccountOptions.firstWhere(
-            (option) => option.id == _selected7579Signer,
+        (option) => option.id == _selected7579Signer,
         orElse: () => SignerOption(
-          id: '',
-          name: '',
-          icon: Icons.error,
-        ),
+            id: '', name: '', icon: Icons.error, signers: SignerTypes.none),
       );
     } else if (_selectedRegistryHookSigner != null) {
       return _registryHookAccountOptions.firstWhere(
-            (option) => option.id == _selectedRegistryHookSigner,
+        (option) => option.id == _selectedRegistryHookSigner,
         orElse: () => SignerOption(
-          id: '',
-          name: '',
-          icon: Icons.error,
-        ),
+            id: '', name: '', icon: Icons.error, signers: SignerTypes.none),
       );
     }
     return null;

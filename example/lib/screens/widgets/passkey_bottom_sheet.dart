@@ -134,9 +134,8 @@ class _PasskeyBottomSheetState extends State<PasskeyBottomSheet> {
 
     try {
       final walletProvider = context.read<WalletProvider>();
-      final result = await walletProvider.registerWithPassKey(
-        usernameController.text,
-        requiresUserVerification: true,
+      final result = await walletProvider.createSafeWallet(
+       'passkey',
       );
 
       if (!result.success) {

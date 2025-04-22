@@ -15,13 +15,6 @@ abstract class ModularAccountInterface {
       Uint8List initData,
       );
 
-  /// Install multiple modules
-  Future<UserOperationResponse> installModules(
-      List<ModuleType> types,
-      List<EthereumAddress> moduleAddresses,
-      List<Uint8List> initDatas,
-      );
-
   /// Uninstall a single module
   Future<UserOperationResponse> uninstallModule(
       ModuleType type,
