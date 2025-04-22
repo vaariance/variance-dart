@@ -101,12 +101,24 @@ class ModularAccountsProvider extends ChangeNotifier {
     }
   }
 
+  void setUninstallModule(ModuleType moduleType) {
+    for (var i = 0; i < _moduleEntries.length; i++) {
+      if (_moduleEntries[i].type == moduleType) {
+        _moduleEntries[i] = _moduleEntries[i].copyWith(isInstalled: false);
+        notifyListeners();
+        break;
+      }
+    }
+  }
+
   List<InstalledModuleEntry> get uninstalledModule {
     return moduleEntriesToInstall
         .where((module) => module.isInstalled == false)
         .toList();
   }
 
+  List<InstalledModuleEntry> get installedModules =>
+      _moduleEntries.where((module) => module.isInstalled).toList();
   /// Clear loading state
   void clearLoading() {
     _isLoading = false;

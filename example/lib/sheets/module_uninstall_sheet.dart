@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:web3dart/web3dart.dart';
@@ -45,13 +47,13 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
     super.dispose();
   }
 
-  void _handleUninstall(BuildContext context) async {
+  void _handleUninstall(BuildContext context, InstalledModuleEntry module) async {
     final accountProvider = context.read<ModularAccountsProvider>();
     accountProvider.setLoading(
         message: 'Uninstalling ${isMultipleModules ? 'modules' : 'module'}...');
 
     try {
-      final response = await _processUninstallation();
+      final response = await _processUninstallation(module);
       accountProvider.clearLoading();
       Navigator.pop(context);
 
@@ -73,45 +75,20 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
     }
   }
 
-  Future _processUninstallation() async {
-    if (isMultipleModules) {
-      // Process multiple modules uninstallation
-      final validModules = moduleEntries
-          .where((module) =>
-      module.type != null &&
-          module.addressController.text.isNotEmpty &&
-          module.initDataController.text.isNotEmpty)
-          .toList();
+  Future _processUninstallation(InstalledModuleEntry moduleToInstall) async {
+    final accountProvider = context.read<ModularAccountsProvider>();
 
-      if (validModules.isEmpty) {
-        throw Exception('Please fill all required fields');
-      }
+    log('Installing: ${moduleToInstall.type}');
 
-      final types = validModules.map((m) => m.type!).toList();
-      final addresses = validModules
-          .map((m) => EthereumAddress.fromHex(m.addressController.text))
-          .toList();
-      final initDatas = validModules
-          .map((m) =>
-          Uint8List.fromList(HexUtils.hexToBytes(m.initDataController.text)))
-          .toList();
+    final installed = await widget.accountInterface.uninstallModule(
+      moduleToInstall.type,
+      moduleToInstall.moduleAddress,
+      Uint8List.fromList(HexUtils.hexToBytes(moduleToInstall.initData)),
+    );
+    accountProvider.setUninstallModule(moduleToInstall.type);
+    log('Installed: ${accountProvider.moduleEntriesToInstall[0].toMap()}');
 
-      return await widget.accountInterface
-          .uninstallModules(types, addresses, initDatas);
-    } else {
-      // Process single module uninstallation
-      if (selectedType == null ||
-          addressController.text.isEmpty ||
-          initDataController.text.isEmpty) {
-        throw Exception('Please fill all required fields');
-      }
-
-      return await widget.accountInterface.uninstallModule(
-        selectedType!,
-        EthereumAddress.fromHex(addressController.text),
-        Uint8List.fromList(HexUtils.hexToBytes(initDataController.text)),
-      );
-    }
+    return installed;
   }
 
   void _showResultSnackbar(BuildContext context, String message, bool success) {
@@ -137,68 +114,6 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
     );
   }
 
-  List<Widget> _buildSingleModuleForm() {
-    return [
-      DropdownButtonFormField<ModuleType>(
-        value: selectedType,
-        hint: Text('Select Module Type',
-            style: TextStyle(color: Colors.grey[400])),
-        dropdownColor: const Color(0xFF2A2A3C),
-        decoration: InputDecoration(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey[700]!),
-          ),
-          filled: true,
-          fillColor: const Color(0xFF1F1F2C),
-        ),
-        style: TextStyle(color: Colors.grey[200]),
-        items: ModuleType.values.map((type) {
-          return DropdownMenuItem<ModuleType>(
-            value: type,
-            child: Text(type.toString().split('.').last),
-          );
-        }).toList(),
-        onChanged: (value) {
-          setState(() {
-            selectedType = value;
-          });
-        },
-      ),
-      const SizedBox(height: 15),
-      TextFormField(
-        controller: addressController,
-        decoration: InputDecoration(
-          labelText: 'Module Address',
-          labelStyle: TextStyle(color: Colors.grey[400]),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey[700]!),
-          ),
-          filled: true,
-          fillColor: const Color(0xFF1F1F2C),
-          prefixIcon: Icon(Icons.link, color: Colors.grey[400]),
-        ),
-        style: TextStyle(color: Colors.grey[200]),
-      ),
-      const SizedBox(height: 15),
-      TextFormField(
-        controller: initDataController,
-        decoration: InputDecoration(
-          labelText: 'Init Data (hex)',
-          labelStyle: TextStyle(color: Colors.grey[400]),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey[700]!),
-          ),
-          filled: true,
-          fillColor: const Color(0xFF1F1F2C),
-          prefixIcon: Icon(Icons.code, color: Colors.grey[400]),
-        ),
-        style: TextStyle(color: Colors.grey[200]),
-      ),
-    ];
-  }
 
   List<Widget> _buildMultipleModulesForm() {
     return [
@@ -368,45 +283,24 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
               ],
             ),
             const SizedBox(height: 10),
-            SwitchListTile(
-              value: isMultipleModules,
-              onChanged: (value) {
-                setState(() {
-                  isMultipleModules = value;
-                  if (!value && moduleEntries.length > 1) {
-                    moduleEntries.clear();
-                    moduleEntries.add(ModuleEntry());
-                  }
-                });
+            Consumer<ModularAccountsProvider>(
+              builder: (BuildContext context, provider, Widget? child) {
+                final uninstalledModules = provider.installedModules;
+                log('Uninstalled modules: ${uninstalledModules.length}');
+                return ListView.builder(
+                  itemCount: uninstalledModules.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (BuildContext context, int index) {
+                    final module = uninstalledModules[index];
+                    return ListTile(
+                      title: Text(module.type.name,
+                          style: TextStyle(color: Colors.grey[200])),
+                      onTap: () => _handleUninstall(context, module),
+                    );
+                  },
+                );
               },
-              title: Text(
-                'Uninstall Multiple Modules',
-                style: TextStyle(color: Colors.grey[200]),
-              ),
-              activeColor: const Color(0xFF663399),
-            ),
-            const SizedBox(height: 10),
-            if (isMultipleModules)
-              ..._buildMultipleModulesForm()
-            else
-              ..._buildSingleModuleForm(),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => _handleUninstall(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  'Uninstall ${isMultipleModules ? 'Modules' : 'Module'}',
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              ),
             ),
             const SizedBox(height: 30),
           ],

@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:variancedemo/screens/widgets/action_button.dart';
 import 'package:web3dart/web3dart.dart';
 import 'dart:typed_data';
 
@@ -112,17 +113,20 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: const BoxDecoration(
         color: Color(0xFF2A2A3C),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+
       ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 20),
             Text(
-              'Install Module',
+              'Select any module to install',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
