@@ -27,7 +27,6 @@ class InstalledModuleEntry {
     required this.isInstalled,
   });
 
-  // Copy with method (already existing)
   InstalledModuleEntry copyWith({
     ModuleType? type,
     EthereumAddress? moduleAddress,
@@ -42,7 +41,6 @@ class InstalledModuleEntry {
     );
   }
 
-  // Add toMap method
   Map<String, dynamic> toMap() {
     return {
       'type': type.toString(),

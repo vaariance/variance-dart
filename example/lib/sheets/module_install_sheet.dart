@@ -31,7 +31,12 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
   @override
   void initState() {
     super.initState();
-    moduleEntries.add(InstalledModuleEntry(moduleAddress: EthereumAddress.fromHex('0x5FbDB2315678afecb367f032d93F642f64180aa3'), initData: '0x', type: ModuleType.none, isInstalled: false));
+    moduleEntries.add(InstalledModuleEntry(
+        moduleAddress: EthereumAddress.fromHex(
+            '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
+        initData: '0x',
+        type: ModuleType.none,
+        isInstalled: false));
   }
 
   @override
@@ -75,20 +80,8 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
       moduleToInstall.moduleAddress,
       Uint8List.fromList(HexUtils.hexToBytes(moduleToInstall.initData)),
     );
-
-    // Log BEFORE update
-    log('Before update: ${moduleToInstall.toMap()}');
-
     accountProvider.setInstalledModule(installed.type);
-
-    // Get the updated module from provider to confirm update
-    final updatedModule = accountProvider.moduleEntriesToInstall.firstWhere(
-          (module) => module.type == installed.type,
-      orElse: () => moduleToInstall,
-    );
-
-    // Log AFTER update
-    log('After update - from provider: ${updatedModule.toMap()}');
+    log('Installed: ${accountProvider.moduleEntriesToInstall[0].toMap()}');
 
     return installed;
   }
@@ -147,7 +140,8 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
                   itemBuilder: (BuildContext context, int index) {
                     final module = uninstalledModules[index];
                     return ListTile(
-                      title: Text(module.type.name, style: TextStyle(color: Colors.grey[200])),
+                      title: Text(module.type.name,
+                          style: TextStyle(color: Colors.grey[200])),
                       onTap: () => _handleInstall(context, module),
                     );
                   },
