@@ -14,6 +14,8 @@ import '../../utils/widgets.dart';
 
 
 class Eip7579Screen extends StatelessWidget {
+  const Eip7579Screen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final accountProvider = context.watch<ModularAccountsProvider>();

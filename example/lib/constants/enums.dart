@@ -1,5 +1,5 @@
 enum AppEnums { modularAccounts, nonModularAccounts }
 
-enum ModuleType { validator, executor, fallback, hook }
+enum ModuleType { socialRecovery, ownableValidator, ownableExecutor, registryHook }
 
 enum ExecutionMode { single, batch }

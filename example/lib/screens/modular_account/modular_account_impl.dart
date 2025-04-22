@@ -73,7 +73,7 @@ class Home7579InterfaceImpl implements ModularAccountInterface {
     await Future.delayed(const Duration(seconds: 1));
 
     // For demo, let's say validator and executor are supported
-    return type == ModuleType.validator || type == ModuleType.executor;
+    return type == ModuleType.ownableExecutor || type == ModuleType.ownableValidator || type == ModuleType.registryHook || type == ModuleType.socialRecovery;
   }
 
   @override
@@ -86,7 +86,7 @@ class Home7579InterfaceImpl implements ModularAccountInterface {
     await Future.delayed(const Duration(seconds: 1));
 
     // For demo, let's say validator modules are already installed
-    return type == ModuleType.validator;
+    return type == ModuleType.ownableValidator;
   }
 
   @override
