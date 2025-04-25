@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:variancedemo/models/modular_account_impl.dart';
+import 'package:variancedemo/providers/account_providers.dart';
 import '../../constants/enums.dart';
-import '../../providers/modular_account_provider.dart';
 import '../../sheets/module_install_sheet.dart';
 import '../../sheets/module_uninstall_sheet.dart';
 import '../../sheets/module_verification_sheet.dart';
-import '../modular_account/interface.dart';
 
 /// Card widget for modular account management actions
 class ModularActionsCard extends StatelessWidget {
-  final ModularAccountInterface accountInterface;
+  final Home7579InterfaceImpl accountInterface;
 
   const ModularActionsCard({
     Key? key,
@@ -70,7 +70,7 @@ class ModularActionsCard extends StatelessWidget {
               context,
               'Install Module',
               Icons.add_circle_outline,
-                  () => _showInstallModuleDialog(context),
+              () => _showInstallModuleDialog(context),
               const Color(0xFF663399),
             ),
             const SizedBox(height: 12),
@@ -78,7 +78,7 @@ class ModularActionsCard extends StatelessWidget {
               context,
               'Uninstall Module',
               Icons.remove_circle_outline,
-                  () => _showUninstallModuleDialog(context),
+              () => _showUninstallModuleDialog(context),
               const Color(0xFF8A4FC7),
             ),
             const SizedBox(height: 12),
@@ -86,7 +86,7 @@ class ModularActionsCard extends StatelessWidget {
               context,
               'Check Module Support',
               Icons.check_circle_outline,
-                  () => _checkModuleSupport(context),
+              () => _checkModuleSupport(context),
               const Color(0xFFA371E1),
             ),
             const SizedBox(height: 12),
@@ -94,7 +94,7 @@ class ModularActionsCard extends StatelessWidget {
               context,
               'Verify Installed Module',
               Icons.fact_check_outlined,
-                  () => _verifyInstalledModule(context),
+              () => _verifyInstalledModule(context),
               const Color(0xFFBE9DE3),
             ),
             const SizedBox(height: 12),
@@ -102,7 +102,7 @@ class ModularActionsCard extends StatelessWidget {
               context,
               'Get Account ID',
               Icons.account_circle_outlined,
-                  () => _getAccountId(context),
+              () => _getAccountId(context),
               const Color(0xFFC7B8E3),
             ),
           ],
@@ -112,12 +112,12 @@ class ModularActionsCard extends StatelessWidget {
   }
 
   Widget _buildActionButton(
-      BuildContext context,
-      String title,
-      IconData icon,
-      VoidCallback onTap,
-      Color color,
-      ) {
+    BuildContext context,
+    String title,
+    IconData icon,
+    VoidCallback onTap,
+    Color color,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -165,7 +165,8 @@ class ModularActionsCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ModuleInstallSheet(accountInterface: accountInterface),
+      builder: (context) =>
+          ModuleInstallSheet(accountInterface: accountInterface),
     );
   }
 
@@ -174,14 +175,15 @@ class ModularActionsCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ModuleUninstallSheet(accountInterface: accountInterface),
+      builder: (context) =>
+          ModuleUninstallSheet(accountInterface: accountInterface),
     );
   }
 
   void _checkModuleSupport(BuildContext context) async {
     final moduleType = await _showModuleTypeSelector(context);
     if (moduleType != null) {
-      final accountProvider = context.read<ModularAccountsProvider>();
+      final accountProvider = context.read<AccountProvider>();
       accountProvider.setLoading(message: 'Checking module support...');
 
       try {
@@ -197,7 +199,8 @@ class ModularActionsCard extends StatelessWidget {
         );
       } catch (e) {
         accountProvider.clearLoading();
-        _showErrorDialog(context, 'Failed to check module support: ${e.toString()}');
+        _showErrorDialog(
+            context, 'Failed to check module support: ${e.toString()}');
       }
     }
   }
@@ -207,11 +210,12 @@ class ModularActionsCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ModuleVerificationSheet(accountInterface: accountInterface),
+      builder: (context) =>
+          ModuleVerificationSheet(accountInterface: accountInterface),
     );
 
     if (result != null && result is Map<String, dynamic>) {
-      final accountProvider = context.read<ModularAccountsProvider>();
+      final accountProvider = context.read<AccountProvider>();
       accountProvider.setLoading(message: 'Verifying module installation...');
 
       try {
@@ -238,7 +242,7 @@ class ModularActionsCard extends StatelessWidget {
   }
 
   void _getAccountId(BuildContext context) async {
-    final accountProvider = context.read<ModularAccountsProvider>();
+    final accountProvider = context.read<AccountProvider>();
     accountProvider.setLoading(message: 'Retrieving account ID...');
 
     try {
@@ -286,12 +290,12 @@ class ModularActionsCard extends StatelessWidget {
             const SizedBox(height: 20),
             ...ModuleType.values
                 .map((type) => ListTile(
-              title: Text(
-                type.toString().split('.').last,
-                style: TextStyle(color: Colors.grey[200]),
-              ),
-              onTap: () => Navigator.pop(context, type),
-            ))
+                      title: Text(
+                        type.toString().split('.').last,
+                        style: TextStyle(color: Colors.grey[200]),
+                      ),
+                      onTap: () => Navigator.pop(context, type),
+                    ))
                 .toList(),
             const SizedBox(height: 10),
           ],
@@ -300,15 +304,13 @@ class ModularActionsCard extends StatelessWidget {
     );
   }
 
-
-
   void _showResultDialog(
-      BuildContext context,
-      String title,
-      String message,
-      IconData icon,
-      Color iconColor,
-      ) {
+    BuildContext context,
+    String title,
+    String message,
+    IconData icon,
+    Color iconColor,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

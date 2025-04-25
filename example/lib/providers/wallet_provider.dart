@@ -151,6 +151,7 @@ class WalletProvider extends ChangeNotifier {
   Future<WalletCreationResult> createLightWallet(String signerType) async {
     _setLoading();
     _chain.accountFactory = Addresses.lightAccountFactoryAddressv07;
+
     final signer = getSigner(signerType, const SignatureOptions(prefix: [0]));
     final factory = SmartWalletFactory(_chain, signer);
 

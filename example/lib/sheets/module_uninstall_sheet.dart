@@ -2,18 +2,16 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:web3dart/web3dart.dart';
+import 'package:variancedemo/models/modular_account_impl.dart';
+import 'package:variancedemo/providers/account_providers.dart';
 import 'dart:typed_data';
 
 import '../constants/enums.dart';
 import '../models/module_entry.dart';
-import '../providers/modular_account_provider.dart';
-import '../screens/modular_account/interface.dart';
 import '../utils/hex.dart';
 
-
 class ModuleUninstallSheet extends StatefulWidget {
-  final ModularAccountInterface accountInterface;
+  final Home7579InterfaceImpl accountInterface;
 
   const ModuleUninstallSheet({
     super.key,
@@ -47,8 +45,9 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
     super.dispose();
   }
 
-  void _handleUninstall(BuildContext context, InstalledModuleEntry module) async {
-    final accountProvider = context.read<ModularAccountsProvider>();
+  void _handleUninstall(
+      BuildContext context, InstalledModuleEntry module) async {
+    final accountProvider = context.read<AccountProvider>();
     accountProvider.setLoading(
         message: 'Uninstalling ${isMultipleModules ? 'modules' : 'module'}...');
 
@@ -76,7 +75,7 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
   }
 
   Future _processUninstallation(InstalledModuleEntry moduleToInstall) async {
-    final accountProvider = context.read<ModularAccountsProvider>();
+    final accountProvider = context.read<AccountProvider>();
 
     log('Installing: ${moduleToInstall.type}');
 
@@ -112,139 +111,6 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
         duration: const Duration(seconds: 4),
       ),
     );
-  }
-
-
-  List<Widget> _buildMultipleModulesForm() {
-    return [
-      ...moduleEntries.asMap().entries.map((entry) {
-        final index = entry.key;
-        final module = entry.value;
-
-        return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          color: const Color(0xFF1F1F2C),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: Colors.redAccent.withOpacity(0.3),
-              width: 1,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Module ${index + 1}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[200],
-                      ),
-                    ),
-                    if (moduleEntries.length > 1)
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.redAccent),
-                        onPressed: () {
-                          setState(() {
-                            moduleEntries.removeAt(index);
-                          });
-                        },
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<ModuleType>(
-                  value: module.type,
-                  hint: Text('Select Module Type',
-                      style: TextStyle(color: Colors.grey[400])),
-                  dropdownColor: const Color(0xFF2A2A3C),
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[700]!),
-                    ),
-                    filled: true,
-                    fillColor: const Color(0xFF1F1F2C).withOpacity(0.5),
-                  ),
-                  style: TextStyle(color: Colors.grey[200]),
-                  items: ModuleType.values.map((type) {
-                    return DropdownMenuItem<ModuleType>(
-                      value: type,
-                      child: Text(type.toString().split('.').last),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      module.type = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: module.addressController,
-                  decoration: InputDecoration(
-                    labelText: 'Module Address',
-                    labelStyle: TextStyle(color: Colors.grey[400]),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[700]!),
-                    ),
-                    filled: true,
-                    fillColor: const Color(0xFF1F1F2C).withOpacity(0.5),
-                    prefixIcon: Icon(Icons.link, color: Colors.grey[400]),
-                  ),
-                  style: TextStyle(color: Colors.grey[200]),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: module.initDataController,
-                  decoration: InputDecoration(
-                    labelText: 'Init Data (hex)',
-                    labelStyle: TextStyle(color: Colors.grey[400]),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[700]!),
-                    ),
-                    filled: true,
-                    fillColor: const Color(0xFF1F1F2C).withOpacity(0.5),
-                    prefixIcon: Icon(Icons.code, color: Colors.grey[400]),
-                  ),
-                  style: TextStyle(color: Colors.grey[200]),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-      SizedBox(
-        width: double.infinity,
-        child: OutlinedButton.icon(
-          onPressed: () {
-            setState(() {
-              moduleEntries.add(ModuleEntry());
-            });
-          },
-          icon: const Icon(Icons.add, color: Colors.redAccent),
-          label: const Text(
-            'Add Another Module',
-            style: TextStyle(color: Colors.redAccent),
-          ),
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Colors.redAccent),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-      ),
-    ];
   }
 
   @override
@@ -283,7 +149,7 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
               ],
             ),
             const SizedBox(height: 10),
-            Consumer<ModularAccountsProvider>(
+            Consumer<AccountProvider>(
               builder: (BuildContext context, provider, Widget? child) {
                 final uninstalledModules = provider.installedModules;
                 log('Uninstalled modules: ${uninstalledModules.length}');

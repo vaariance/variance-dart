@@ -6,7 +6,7 @@ class InitialPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:  Theme.of(context).colorScheme.onSurface,
+      backgroundColor: Theme.of(context).colorScheme.onSurface,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -20,10 +20,11 @@ class InitialPage extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFFE6E6FA),
                     borderRadius: BorderRadius.circular(100),
-                    border: Border.all(color: const Color(0xFF9370DB), width: 3),
+                    border:
+                        Border.all(color: const Color(0xFF9370DB), width: 3),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha:0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
@@ -47,7 +48,7 @@ class InitialPage extends StatelessWidget {
                   shadows: [
                     Shadow(
                       blurRadius: 2.0,
-                      color: Colors.black.withValues(alpha:0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       offset: const Offset(1, 1),
                     ),
                   ],
@@ -68,18 +69,10 @@ class InitialPage extends StatelessWidget {
               // First navigation button
               _buildNavigationButton(
                 context,
-                "Non Modular Accounts",
+                "Create Account",
                 Icons.smart_toy_outlined,
-                    () => Navigator.pushNamed(context, '/create-account'),
+                () => Navigator.pushNamed(context, '/create-account'),
                 const Color(0xFF9370DB),
-              ),
-              const SizedBox(height: 20),
-              _buildNavigationButton(
-                context,
-                "EIP 7579 Modular Accounts",
-                Icons.security_outlined,
-                    () => Navigator.pushNamed(context, '/7579'),
-                const Color(0xFF8A2BE2),
               ),
               const Spacer(),
               // Footer text
@@ -89,7 +82,7 @@ class InitialPage extends StatelessWidget {
                   "© 2025 variance inc",
                   style: TextStyle(
                     fontSize: 12,
-                    color:const Color(0xFFE6E6FA).withValues(alpha: 0.7),
+                    color: const Color(0xFFE6E6FA).withValues(alpha: 0.7),
                   ),
                 ),
               ),
@@ -101,12 +94,12 @@ class InitialPage extends StatelessWidget {
   }
 
   Widget _buildNavigationButton(
-      BuildContext context,
-      String text,
-      IconData icon,
-      VoidCallback onPressed,
-      Color color,
-      ) {
+    BuildContext context,
+    String text,
+    IconData icon,
+    VoidCallback onPressed,
+    Color color,
+  ) {
     return Container(
       width: double.infinity,
       height: 65,

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -47,92 +46,75 @@ class _WalletBalanceState extends State<WalletBalance> {
     return Consumer<WalletProvider>(
       builder: (context, value, child) {
         return // For the specific layout you shared earlier:
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'Total Balance',
-                    style: TextStyle(color: VarianceColors.secondary, fontSize: 14.sp),
-                  ),
-                  10.horizontalSpace,
-                  const Image(
-                    image: AssetImage('assets/images/down-arrow.png'),
-                    height: 10,
-                    width: 10,
-                    color: VarianceColors.secondary,
-                  ),
-                  const Spacer(), // This is fine in a Row
-                  IconButton(
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: address));
-                    },
-                    icon: const Icon(Icons.copy_all_rounded, color: VarianceColors.secondary),
-                    constraints: const BoxConstraints(),
-                    padding: EdgeInsets.zero,
-                  ),
-                  8.horizontalSpace,
-                  Flexible( // Changed from Expanded to Flexible
-                    child: Text(
-                      EthereumAddressUtils.shortenAddress(address),
-                      style: const TextStyle(
-                        color: VarianceColors.secondary,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+            Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Total Balance',
+                  style: TextStyle(
+                      color: VarianceColors.secondary, fontSize: 14.sp),
+                ),
+                10.horizontalSpace,
+                const Image(
+                  image: AssetImage('assets/images/down-arrow.png'),
+                  height: 10,
+                  width: 10,
+                  color: VarianceColors.secondary,
+                ),
+                const Spacer(), // This is fine in a Row
+                IconButton(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: address));
+                  },
+                  icon: const Icon(Icons.copy_all_rounded,
+                      color: VarianceColors.secondary),
+                  constraints: const BoxConstraints(),
+                  padding: EdgeInsets.zero,
+                ),
+                8.horizontalSpace,
+                Flexible(
+                  // Changed from Expanded to Flexible
+                  child: Text(
+                    EthereumAddressUtils.shortenAddress(address),
+                    style: const TextStyle(
+                      color: VarianceColors.secondary,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ],
-              ),
-              18.verticalSpace,
-              Text(
-                '${balance.fromUnit(18)} ETH',
-                style: TextStyle(color: Colors.white, fontSize: 24.sp),
-              ),
-              18.verticalSpace,
-            ],
-          );
+                ),
+              ],
+            ),
+            18.verticalSpace,
+            Text(
+              '${balance.fromUnit(18)} ETH',
+              style: TextStyle(color: Colors.white, fontSize: 24.sp),
+            ),
+            18.verticalSpace,
+          ],
+        );
       },
     );
   }
 }
 
 String message = address;
-final FutureBuilder<ui.Image> qrFutureBuilder = FutureBuilder<ui.Image>(
-  future: _loadOverlayImage(),
-  builder: (BuildContext ctx, AsyncSnapshot<ui.Image> snapshot) {
-    const double size = 150.0;
-    if (!snapshot.hasData) {
-      return const SizedBox(width: size, height: size);
-    }
-    return CustomPaint(
-      size: const Size.square(size),
-      painter: QrPainter(
-        data: message.toString(),
-        version: QrVersions.auto,
-        eyeStyle: const QrEyeStyle(
-          eyeShape: QrEyeShape.square,
-          color: Color(0xff000000),
-        ),
-        dataModuleStyle: const QrDataModuleStyle(
-          dataModuleShape: QrDataModuleShape.circle,
-          color: Color(0xff000000),
-        ),
-        // size: 320.0,
-        embeddedImage: snapshot.data,
-        embeddedImageStyle: const QrEmbeddedImageStyle(
-          size: Size.square(60),
-        ),
-      ),
-    );
-  },
+final CustomPaint qrCode = CustomPaint(
+  size: const Size.square(150.0),
+  painter: QrPainter(
+    data: message.toString(),
+    version: QrVersions.auto,
+    eyeStyle: QrEyeStyle(
+      eyeShape: QrEyeShape.circle,
+      color: Colors.grey[300],
+    ),
+    dataModuleStyle: QrDataModuleStyle(
+      dataModuleShape: QrDataModuleShape.square,
+      color: Colors.grey[300],
+    ),
+  ),
 );
-Future<ui.Image> _loadOverlayImage() async {
-  final Completer<ui.Image> completer = Completer<ui.Image>();
-  final ByteData byteData = await rootBundle.load('assets/images/ethereum.png');
-  ui.decodeImageFromList(byteData.buffer.asUint8List(), completer.complete);
-  return completer.future;
-}
 
 class Receive extends StatelessWidget {
   const Receive({super.key});
@@ -147,10 +129,10 @@ class Receive extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10.0),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
+              color: const Color(0xFF2A2A3C),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: qrFutureBuilder,
+            child: qrCode,
           ),
           20.verticalSpace, // Added bottom spacing
         ],

@@ -2,18 +2,17 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:variancedemo/screens/widgets/action_button.dart';
+import 'package:variancedemo/models/modular_account_impl.dart';
+import 'package:variancedemo/providers/account_providers.dart';
 import 'package:web3dart/web3dart.dart';
 import 'dart:typed_data';
 
 import '../constants/enums.dart';
 import '../models/module_entry.dart';
-import '../providers/modular_account_provider.dart';
-import '../screens/modular_account/interface.dart';
 import '../utils/hex.dart';
 
 class ModuleInstallSheet extends StatefulWidget {
-  final ModularAccountInterface accountInterface;
+  final Home7579InterfaceImpl accountInterface;
 
   const ModuleInstallSheet({
     super.key,
@@ -46,7 +45,7 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
   }
 
   void _handleInstall(BuildContext context, InstalledModuleEntry module) async {
-    final accountProvider = context.read<ModularAccountsProvider>();
+    final accountProvider = context.read<AccountProvider>();
     accountProvider.setLoading(
         message: 'Installing ${isMultipleModules ? 'modules' : 'module'}...');
 
@@ -72,7 +71,7 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
   }
 
   Future _processInstallation(InstalledModuleEntry moduleToInstall) async {
-    final accountProvider = context.read<ModularAccountsProvider>();
+    final accountProvider = context.read<AccountProvider>();
 
     log('Installing: ${moduleToInstall.type}');
 
@@ -117,7 +116,6 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
       decoration: const BoxDecoration(
         color: Color(0xFF2A2A3C),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -133,7 +131,7 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
                 color: Colors.grey[200],
               ),
             ),
-            Consumer<ModularAccountsProvider>(
+            Consumer<AccountProvider>(
               builder: (BuildContext context, provider, Widget? child) {
                 final uninstalledModules = provider.uninstalledModule;
                 log('Uninstalled modules: ${uninstalledModules.length}');

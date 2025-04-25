@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:variancedemo/models/modular_account_impl.dart';
 import 'package:web3dart/web3dart.dart';
 import 'dart:typed_data';
 
 import '../constants/enums.dart';
-import '../screens/modular_account/interface.dart';
 import '../utils/hex.dart';
 
-
 class ModuleVerificationSheet extends StatefulWidget {
-  final ModularAccountInterface accountInterface;
+  final Home7579InterfaceImpl accountInterface;
 
   const ModuleVerificationSheet({
     super.key,

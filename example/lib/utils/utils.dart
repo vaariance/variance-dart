@@ -8,140 +8,85 @@ import '../models/signer_options.dart';
 /// Utility class for wallet-related operations
 class WalletUtils {
   // Get light account options
-  static List<SignerOption> getLightAccountOptions() {
-    return [
+  static List<SignerOption> _createSignerOptions(AccountType type) {
+    final baseOptions = [
       SignerOption(
         id: 'EOA',
-        name: 'Seed Phrase light account',
+        name: 'Seed Phrase',
         icon: Icons.vpn_key,
-        description: 'Create a light account with a seed phrase (12-word mnemonic)',
-        signers: SignerTypes.eoa
-      ),
-      SignerOption(
-        id: 'privateKey',
-        name: 'Private Key light account',
-        icon: Icons.key,
-        description: 'Create a light account with a random private key',
-          signers: SignerTypes.privateKey
-      ),
-    ];
-  }
-
-  // Get safe account options
-  static List<SignerOption> getSafeAccountOptions() {
-    return [
-      SignerOption(
-        id: 'EOA',
-        name: 'Seed Phrase (EOA Wallet)',
-        icon: Icons.vpn_key,
-        description: 'Create a Safe account with a seed phrase (12-word mnemonic)',
-          signers: SignerTypes.eoa
+        description:
+            'Create a ${type.name} account with a seed phrase (12-word mnemonic)',
+        signers: SignerTypes.eoa,
+        accountType: type,
       ),
       SignerOption(
         id: 'privateKey',
         name: 'Private Key',
         icon: Icons.key,
-        description: 'Create a Safe account with a random private key',
-          signers: SignerTypes.privateKey
-      ),
-      SignerOption(
-        id: 'passkey',
-        name: 'Passkey Authentication',
-        icon: Icons.fingerprint,
-        description: 'Create a Safe account using passkey biometric authentication',
-          signers: SignerTypes.passkey
+        description: 'Create a ${type.name} account with a random private key',
+        signers: SignerTypes.privateKey,
+        accountType: type,
       ),
     ];
-  }
-  static List<SignerOption> get7579AccountOptions () {
-    return [
-      SignerOption(
-        id: 'EOA',
-        name: 'Seed Phrase Modular account',
-        icon: Icons.vpn_key,
-        description: 'Create 7579 modular account with a seed phrase (12-word mnemonic)',
-          signers: SignerTypes.eoa,
-          accountType: AccountType.modular
-      ),
-      SignerOption(
-        id: 'privateKey',
-        name: 'Private Key Modular account',
-        icon: Icons.key,
-        description: 'Create 7579 modular account with a random private key',
-          signers: SignerTypes.privateKey,
-          accountType: AccountType.modular
-      ),
-      SignerOption(
-        id: 'passkey',
-        name: 'Passkey Authentication',
-        icon: Icons.fingerprint,
-        description: 'Create 7579 modular account using passkey biometric authentication',
+
+    if (type != AccountType.light) {
+      baseOptions.add(
+        SignerOption(
+          id: 'passkey',
+          name: 'Passkey Authentication',
+          icon: Icons.fingerprint,
+          description:
+              'Create a ${type.name} account using passkey biometric authentication',
           signers: SignerTypes.passkey,
-        accountType: AccountType.passkeyModular
-      ),
-    ];
+          accountType: type,
+        ),
+      );
+    }
+
+    return baseOptions;
   }
 
-  static List<SignerOption> getRegistryAccountOptions () {
-    return [
-      SignerOption(
-        id: 'EOA',
-        name: 'Seed Phrase Registry Account',
-        icon: Icons.vpn_key,
-        description: 'Create 7579 modular account with a seed phrase (12-word mnemonic)',
-          signers: SignerTypes.eoa,
-        accountType: AccountType.modular
-      ),
-      SignerOption(
-        id: 'privateKey',
-        name: 'Private Key Registry Account',
-        icon: Icons.key,
-        description: 'Create 7579 modular account with a random private key',
-          signers: SignerTypes.privateKey,
-        accountType: AccountType.modular
-      ),
-      SignerOption(
-        id: 'passkey',
-        name: 'Passkey Registry Account',
-        icon: Icons.fingerprint,
-        description: 'Create 7579 modular account using passkey biometric authentication',
-          signers: SignerTypes.passkey,
-        accountType: AccountType.passkeyModular
-      ),
-    ];
-  }
+  static List<SignerOption> getLightAccountOptions() =>
+      _createSignerOptions(AccountType.light);
 
-  static List<InstalledModuleEntry> getModuleEntriesToInstall (){
+  static List<SignerOption> getSafeAccountOptions() =>
+      _createSignerOptions(AccountType.safe);
+
+  static List<SignerOption> get7579AccountOptions() =>
+      _createSignerOptions(AccountType.modular);
+
+  static List<InstalledModuleEntry> getModuleEntriesToInstall() {
     return [
       InstalledModuleEntry(
-        type: ModuleType.socialRecovery,
-         moduleAddress: EthereumAddress.fromHex('0x5FbDB2315678afecb367f032d93F642f64180aa3'),
-       initData: '0x',
-        isInstalled: false
-      ),
+          type: ModuleType.socialRecovery,
+          moduleAddress: EthereumAddress.fromHex(
+              '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
+          initData: '0x',
+          isInstalled: false),
       InstalledModuleEntry(
           type: ModuleType.registryHook,
-          moduleAddress: EthereumAddress.fromHex('0x5FbDB2315678afecb367f032d93F642f64180aa3'),
+          moduleAddress: EthereumAddress.fromHex(
+              '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
           initData: '0x',
-          isInstalled: false
-      ),
+          isInstalled: false),
       InstalledModuleEntry(
           type: ModuleType.ownableExecutor,
-          moduleAddress: EthereumAddress.fromHex('0x5FbDB2315678afecb367f032d93F642f64180aa3'),
+          moduleAddress: EthereumAddress.fromHex(
+              '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
           initData: '0x',
-          isInstalled: false
-      ),
+          isInstalled: false),
       InstalledModuleEntry(
           type: ModuleType.ownableValidator,
-          moduleAddress: EthereumAddress.fromHex('0x5FbDB2315678afecb367f032d93F642f64180aa3'),
+          moduleAddress: EthereumAddress.fromHex(
+              '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
           initData: '0x',
-          isInstalled: false
-      ),
+          isInstalled: false),
     ];
-
   }
+
   // Show toast message
-  static void showToast(BuildContext context, String message, {bool isError = false}) {
+  static void showToast(BuildContext context, String message,
+      {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),

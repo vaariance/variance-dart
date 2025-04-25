@@ -11,13 +11,13 @@ class EthereumAddressUtils {
   /// print(shortened); // Outputs: 0x1234...5678
   /// ```
   static String shortenAddress(
-      String address, {
-        int prefixLength = 6,
-        int suffixLength = 4,
-        String separator = '...',
-      }) {
+    String address, {
+    int prefixLength = 6,
+    int suffixLength = 4,
+    String separator = '...',
+  }) {
     // Handle null, empty or invalid addresses
-    if (address == null || address.isEmpty) {
+    if (address.isEmpty) {
       return '';
     }
 
@@ -31,7 +31,7 @@ class EthereumAddressUtils {
 
     // Handle different address formats
     String prefix = address.startsWith('0x')
-        ? address.substring(0, prefixLength)  // Keep 0x + specified chars
+        ? address.substring(0, prefixLength) // Keep 0x + specified chars
         : address.substring(0, prefixLength); // Just keep specified chars
 
     String suffix = address.substring(address.length - suffixLength);
@@ -46,7 +46,7 @@ class EthereumAddressUtils {
   /// - Must start with 0x
   /// - Must only contain hexadecimal characters
   static bool isValidAddress(String address) {
-    if (address == null || address.isEmpty) {
+    if (address.isEmpty) {
       return false;
     }
 
@@ -69,7 +69,7 @@ class EthereumAddressUtils {
   /// - Converts to lowercase
   /// - Removes whitespace
   static String normalizeAddress(String address) {
-    if (address == null || address.isEmpty) {
+    if (address.isEmpty) {
       return '';
     }
 
@@ -90,11 +90,11 @@ class EthereumAddressUtils {
   /// Returns a map with 'prefix', 'middle' and 'suffix' parts
   /// for different UI styling (e.g. showing the middle part in a different color)
   static Map<String, String> getColoredAddressParts(
-      String address, {
-        int prefixLength = 6,
-        int suffixLength = 4,
-      }) {
-    if (address == null || address.isEmpty) {
+    String address, {
+    int prefixLength = 6,
+    int suffixLength = 4,
+  }) {
+    if (address.isEmpty) {
       return {'prefix': '', 'middle': '', 'suffix': ''};
     }
 
@@ -106,32 +106,13 @@ class EthereumAddressUtils {
 
     final prefix = address.substring(0, prefixLength);
     final suffix = address.substring(address.length - suffixLength);
-    final middle = address.substring(prefixLength, address.length - suffixLength);
+    final middle =
+        address.substring(prefixLength, address.length - suffixLength);
 
     return {
       'prefix': prefix,
       'middle': middle,
       'suffix': suffix,
     };
-  }
-
-  /// Generates a checksum address from a normal address
-  ///
-  /// Implements EIP-55 checksum encoding
-  /// This returns a mixed-case address with specific characters capitalized
-  /// based on the hash of the address, which provides additional validation
-  static String toChecksumAddress(String address) {
-    // This would require a crypto library to implement properly
-    // For a complete implementation, you would need to:
-    // 1. Normalize the address (remove 0x, lowercase)
-    // 2. Hash the normalized address using keccak256
-    // 3. For each character in the address:
-    //    - If the corresponding hex digit in the hash is 8 or higher, uppercase the character
-    //    - Otherwise, leave it lowercase
-    // 4. Add 0x prefix
-
-    // Example implementation placeholder:
-    // TODO: Implement proper EIP-55 checksum
-    return address;
   }
 }

@@ -45,7 +45,8 @@ class _CreateAccountContent extends StatelessWidget {
           leading: BackButton(color: Theme.of(context).colorScheme.onPrimary),
         ),
         body: LoadingOverlay(
-          isLoading: accountProvider.isLoading || walletProvider.creationState == WalletCreationState.loading,
+          isLoading: accountProvider.isLoading ||
+              walletProvider.creationState == WalletCreationState.loading,
           message: accountProvider.loadingMessage,
           child: SingleChildScrollView(
             child: Padding(
@@ -78,10 +79,12 @@ class _CreateAccountContent extends StatelessWidget {
                     icon: Icons.bolt_outlined,
                     color: const Color(0xFF663399),
                     isExpanded: accountProvider.isLightAccountExpanded,
-                    onToggle: () => accountProvider.toggleLightAccountExpanded(),
+                    onToggle: () =>
+                        accountProvider.toggleLightAccountExpanded(),
                     options: accountProvider.lightAccountOptions,
                     selectedSigner: accountProvider.selectedLightSigner,
-                    onSelect: (option) => _handleOptionSelected(context, option),
+                    onSelect: (option) =>
+                        _handleOptionSelected(context, option),
                   ),
 
                   const SizedBox(height: 16),
@@ -95,7 +98,23 @@ class _CreateAccountContent extends StatelessWidget {
                     onToggle: () => accountProvider.toggleSafeAccountExpanded(),
                     options: accountProvider.safeAccountOptions,
                     selectedSigner: accountProvider.selectedSafeSigner,
-                    onSelect: (option) => _handleOptionSelected(context, option),
+                    onSelect: (option) =>
+                        _handleOptionSelected(context, option),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Safe Account Dropdown
+                  AccountDropdown(
+                    title: 'Create Modular account',
+                    icon: Icons.view_module,
+                    color: const Color(0xFF663399),
+                    isExpanded: accountProvider.is7579AccountExpanded,
+                    onToggle: () => accountProvider.toggle7579AccountExpanded(),
+                    options: accountProvider.modularAccountOptions,
+                    selectedSigner: accountProvider.selected7579Signer,
+                    onSelect: (option) =>
+                        _handleOptionSelected(context, option),
                   ),
 
                   const SizedBox(height: 30),
@@ -108,7 +127,8 @@ class _CreateAccountContent extends StatelessWidget {
     );
   }
 
-  Future<void> _handleOptionSelected(BuildContext context, SignerOption option) async {
+  Future<void> _handleOptionSelected(
+      BuildContext context, SignerOption option) async {
     final accountProvider = context.read<AccountProvider>();
     final walletProvider = context.read<WalletProvider>();
 
@@ -126,7 +146,8 @@ class _CreateAccountContent extends StatelessWidget {
     accountProvider.setLoading(message: 'Creating ${option.name}...');
 
     try {
-      final result = await _createWallet(context, option.id, option.accountType);
+      final result =
+          await _createWallet(context, option.id, option.accountType);
 
       if (result.success) {
         Navigator.pushReplacementNamed(context, '/home');
@@ -146,22 +167,27 @@ class _CreateAccountContent extends StatelessWidget {
     }
   }
 
-  Future<WalletCreationResult> _createWallet(BuildContext context, String optionId, AccountType accountType) async {
+  Future<WalletCreationResult> _createWallet(
+      BuildContext context, String optionId, AccountType accountType) async {
     final walletProvider = context.read<WalletProvider>();
 
-    if(optionId == 'passkey') {
-      return await walletProvider.createSafeWallet(optionId);
-    } else if(optionId == 'privateKey' && accountType == AccountType.light) {
-      return await walletProvider.createLightWallet(optionId);
-    } else if (optionId == 'EOA' && accountType == AccountType.light) {
-      return await walletProvider.createSafeWallet(optionId);
-    } else if (optionId == 'privateKey' && accountType == AccountType.safe) {
-      return await walletProvider.createSafeWallet(optionId);
-    } else if (optionId == 'EOA' && accountType == AccountType.safe) {
-      return await walletProvider.createSafeWallet(optionId);
-    } else {
-      return await walletProvider.createSafeWallet(optionId);
+    switch (optionId) {
+      case 'passkey':
+        switch (accountType) {
+          case AccountType.modular:
+            return await walletProvider.createModularWallet(optionId);
+          default:
+            return await walletProvider.createSafeWallet(optionId);
+        }
+      default:
+        switch (accountType) {
+          case AccountType.light:
+            return await walletProvider.createLightWallet(optionId);
+          case AccountType.modular:
+            return await walletProvider.createModularWallet(optionId);
+          default:
+            return await walletProvider.createSafeWallet(optionId);
+        }
     }
   }
-
 }
