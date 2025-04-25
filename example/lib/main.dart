@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:variancedemo/providers/account_providers.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
 import 'package:variancedemo/screens/create_account.dart';
 import 'package:variancedemo/screens/home/home_screen.dart';
@@ -15,6 +16,7 @@ void main() async {
   await dotenv.load(fileName: ".env");
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (_) => WalletProvider()),
+    ChangeNotifierProvider(create: (_) => AccountProvider())
   ], child: const MyApp()));
 }
 

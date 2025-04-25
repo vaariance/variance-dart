@@ -231,8 +231,12 @@ class WalletProvider extends ChangeNotifier {
       log("Transaction receipt Hash: $txHash");
       return (true, txHash ?? '');
     } catch (e) {
-      _setError(e.toString());
-      return (false, '');
+      final errString = e.toString();
+      log(errString);
+      return (
+        false,
+        errString.substring(0, errString.length > 200 ? 200 : null)
+      );
     }
   }
 
@@ -252,8 +256,12 @@ class WalletProvider extends ChangeNotifier {
       log("Transaction receipt Hash: $txHash");
       return (true, txHash ?? '');
     } catch (e) {
-      _setError(e.toString());
-      return (false, '');
+      final errString = e.toString();
+      log(errString);
+      return (
+        false,
+        errString.substring(0, errString.length > 200 ? 200 : null)
+      );
     }
   }
 

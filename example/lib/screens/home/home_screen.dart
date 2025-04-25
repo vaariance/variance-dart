@@ -28,10 +28,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // !! fix :  @maxiggle i need to verify if this is the cause of the problem
-    final walletProvider = context.watch<WalletProvider>();
+    final provider = context.select(
+      (WalletProvider provider) => provider,
+    );
 
-    bool isFromModularAccounts = walletProvider.wallet?.is7579Enabled ?? false;
+    final wallet = provider.wallet;
+
+    bool isFromModularAccounts = wallet?.is7579Enabled ?? false;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.onSurface,
@@ -72,8 +75,33 @@ class _HomeScreenState extends State<HomeScreen> {
                           SizedBox(
                             width: double.infinity, // Makes button fill width
                             child: ElevatedButton.icon(
-                              //? todo :  @maxiggle i need to call the simulate transfer from the provider here
-                              onPressed: _isLoadingTransfer ? null : () {},
+                              onPressed: _isLoadingTransfer
+                                  ? null
+                                  : () async {
+                                      setState(() {
+                                        _isLoadingTransfer = true;
+                                      });
+                                      final (success, res) =
+                                          await provider.simulateTransfer();
+                                      if (success) {
+                                        setState(() {
+                                          _mintTxHash = res;
+                                        });
+                                      } else {
+                                        // Handle error
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content:
+                                                Text('Minting failed: $res'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                      setState(() {
+                                        _isLoadingMint = false;
+                                      });
+                                    },
                               icon: _isLoadingTransfer
                                   ? const SizedBox(
                                       width: 16,
@@ -172,8 +200,33 @@ class _HomeScreenState extends State<HomeScreen> {
                           SizedBox(
                             width: double.infinity, // Makes button fill width
                             child: ElevatedButton.icon(
-                              //? todo :  @maxiggle i need to call the simulate mint from the provider here
-                              onPressed: _isLoadingMint ? null : () {},
+                              onPressed: _isLoadingMint
+                                  ? null
+                                  : () async {
+                                      setState(() {
+                                        _isLoadingMint = true;
+                                      });
+                                      final (success, res) =
+                                          await provider.simulateMint();
+                                      if (success) {
+                                        setState(() {
+                                          _mintTxHash = res;
+                                        });
+                                      } else {
+                                        // Handle error
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content:
+                                                Text('Minting failed: $res'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                      setState(() {
+                                        _isLoadingMint = false;
+                                      });
+                                    },
                               icon: _isLoadingMint
                                   ? const SizedBox(
                                       width: 16,

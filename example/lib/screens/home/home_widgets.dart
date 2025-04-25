@@ -29,9 +29,6 @@ class _WalletBalanceState extends State<WalletBalance> {
     final wallet = context.select(
       (WalletProvider provider) => provider.wallet,
     );
-    // final hdWallet = context.select(
-    //   (WalletProvider provider) => provider.hdWalletSigner,
-    // );
 
     address = wallet?.address.hex ?? '';
 
@@ -64,16 +61,7 @@ class _WalletBalanceState extends State<WalletBalance> {
                   color: VarianceColors.secondary,
                 ),
                 const Spacer(), // This is fine in a Row
-                IconButton(
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: address));
-                  },
-                  icon: const Icon(Icons.copy_all_rounded,
-                      color: VarianceColors.secondary),
-                  constraints: const BoxConstraints(),
-                  padding: EdgeInsets.zero,
-                ),
-                8.horizontalSpace,
+                CopyButton(text: address),
                 Flexible(
                   // Changed from Expanded to Flexible
                   child: Text(
@@ -130,13 +118,60 @@ class Receive extends StatelessWidget {
             padding: const EdgeInsets.all(10.0),
             decoration: BoxDecoration(
               color: const Color(0xFF2A2A3C),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: qrCode,
           ),
           20.verticalSpace, // Added bottom spacing
         ],
       ),
+    );
+  }
+}
+
+class CopyButton extends StatefulWidget {
+  final String text;
+
+  const CopyButton({Key? key, required this.text}) : super(key: key);
+
+  @override
+  State<CopyButton> createState() => _CopyButtonState();
+}
+
+class _CopyButtonState extends State<CopyButton> {
+  bool _isCopied = false;
+
+  void _copyToClipboard() {
+    Clipboard.setData(ClipboardData(text: widget.text));
+    setState(() {
+      _isCopied = true;
+    });
+
+    // Reset after a short delay
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) {
+        setState(() {
+          _isCopied = false;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: _copyToClipboard,
+      icon: _isCopied 
+          ? const Icon(
+              Icons.check_circle,
+              color: Colors.green,
+            )
+          : const Icon(
+              Icons.copy_all_rounded,
+              color: VarianceColors.secondary,
+            ),
+      constraints: const BoxConstraints(),
+      padding: EdgeInsets.zero,
     );
   }
 }
