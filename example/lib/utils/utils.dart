@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:variancedemo/constants/enums.dart';
-import 'package:variancedemo/models/module_entry.dart';
-import 'package:web3_signers/web3_signers.dart';
 
 import '../models/signer_options.dart';
 
@@ -54,35 +52,6 @@ class WalletUtils {
 
   static List<SignerOption> get7579AccountOptions() =>
       _createSignerOptions(AccountType.modular);
-
-  static List<InstalledModuleEntry> getModuleEntriesToInstall() {
-    return [
-      InstalledModuleEntry(
-          type: ModuleType.socialRecovery,
-          moduleAddress: EthereumAddress.fromHex(
-              '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
-          initData: '0x',
-          isInstalled: false),
-      InstalledModuleEntry(
-          type: ModuleType.registryHook,
-          moduleAddress: EthereumAddress.fromHex(
-              '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
-          initData: '0x',
-          isInstalled: false),
-      InstalledModuleEntry(
-          type: ModuleType.ownableExecutor,
-          moduleAddress: EthereumAddress.fromHex(
-              '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
-          initData: '0x',
-          isInstalled: false),
-      InstalledModuleEntry(
-          type: ModuleType.ownableValidator,
-          moduleAddress: EthereumAddress.fromHex(
-              '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
-          initData: '0x',
-          isInstalled: false),
-    ];
-  }
 
   // Show toast message
   static void showToast(BuildContext context, String message,

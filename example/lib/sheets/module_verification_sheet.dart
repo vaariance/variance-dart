@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:variancedemo/models/modular_account_impl.dart';
+import 'package:variance_dart/variance_dart.dart';
+import 'package:web3_signers/web3_signers.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import 'dart:typed_data';
 
-import '../constants/enums.dart';
-import '../utils/hex.dart';
-
 class ModuleVerificationSheet extends StatefulWidget {
-  final Home7579InterfaceImpl accountInterface;
-
   const ModuleVerificationSheet({
     super.key,
-    required this.accountInterface,
   });
 
   @override
@@ -44,14 +40,16 @@ class ModuleVerificationSheetState extends State<ModuleVerificationSheet> {
 
     Uint8List? contextData;
     if (hasContext && contextController.text.isNotEmpty) {
-      contextData = HexUtils.hexToBytes(contextController.text);
+      contextData = hexToBytes(contextController.text);
     }
 
-    Navigator.pop(context, {
-      'moduleType': selectedType,
-      'moduleAddress': EthereumAddress.fromHex(addressController.text),
-      'context': contextData,
-    });
+    final result = (
+      selectedType,
+      EthereumAddress.fromHex(addressController.text),
+      contextData
+    );
+
+    Navigator.pop(context, result);
   }
 
   @override
@@ -107,7 +105,7 @@ class ModuleVerificationSheetState extends State<ModuleVerificationSheet> {
               items: ModuleType.values.map((type) {
                 return DropdownMenuItem<ModuleType>(
                   value: type,
-                  child: Text(type.toString().split('.').last),
+                  child: Text(type.name),
                 );
               }).toList(),
               onChanged: (value) {

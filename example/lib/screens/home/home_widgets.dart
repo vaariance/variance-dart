@@ -42,37 +42,35 @@ class _WalletBalanceState extends State<WalletBalance> {
     getBalance();
     return Consumer<WalletProvider>(
       builder: (context, value, child) {
-        return // For the specific layout you shared earlier:
-            Column(
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text(
-                  'Total Balance',
-                  style: TextStyle(
-                      color: VarianceColors.secondary, fontSize: 14.sp),
-                ),
-                10.horizontalSpace,
-                const Image(
-                  image: AssetImage('assets/images/down-arrow.png'),
-                  height: 10,
-                  width: 10,
-                  color: VarianceColors.secondary,
-                ),
-                const Spacer(), // This is fine in a Row
-                CopyButton(text: address),
-                Flexible(
-                  // Changed from Expanded to Flexible
-                  child: Text(
-                    EthereumAddressUtils.shortenAddress(address),
-                    style: const TextStyle(
-                      color: VarianceColors.secondary,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+            SizedBox(
+              width: double.infinity, // Provide bounded width
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Balance',
+                    style: TextStyle(
+                        color: VarianceColors.secondary, fontSize: 14.sp),
                   ),
-                ),
-              ],
+                  Row(
+                    mainAxisSize: MainAxisSize
+                        .min, // Set to min to prevent unbounded width
+                    children: [
+                      CopyButton(text: address),
+                      Text(
+                        EthereumAddressUtils.shortenAddress(address),
+                        style: const TextStyle(
+                          color: VarianceColors.secondary,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
             18.verticalSpace,
             Text(
@@ -148,7 +146,7 @@ class _CopyButtonState extends State<CopyButton> {
     });
 
     // Reset after a short delay
-    Future.delayed(const Duration(milliseconds: 800), () {
+    Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {
         setState(() {
           _isCopied = false;
@@ -161,7 +159,7 @@ class _CopyButtonState extends State<CopyButton> {
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: _copyToClipboard,
-      icon: _isCopied 
+      icon: _isCopied
           ? const Icon(
               Icons.check_circle,
               color: Colors.green,

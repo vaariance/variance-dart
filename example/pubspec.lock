@@ -724,6 +724,13 @@ packages:
       relative: true
     source: path
     version: "0.1.9"
+  variance_modules:
+    dependency: "direct main"
+    description:
+      path: "../../variance-modules"
+      relative: true
+    source: path
+    version: "0.0.1"
   vector_math:
     dependency: transitive
     description:
@@ -759,10 +766,9 @@ packages:
   web3_signers:
     dependency: "direct main"
     description:
-      name: web3_signers
-      sha256: c67474430713facdfc8d07b52528f0def7ac71d0a2e597da50290edb4cd3afb2
-      url: "https://pub.dev"
-    source: hosted
+      path: "../../web3-signers"
+      relative: true
+    source: path
     version: "0.1.9"
   web3dart:
     dependency: "direct main"

@@ -1,19 +1,20 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:variancedemo/models/modular_account_impl.dart';
-import 'package:variancedemo/providers/account_providers.dart';
-import '../../constants/enums.dart';
+import 'package:variance_dart/variance_dart.dart';
+import 'package:variance_modules/modules.dart';
+import 'package:variancedemo/providers/module_provider.dart';
+import 'package:variancedemo/providers/wallet_provider.dart';
+import 'package:web3dart/web3dart.dart';
 import '../../sheets/module_install_sheet.dart';
 import '../../sheets/module_uninstall_sheet.dart';
 import '../../sheets/module_verification_sheet.dart';
 
 /// Card widget for modular account management actions
 class ModularActionsCard extends StatelessWidget {
-  final Home7579InterfaceImpl accountInterface;
-
   const ModularActionsCard({
     Key? key,
-    required this.accountInterface,
   }) : super(key: key);
 
   @override
@@ -165,8 +166,7 @@ class ModularActionsCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) =>
-          ModuleInstallSheet(accountInterface: accountInterface),
+      builder: (context) => const ModuleInstallSheet(),
     );
   }
 
@@ -175,30 +175,26 @@ class ModularActionsCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) =>
-          ModuleUninstallSheet(accountInterface: accountInterface),
+      builder: (context) => const ModuleUninstallSheet(),
     );
   }
 
   void _checkModuleSupport(BuildContext context) async {
-    final moduleType = await _showModuleTypeSelector(context);
-    if (moduleType != null) {
-      final accountProvider = context.read<AccountProvider>();
-      accountProvider.setLoading(message: 'Checking module support...');
+    final mod = await _showModuleTypeSelector(context);
+    if (mod != null) {
+      final wallet = context.read<WalletProvider>().wallet;
 
       try {
-        final isSupported = await accountInterface.supportsModule(moduleType);
-        accountProvider.clearLoading();
+        final isSupported = await wallet?.supportsModule(mod.type);
 
         _showResultDialog(
           context,
           'Module Support Check',
-          'This account ${isSupported == true ? 'supports' : 'does not support'} the ${moduleType.toString().split('.').last} module type.',
+          'This account ${isSupported == true ? 'supports' : 'does not support'} the ${mod.type.name} module type.',
           isSupported == true ? Icons.check_circle : Icons.cancel,
           isSupported == true ? Colors.green : Colors.red,
         );
       } catch (e) {
-        accountProvider.clearLoading();
         _showErrorDialog(
             context, 'Failed to check module support: ${e.toString()}');
       }
@@ -206,26 +202,20 @@ class ModularActionsCard extends StatelessWidget {
   }
 
   void _verifyInstalledModule(BuildContext context) async {
-    final result = await showModalBottomSheet(
+    final (ModuleType?, EthereumAddress, Uint8List?)? result =
+        await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) =>
-          ModuleVerificationSheet(accountInterface: accountInterface),
+      builder: (context) => const ModuleVerificationSheet(),
     );
 
-    if (result != null && result is Map<String, dynamic>) {
-      final accountProvider = context.read<AccountProvider>();
-      accountProvider.setLoading(message: 'Verifying module installation...');
+    if (result != null && result.$1 != null) {
+      final wallet = context.read<WalletProvider>().wallet;
 
       try {
-        final isInstalled = await accountInterface.isModuleInstalled(
-          result['moduleType'],
-          result['moduleAddress'],
-          result['context'],
-        );
-
-        accountProvider.clearLoading();
+        final isInstalled =
+            await wallet?.isModuleInstalled(result.$1!, result.$2, result.$3);
 
         _showResultDialog(
           context,
@@ -235,19 +225,16 @@ class ModularActionsCard extends StatelessWidget {
           isInstalled == true ? Colors.green : Colors.red,
         );
       } catch (e) {
-        accountProvider.clearLoading();
         _showErrorDialog(context, 'Failed to verify module: ${e.toString()}');
       }
     }
   }
 
   void _getAccountId(BuildContext context) async {
-    final accountProvider = context.read<AccountProvider>();
-    accountProvider.setLoading(message: 'Retrieving account ID...');
+    final wallet = context.read<WalletProvider>().wallet;
 
     try {
-      final accountId = await accountInterface.accountId();
-      accountProvider.clearLoading();
+      final accountId = await wallet?.accountId();
 
       if (accountId != null) {
         _showResultDialog(
@@ -261,13 +248,16 @@ class ModularActionsCard extends StatelessWidget {
         _showErrorDialog(context, 'Could not retrieve account ID.');
       }
     } catch (e) {
-      accountProvider.clearLoading();
       _showErrorDialog(context, 'Failed to get account ID: ${e.toString()}');
     }
   }
 
-  Future<ModuleType?> _showModuleTypeSelector(BuildContext context) async {
-    return await showModalBottomSheet<ModuleType>(
+  Future<Base7579ModuleInterface?> _showModuleTypeSelector(
+      BuildContext context) async {
+    final provider = context.read<ModuleProvider>();
+    final modules = await provider.moduleList();
+
+    return await showModalBottomSheet<Base7579ModuleInterface>(
       context: context,
       backgroundColor: const Color(0xFF2A2A3C),
       shape: const RoundedRectangleBorder(
@@ -288,14 +278,26 @@ class ModularActionsCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            ...ModuleType.values
-                .map((type) => ListTile(
-                      title: Text(
-                        type.toString().split('.').last,
-                        style: TextStyle(color: Colors.grey[200]),
+            ...modules.getAll
+                .map((mod) => Container(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF363647),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFF663399).withOpacity(0.3),
+                        width: 1,
                       ),
-                      onTap: () => Navigator.pop(context, type),
-                    ))
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 2),
+                      title: Text(
+                        mod.name,
+                        style: TextStyle(color: Colors.grey[200], fontSize: 14),
+                      ),
+                      onTap: () => Navigator.pop(context, mod),
+                    )))
                 .toList(),
             const SizedBox(height: 10),
           ],

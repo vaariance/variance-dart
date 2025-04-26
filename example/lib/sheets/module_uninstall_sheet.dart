@@ -2,20 +2,15 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:variancedemo/models/modular_account_impl.dart';
-import 'package:variancedemo/providers/account_providers.dart';
-import 'dart:typed_data';
+import 'package:variance_dart/variance_dart.dart';
+import 'package:variance_modules/modules.dart';
+import 'package:variancedemo/providers/module_provider.dart';
 
-import '../constants/enums.dart';
-import '../models/module_entry.dart';
 import '../utils/hex.dart';
 
 class ModuleUninstallSheet extends StatefulWidget {
-  final Home7579InterfaceImpl accountInterface;
-
   const ModuleUninstallSheet({
     super.key,
-    required this.accountInterface,
   });
 
   @override
@@ -27,44 +22,33 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
   final TextEditingController addressController = TextEditingController();
   final TextEditingController initDataController = TextEditingController();
   bool isMultipleModules = false;
-  final List<ModuleEntry> moduleEntries = [];
 
   @override
   void initState() {
     super.initState();
-    moduleEntries.add(ModuleEntry());
   }
 
   @override
   void dispose() {
     addressController.dispose();
     initDataController.dispose();
-    for (var entry in moduleEntries) {
-      entry.dispose();
-    }
     super.dispose();
   }
 
   void _handleUninstall(
-      BuildContext context, InstalledModuleEntry module) async {
-    final accountProvider = context.read<AccountProvider>();
-    accountProvider.setLoading(
-        message: 'Uninstalling ${isMultipleModules ? 'modules' : 'module'}...');
-
+      BuildContext context, Base7579ModuleInterface module) async {
     try {
       final response = await _processUninstallation(module);
-      accountProvider.clearLoading();
       Navigator.pop(context);
 
       _showResultSnackbar(
         context,
-        response.success
-            ? 'Module${isMultipleModules ? 's' : ''} uninstalled successfully${response.transactionHash != null ? '\nTx: ${HexUtils.shortenHash(response.transactionHash!)}' : ''}'
-            : 'Failed to uninstall module${isMultipleModules ? 's' : ''}: ${response.message ?? 'Unknown error'}',
-        response.success,
+        response.$1
+            ? 'Module uninstalled successfully: ${response.$2 != null ? '\nTx: ${response.$2?.txReceipt.transactionHash.shortenHash()}' : ''}'
+            : 'Failed to uninstall module: ${response.$3.toString()}',
+        response.$1,
       );
     } catch (e) {
-      accountProvider.clearLoading();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: ${e.toString()}'),
@@ -74,20 +58,16 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
     }
   }
 
-  Future _processUninstallation(InstalledModuleEntry moduleToInstall) async {
-    final accountProvider = context.read<AccountProvider>();
-
-    log('Installing: ${moduleToInstall.type}');
-
-    final installed = await widget.accountInterface.uninstallModule(
-      moduleToInstall.type,
-      moduleToInstall.moduleAddress,
-      Uint8List.fromList(HexUtils.hexToBytes(moduleToInstall.initData)),
-    );
-    accountProvider.setUninstallModule(moduleToInstall.type);
-    log('Installed: ${accountProvider.moduleEntriesToInstall[0].toMap()}');
-
-    return installed;
+  Future<(bool, UserOperationReceipt?, dynamic)> _processUninstallation(
+      Base7579ModuleInterface module) async {
+    try {
+      log('Installing: ${module.name}');
+      final tx = await module.uninstall();
+      log('Installed: ${module.name}');
+      return (true, tx, null);
+    } catch (e) {
+      return (false, null, e);
+    }
   }
 
   void _showResultSnackbar(BuildContext context, String message, bool success) {
@@ -149,25 +129,55 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
               ],
             ),
             const SizedBox(height: 10),
-            Consumer<AccountProvider>(
-              builder: (BuildContext context, provider, Widget? child) {
-                final uninstalledModules = provider.installedModules;
-                log('Uninstalled modules: ${uninstalledModules.length}');
-                return ListView.builder(
-                  itemCount: uninstalledModules.length,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (BuildContext context, int index) {
-                    final module = uninstalledModules[index];
-                    return ListTile(
-                      title: Text(module.type.name,
-                          style: TextStyle(color: Colors.grey[200])),
-                      onTap: () => _handleUninstall(context, module),
-                    );
-                  },
-                );
-              },
-            ),
+            Consumer<ModuleProvider>(
+                builder: (BuildContext context, provider, Widget? child) {
+              return FutureBuilder<Modules>(
+                future: provider.moduleList(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}',
+                        style: const TextStyle(color: Colors.red));
+                  }
+
+                  final installedModules = snapshot.data?.installed ?? [];
+                  return ListView.builder(
+                    itemCount: installedModules.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (BuildContext context, int index) {
+                      final module = installedModules[index];
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF363647),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: const Color(0xFF663399).withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 2),
+                          title: Text(
+                            module.type.name,
+                            style: TextStyle(
+                              color: Colors.grey[200],
+                              fontSize: 16,
+                            ),
+                          ),
+                          onTap: () => _handleUninstall(context, module),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            }),
             const SizedBox(height: 30),
           ],
         ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:variancedemo/models/module_entry.dart';
 import '../constants/enums.dart';
 import '../models/signer_options.dart';
 import '../utils/utils.dart';
@@ -19,12 +18,6 @@ class AccountProvider extends ChangeNotifier {
   // Loading state
   bool _isLoading = false;
   String _loadingMessage = 'Creating account...';
-
-  final List<InstalledModuleEntry> _moduleEntries =
-      WalletUtils.getModuleEntriesToInstall();
-
-  // Getter that returns the stored list
-  List<InstalledModuleEntry> get moduleEntriesToInstall => _moduleEntries;
 
   // Getter for dropdown states
   bool get isLightAccountExpanded => _isLightAccountExpanded;
@@ -102,35 +95,6 @@ class AccountProvider extends ChangeNotifier {
     _selectedLightSigner = null;
     notifyListeners();
   }
-
-  void setInstalledModule(ModuleType moduleType) {
-    for (var i = 0; i < _moduleEntries.length; i++) {
-      if (_moduleEntries[i].type == moduleType) {
-        _moduleEntries[i] = _moduleEntries[i].copyWith(isInstalled: true);
-        notifyListeners();
-        break;
-      }
-    }
-  }
-
-  void setUninstallModule(ModuleType moduleType) {
-    for (var i = 0; i < _moduleEntries.length; i++) {
-      if (_moduleEntries[i].type == moduleType) {
-        _moduleEntries[i] = _moduleEntries[i].copyWith(isInstalled: false);
-        notifyListeners();
-        break;
-      }
-    }
-  }
-
-  List<InstalledModuleEntry> get uninstalledModule {
-    return moduleEntriesToInstall
-        .where((module) => module.isInstalled == false)
-        .toList();
-  }
-
-  List<InstalledModuleEntry> get installedModules =>
-      _moduleEntries.where((module) => module.isInstalled).toList();
 
   // Methods to manage loading state
   void setLoading({String message = 'Creating account...'}) {
