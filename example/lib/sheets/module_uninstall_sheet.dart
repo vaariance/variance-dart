@@ -165,7 +165,7 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 2),
                           title: Text(
-                            module.type.name,
+                            module.name,
                             style: TextStyle(
                               color: Colors.grey[200],
                               fontSize: 16,

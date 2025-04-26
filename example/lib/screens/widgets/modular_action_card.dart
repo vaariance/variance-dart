@@ -3,8 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:variance_dart/variance_dart.dart';
-import 'package:variance_modules/modules.dart';
-import 'package:variancedemo/providers/module_provider.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
 import 'package:web3dart/web3dart.dart';
 import '../../sheets/module_install_sheet.dart';
@@ -183,20 +181,29 @@ class ModularActionsCard extends StatelessWidget {
     final mod = await _showModuleTypeSelector(context);
     if (mod != null) {
       final wallet = context.read<WalletProvider>().wallet;
+      final isWalletDeployed = await wallet?.isDeployed;
+
+      if (isWalletDeployed == false) {
+        _showErrorDialog(context,
+            'Wallet is not deployed. Try initiating a transaction first!',
+            level: "Warning");
+        return;
+      }
 
       try {
-        final isSupported = await wallet?.supportsModule(mod.type);
+        final isSupported = await wallet?.supportsModule(mod);
 
         _showResultDialog(
           context,
           'Module Support Check',
-          'This account ${isSupported == true ? 'supports' : 'does not support'} the ${mod.type.name} module type.',
+          'This account ${isSupported == true ? 'supports' : 'does not support'} the ${mod.name} module type.',
           isSupported == true ? Icons.check_circle : Icons.cancel,
           isSupported == true ? Colors.green : Colors.red,
         );
       } catch (e) {
         _showErrorDialog(
             context, 'Failed to check module support: ${e.toString()}');
+        rethrow;
       }
     }
   }
@@ -212,6 +219,14 @@ class ModularActionsCard extends StatelessWidget {
 
     if (result != null && result.$1 != null) {
       final wallet = context.read<WalletProvider>().wallet;
+      final isWalletDeployed = await wallet?.isDeployed;
+
+      if (isWalletDeployed == false) {
+        _showErrorDialog(context,
+            'Wallet is not deployed. Try initiating a transaction first!',
+            level: "Warning");
+        return;
+      }
 
       try {
         final isInstalled =
@@ -232,6 +247,14 @@ class ModularActionsCard extends StatelessWidget {
 
   void _getAccountId(BuildContext context) async {
     final wallet = context.read<WalletProvider>().wallet;
+    final isWalletDeployed = await wallet?.isDeployed;
+
+    if (isWalletDeployed == false) {
+      _showErrorDialog(context,
+          'Wallet is not deployed. Try initiating a transaction first!',
+          level: "Warning");
+      return;
+    }
 
     try {
       final accountId = await wallet?.accountId();
@@ -249,15 +272,12 @@ class ModularActionsCard extends StatelessWidget {
       }
     } catch (e) {
       _showErrorDialog(context, 'Failed to get account ID: ${e.toString()}');
+      rethrow;
     }
   }
 
-  Future<Base7579ModuleInterface?> _showModuleTypeSelector(
-      BuildContext context) async {
-    final provider = context.read<ModuleProvider>();
-    final modules = await provider.moduleList();
-
-    return await showModalBottomSheet<Base7579ModuleInterface>(
+  Future<ModuleType?> _showModuleTypeSelector(BuildContext context) async {
+    return await showModalBottomSheet<ModuleType>(
       context: context,
       backgroundColor: const Color(0xFF2A2A3C),
       shape: const RoundedRectangleBorder(
@@ -278,7 +298,7 @@ class ModularActionsCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            ...modules.getAll
+            ...ModuleType.values
                 .map((mod) => Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
@@ -347,7 +367,7 @@ class ModularActionsCard extends StatelessWidget {
     );
   }
 
-  void _showErrorDialog(BuildContext context, String message) {
+  void _showErrorDialog(BuildContext context, String message, {String? level}) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -355,10 +375,11 @@ class ModularActionsCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.error_outline, color: Colors.redAccent),
+            Icon(Icons.error_outline,
+                color: level != null ? Colors.amber : Colors.redAccent),
             const SizedBox(width: 10),
             Text(
-              'Error',
+              level ?? 'Error',
               style: TextStyle(color: Colors.grey[200]),
             ),
           ],

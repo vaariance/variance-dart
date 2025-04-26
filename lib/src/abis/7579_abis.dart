@@ -28,7 +28,7 @@ class Safe7579Abis {
         break;
       case 'accountId':
         abi =
-            '[{"name":"accountId","type":"function","stateMutability":"view","inputs":[],"outputs":[{"type":"string","name":"accountImplementationId"}]}]';
+            '[{"type":"function","name":"accountId","inputs":[],"outputs":[{"name":"accountImplementationId","type":"string","internalType":"string"}],"stateMutability":"pure"}]';
         break;
       case 'isModuleInstalled':
         abi =
@@ -36,11 +36,11 @@ class Safe7579Abis {
         break;
       case 'supportsModule':
         abi =
-            '[{"name":"supportsModule","type":"function","stateMutability":"view","inputs":[{"type":"uint256","name":"moduleTypeId"}],"outputs":[{"type":"bool"}]}]';
+            '[{"type":"function","name":"supportsModule","inputs":[{"name":"moduleTypeId","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"pure"}]';
         break;
       case 'supportsExecutionMode':
         abi =
-            '[{"name":"supportsExecutionMode","type":"function","stateMutability":"view","inputs":[{"type":"bytes32","name":"encodedMode"}],"outputs":[{"type":"bool"}]}]';
+            '[{"type":"function","name":"supportsExecutionMode","inputs":[{"name":"encodedMode","type":"bytes32","internalType":"ModeCode"}],"outputs":[{"name":"supported","type":"bool","internalType":"bool"}],"stateMutability":"pure"}]';
         break;
       case 'installModule':
         abi =

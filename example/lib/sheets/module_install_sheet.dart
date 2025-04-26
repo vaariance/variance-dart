@@ -121,6 +121,8 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
                     }
 
                     if (snapshot.hasError) {
+                      print(snapshot.error);
+                      print(snapshot.stackTrace);
                       return Text('Error: ${snapshot.error}',
                           style: const TextStyle(color: Colors.red));
                     }
@@ -147,7 +149,7 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 2),
                             title: Text(
-                              module.type.name,
+                              module.name,
                               style: TextStyle(
                                 color: Colors.grey[200],
                                 fontSize: 16,

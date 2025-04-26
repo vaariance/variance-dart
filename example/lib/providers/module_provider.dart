@@ -50,11 +50,17 @@ class ModuleProvider extends ChangeNotifier {
     }
 
     final modules = _getAllModules();
+    final isWalletDeployed = await _wallet.isDeployed;
+    if (!isWalletDeployed) {
+      return Modules([], modules);
+    }
+
     final installed = <Base7579ModuleInterface>[];
 
     await Future.wait(modules.map((mod) async {
       final isInstalled =
           await _wallet.isModuleInstalled(mod.type, mod.address) ?? false;
+      print("$isInstalled, ${mod.name}");
       if (isInstalled) {
         installed.add(mod);
       }

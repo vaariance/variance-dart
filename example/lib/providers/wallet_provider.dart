@@ -33,13 +33,15 @@ class WalletProvider extends ChangeNotifier {
 
   // Contract addresses
   final EthereumAddress nft =
-      EthereumAddress.fromHex("0xBF20E2bB8bb6859A424C898d5a2995c3659b90f2");
+      EthereumAddress.fromHex("0xEBE46f55b40C0875354Ac749893fe45Ce28e1333");
+  // fuse = EthereumAddress.fromHex("0xBF20E2bB8bb6859A424C898d5a2995c3659b90f2");
   final EthereumAddress erc20 =
-      EthereumAddress.fromHex("0xAc94c8dD3094AB2D68B092AA34A6e29A293E592a");
+      EthereumAddress.fromHex("0x7BF7957315AFbC9bA717b004BB9E3f43321a9A48");
+  // fuse = EthereumAddress.fromHex("0xAc94c8dD3094AB2D68B092AA34A6e29A293E592a");
   final EthereumAddress dump =
       EthereumAddress.fromHex("0xf5bb7f874d8e3f41821175c0aa9910d30d10e193");
-  final EthereumAddress p256Verifier =
-      EthereumAddress.fromHex("0xc2b78104907F722DABAc4C69f826a522B2754De4");
+  // final EthereumAddress p256Verifier =
+  //     EthereumAddress.fromHex("0xc2b78104907F722DABAc4C69f826a522B2754De4");
 
   // Common parameters
   final salt = Uint256.zero;
@@ -51,10 +53,10 @@ class WalletProvider extends ChangeNotifier {
             bundlerUrl: rpc,
             paymasterUrl: rpc,
             testnet: true,
-            chainId: 123,
-            jsonRpcUrl: "https://rpc.fusespark.io",
+            chainId: 84532,
+            jsonRpcUrl: "https://sepolia.base.org",
             accountFactory: Addresses.safeProxyFactoryAddress,
-            explorer: "https://explorer.fusespark.io/",
+            explorer: "https://base-sepolia.blockscout.com/",
             entrypoint: EntryPointAddress.v07);
 
   // Set loading state
@@ -123,8 +125,7 @@ class WalletProvider extends ChangeNotifier {
             "${DateTime.timestamp().millisecondsSinceEpoch}@variance.space",
             'variance',
           );
-          _wallet = await factory.createSafeAccountWithPasskey(keypair, salt,
-              p256Verifier: p256Verifier);
+          _wallet = await factory.createSafeAccountWithPasskey(keypair, salt);
           break;
         default:
           _wallet = await factory.createSafeAccount(salt);
@@ -192,9 +193,7 @@ class WalletProvider extends ChangeNotifier {
           );
           _wallet = await factory.createSafe7579AccountWithPasskey(
               keypair, salt, launchpad,
-              p256Verifier: p256Verifier,
-              attesters: [attester],
-              attestersThreshold: 1);
+              attesters: [attester], attestersThreshold: 1);
           break;
         default:
           _wallet = await factory.createSafe7579Account(salt, launchpad,
@@ -269,7 +268,7 @@ class WalletProvider extends ChangeNotifier {
   void overrideGas() {
     // @dev use only when needed
     _wallet?.gasOverride = GasSettings(
-      maxPriorityFeePerGas: (p0) => BigInt.from(1234567890),
+      maxPriorityFeePerGas: (p0) => BigInt.from(13600000),
     );
   }
 }

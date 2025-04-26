@@ -145,6 +145,13 @@ class _CopyButtonState extends State<CopyButton> {
       _isCopied = true;
     });
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Copied to clipboard'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
     // Reset after a short delay
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {

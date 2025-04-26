@@ -51,7 +51,7 @@ mixin _callActions on SmartWalletBase {
     if (_safe != null) {
       method = 'executeUserOpWithErrorString';
       params = [
-        [Addresses.safeMultiSendaddress],
+        Addresses.safeMultiSendaddress,
         EtherAmount.zero().getInWei,
         _safe.getSafeMultisendCallData(recipients, amounts, innerCalls),
         BigInt.one

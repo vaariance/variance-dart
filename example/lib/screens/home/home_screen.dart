@@ -78,18 +78,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 .showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                    'Minting failed: $res'),
+                                                    'Transfer failed: $res'),
                                                 backgroundColor: Colors.red,
                                               ),
                                             );
                                           }
                                           setState(() {
-                                            _isLoadingMint = false;
+                                            _isLoadingTransfer = false;
                                           });
                                         },
                                   icon: _isLoadingTransfer
                                       ? const SizedBox(
                                           width: 16,
+                                          height: 16,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
                                             color: Color(0xFF663399),
@@ -126,55 +127,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               ),
-                              if (_transferTxHash.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Transaction Hash:',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                _transferTxHash,
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontFamily: 'monospace',
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(Icons.copy,
-                                                  size: 16),
-                                              onPressed: () => _copyToClipboard(
-                                                  _transferTxHash),
-                                              padding: EdgeInsets.zero,
-                                              constraints:
-                                                  const BoxConstraints(),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                             ],
                           ),
                         ),
@@ -255,61 +207,53 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               ),
-                              if (_mintTxHash.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Transaction Hash:',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                _mintTxHash,
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontFamily: 'monospace',
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(Icons.copy,
-                                                  size: 16),
-                                              onPressed: () =>
-                                                  _copyToClipboard(_mintTxHash),
-                                              padding: EdgeInsets.zero,
-                                              constraints:
-                                                  const BoxConstraints(),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                             ],
                           ),
                         ),
                       ),
                     ],
                   ),
+
+                  if (_transferTxHash.isNotEmpty || _mintTxHash.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _transferTxHash.isNotEmpty
+                                        ? _transferTxHash
+                                        : _mintTxHash,
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: 'monospace',
+                                        color: Colors.greenAccent),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.copy, size: 16),
+                                  color: Colors.lightGreen,
+                                  onPressed: () => _copyToClipboard(
+                                    _transferTxHash.isNotEmpty
+                                        ? _transferTxHash
+                                        : _mintTxHash,
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                   const SizedBox(height: 24),
                   if (isFromModularAccounts) ...[
                     const Padding(
