@@ -18,12 +18,13 @@ void main() async {
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (_) => WalletProvider()),
     ChangeNotifierProvider(create: (_) => AccountProvider()),
-    ProxyProvider<WalletProvider, ModuleProvider?>(
-      update: (context, walletProvider, previous) {
-        if (walletProvider.wallet == null) {
-          return previous;
-        }
-        return ModuleProvider(walletProvider.wallet!);
+    ChangeNotifierProxyProvider<WalletProvider, ModuleProvider?>(
+      create: (_) => null,
+      update: (context, walletProvider, previousModule) {
+        final wallet = walletProvider.wallet;
+        if (wallet == null) return previousModule;
+
+        return ModuleProvider(wallet);
       },
     ),
   ], child: const MyApp()));

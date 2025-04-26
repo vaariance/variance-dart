@@ -24,6 +24,10 @@ class ModuleProvider extends ChangeNotifier {
   late final Base7579ModuleInterface registryHook;
   late final Base7579ModuleInterface ownableValidator;
 
+  Modules? _cachedModules;
+  // ignore: unused_field
+  DateTime? _lastFetched;
+
   ModuleProvider(this._wallet) {
     final owners = [_guardian1.address, _guardian2.address];
 
@@ -40,7 +44,11 @@ class ModuleProvider extends ChangeNotifier {
     return [socialRecovery, ownableExecutor, registryHook, ownableValidator];
   }
 
-  Future<Modules> moduleList() async {
+  Future<Modules> moduleList({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedModules != null) {
+      return _cachedModules!;
+    }
+
     final modules = _getAllModules();
     final installed = <Base7579ModuleInterface>[];
 
@@ -54,6 +62,22 @@ class ModuleProvider extends ChangeNotifier {
 
     final uninstalled =
         modules.where((mod) => !installed.contains(mod)).toList();
-    return Modules(installed, uninstalled);
+
+    final result = Modules(installed, uninstalled);
+    _cachedModules = result;
+    _lastFetched = DateTime.now();
+
+    return result;
+  }
+
+  Future<Modules> reloadModules() async {
+    final fresh = await moduleList(forceRefresh: true);
+    notifyListeners();
+    return fresh;
+  }
+
+  void clearCache() {
+    _cachedModules = null;
+    _lastFetched = null;
   }
 }

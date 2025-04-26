@@ -35,10 +35,11 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
     super.dispose();
   }
 
-  void _handleUninstall(
-      BuildContext context, Base7579ModuleInterface module) async {
+  void _handleUninstall(BuildContext context, Base7579ModuleInterface module,
+      Future<Modules> Function() reloadModules) async {
     try {
       final response = await _processUninstallation(module);
+      await reloadModules();
       Navigator.pop(context);
 
       _showResultSnackbar(
@@ -170,7 +171,8 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
                               fontSize: 16,
                             ),
                           ),
-                          onTap: () => _handleUninstall(context, module),
+                          onTap: () => _handleUninstall(
+                              context, module, provider.reloadModules),
                         ),
                       );
                     },

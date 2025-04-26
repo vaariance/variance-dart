@@ -31,10 +31,11 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
     super.dispose();
   }
 
-  void _handleInstall(
-      BuildContext context, Base7579ModuleInterface module) async {
+  void _handleInstall(BuildContext context, Base7579ModuleInterface module,
+      Future<Modules> Function() reloadModules) async {
     try {
       final response = await _processInstallation(module);
+      await reloadModules();
       _showResultSnackBar(
         context,
         response.$1
@@ -152,7 +153,8 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
                                 fontSize: 16,
                               ),
                             ),
-                            onTap: () => _handleInstall(context, module),
+                            onTap: () => _handleInstall(
+                                context, module, provider.reloadModules),
                           ),
                         );
                       },
