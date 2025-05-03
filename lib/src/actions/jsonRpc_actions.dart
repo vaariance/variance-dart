@@ -89,10 +89,8 @@ mixin _jsonRPCActions implements JsonRPCProviderBase {
         Contract.getContractFunction(methodName, contractAddress, abi);
     final calldata = {
       'to': contractAddress.hex,
-      'data': params != null
-          ? bytesToHex(function.encodeCall(params),
-              include0x: true, padToEvenLength: true)
-          : "0x",
+      'data': bytesToHex(function.encodeCall(params ?? []),
+          include0x: true, padToEvenLength: true),
       if (sender != null) 'from': sender.hex,
     };
     return _jsonRpc.send<String>('eth_call', [

@@ -769,7 +769,7 @@ packages:
       path: "../../web3-signers"
       relative: true
     source: path
-    version: "0.1.9"
+    version: "0.1.10"
   web3dart:
     dependency: "direct main"
     description:

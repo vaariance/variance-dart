@@ -111,6 +111,7 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
                 color: Colors.grey[200],
               ),
             ),
+            const SizedBox(height: 10),
             Consumer<ModuleProvider>(
               builder: (BuildContext context, provider, Widget? child) {
                 return FutureBuilder<Modules>(
@@ -121,13 +122,37 @@ class ModuleInstallSheetState extends State<ModuleInstallSheet> {
                     }
 
                     if (snapshot.hasError) {
-                      print(snapshot.error);
-                      print(snapshot.stackTrace);
                       return Text('Error: ${snapshot.error}',
                           style: const TextStyle(color: Colors.red));
                     }
 
                     final uninstalledModules = snapshot.data?.uninstalled ?? [];
+
+                    if (uninstalledModules.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.check_circle_outline,
+                                size: 48,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'All modules are installed',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
 
                     return ListView.builder(
                       itemCount: uninstalledModules.length,

@@ -145,6 +145,33 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
                   }
 
                   final installedModules = snapshot.data?.installed ?? [];
+
+                  if (installedModules.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.inbox_outlined,
+                              size: 48,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No installed modules to uninstall',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
                   return ListView.builder(
                     itemCount: installedModules.length,
                     shrinkWrap: true,

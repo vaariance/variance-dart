@@ -21,7 +21,6 @@ class ModuleProvider extends ChangeNotifier {
 
   late final Base7579ModuleInterface socialRecovery;
   late final Base7579ModuleInterface ownableExecutor;
-  late final Base7579ModuleInterface registryHook;
   late final Base7579ModuleInterface ownableValidator;
 
   Modules? _cachedModules;
@@ -37,11 +36,10 @@ class ModuleProvider extends ChangeNotifier {
     ownableValidator = OwnableValidator(_wallet);
     socialRecovery = SocialRecovery(_wallet);
     ownableExecutor = OwnableExecutor(_wallet);
-    registryHook = RegistryHook(_wallet);
   }
 
   List<Base7579ModuleInterface> _getAllModules() {
-    return [socialRecovery, ownableExecutor, registryHook, ownableValidator];
+    return [socialRecovery, ownableExecutor, ownableValidator];
   }
 
   Future<Modules> moduleList({bool forceRefresh = false}) async {
@@ -60,7 +58,6 @@ class ModuleProvider extends ChangeNotifier {
     await Future.wait(modules.map((mod) async {
       final isInstalled =
           await _wallet.isModuleInstalled(mod.type, mod.address) ?? false;
-      print("$isInstalled, ${mod.name}");
       if (isInstalled) {
         installed.add(mod);
       }
