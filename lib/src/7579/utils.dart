@@ -111,3 +111,12 @@ Uint8List _encodePostSetupInitCalldata(_Safe7579Initializer initializer,
     ]
   ]);
 }
+
+Future<Uint8List> encodeModuleUninstallCalldata(Uint8List deInitData,
+    ModuleType type, Future<EthereumAddress> Function() getPrev) async {
+  if (type != ModuleType.validator && type != ModuleType.executor) {
+    return deInitData;
+  }
+  final prev = await getPrev();
+  return abi.encode(["address", "bytes"], [prev, deInitData]);
+}

@@ -8,6 +8,9 @@ const int MODULE_TYPE_EXECUTOR = 2;
 const int MODULE_TYPE_FALLBACK = 3;
 const int MODULE_TYPE_HOOK = 4;
 
+const int HOOK_TYPE_GLOBAL = 0;
+const int HOOK_TYPE_SIG = 1;
+
 enum ModuleType {
   validator(value: MODULE_TYPE_VALIDATOR),
   executor(value: MODULE_TYPE_EXECUTOR),
@@ -16,6 +19,14 @@ enum ModuleType {
 
   final int value;
   const ModuleType({required this.value});
+}
+
+enum SafeHookType {
+  global(value: HOOK_TYPE_GLOBAL),
+  sig(value: HOOK_TYPE_SIG);
+
+  final int value;
+  const SafeHookType({required this.value});
 }
 
 class ModuleInit<T1 extends EthereumAddress, T2 extends Uint8List> {

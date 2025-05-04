@@ -75,13 +75,13 @@ mixin _7579Actions
         List.filled(encodedCalldatas.length, address), encodedCalldatas);
   }
 
-  Future<UserOperationResponse> _uninstallModule(
-      ModuleType type, EthereumAddress moduleAddress, Uint8List initData) {
+  Future<UserOperationResponse> _uninstallModule(ModuleType type,
+      EthereumAddress moduleAddress, Uint8List deInitData) async {
     final encodedCalldata = Contract.encodeFunctionCall(
         "uninstallModule",
         address,
         Safe7579Abis.get("uninstallModule"),
-        [BigInt.from(type.value), moduleAddress, initData]);
+        [BigInt.from(type.value), moduleAddress, deInitData]);
     return sendTransaction(address, encodedCalldata);
   }
 

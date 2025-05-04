@@ -15,7 +15,7 @@ class Modules {
 class ModuleProvider extends ChangeNotifier {
   final SmartWallet _wallet;
 
-  final int threshold = 2;
+  final BigInt threshold = BigInt.two;
   final PrivateKeySigner _guardian1 = PrivateKeySigner.createRandom("test");
   final PrivateKeySigner _guardian2 = PrivateKeySigner.createRandom("test");
 
@@ -30,12 +30,9 @@ class ModuleProvider extends ChangeNotifier {
   ModuleProvider(this._wallet) {
     final owners = [_guardian1.address, _guardian2.address];
 
-    OwnableValidator.setInitVars(threshold, owners);
-    SocialRecovery.setInitVars(threshold, owners);
-
-    ownableValidator = OwnableValidator(_wallet);
-    socialRecovery = SocialRecovery(_wallet);
-    ownableExecutor = OwnableExecutor(_wallet);
+    ownableValidator = OwnableValidator(_wallet, threshold, owners);
+    socialRecovery = SocialRecovery(_wallet, threshold, owners);
+    ownableExecutor = OwnableExecutor(_wallet, _guardian1.address);
   }
 
   List<Base7579ModuleInterface> _getAllModules() {
