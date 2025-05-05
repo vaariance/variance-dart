@@ -45,5 +45,5 @@ dependency_overrides:
   stream_channel: ^2.1.2
   variance_dart:
     path: ../
-  web3_signers:
-    path: ../../web3-signers
+  # web3_signers:
+  #   path: ../../web3-signers

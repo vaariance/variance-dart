@@ -1,8 +1,5 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:variance_dart/variance_dart.dart';
 import 'package:variance_modules/modules.dart';
 import 'package:variancedemo/providers/module_provider.dart';
 
@@ -18,56 +15,55 @@ class ModuleUninstallSheet extends StatefulWidget {
 }
 
 class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
-  ModuleType? selectedType;
-  final TextEditingController addressController = TextEditingController();
-  final TextEditingController initDataController = TextEditingController();
-  bool isMultipleModules = false;
-
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<ModuleProvider>();
+      provider.moduleList();
+    });
   }
 
   @override
   void dispose() {
-    addressController.dispose();
-    initDataController.dispose();
     super.dispose();
   }
 
-  void _handleUninstall(BuildContext context, Base7579ModuleInterface module,
-      Future<Modules> Function() reloadModules) async {
-    try {
-      final response = await _processUninstallation(module);
-      await reloadModules();
-      Navigator.pop(context);
+  void _handleUninstall(
+      BuildContext context, Base7579ModuleInterface module) async {
+    final provider = context.read<ModuleProvider>();
 
-      _showResultSnackbar(
-        context,
-        response.$1
-            ? 'Module uninstalled successfully: ${response.$2 != null ? '\nTx: ${response.$2?.txReceipt.transactionHash.shortenHash()}' : ''}'
-            : 'Failed to uninstall module: ${response.$3.toString()}',
-        response.$1,
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<(bool, UserOperationReceipt?, dynamic)> _processUninstallation(
-      Base7579ModuleInterface module) async {
     try {
-      log('Installing: ${module.name}');
-      final tx = await module.uninstall();
-      log('Installed: ${module.name}');
-      return (true, tx, null);
+      final response = await provider.uninstallModule(module);
+
+      if (!mounted) return;
+
+      if (response.$1) {
+        if (context.mounted) {
+          Navigator.pop(context);
+          _showResultSnackbar(
+            context,
+            'Module uninstalled successfully!\n${response.$2 != null ? 'Tx: ${response.$2?.txReceipt.transactionHash.shortenHash()}' : ''}',
+            true,
+          );
+        }
+      } else {
+        if (context.mounted) {
+          _showResultSnackbar(
+            context,
+            response.$3?.toString() ?? 'Failed to uninstall module',
+            false,
+          );
+        }
+      }
     } catch (e) {
-      return (false, null, e);
+      if (context.mounted) {
+        _showResultSnackbar(
+          context,
+          'Unexpected error: ${e.toString()}',
+          false,
+        );
+      }
     }
   }
 
@@ -82,14 +78,23 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(message),
+              child: Text(
+                message,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
         backgroundColor: const Color(0xFF2A2A3C),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 4),
+        duration: Duration(seconds: success ? 4 : 6),
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height - 150,
+          left: 10,
+          right: 10,
+        ),
       ),
     );
   }
@@ -131,82 +136,88 @@ class ModuleUninstallSheetState extends State<ModuleUninstallSheet> {
             ),
             const SizedBox(height: 10),
             Consumer<ModuleProvider>(
-                builder: (BuildContext context, provider, Widget? child) {
-              return FutureBuilder<Modules>(
-                future: provider.moduleList(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+              builder: (BuildContext context, provider, Widget? child) {
+                final installedModules = provider.installedModules;
 
-                  if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}',
-                        style: const TextStyle(color: Colors.red));
-                  }
+                if (provider.modules == null) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                  final installedModules = snapshot.data?.installed ?? [];
-
-                  if (installedModules.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.inbox_outlined,
-                              size: 48,
-                              color: Colors.grey[400],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No installed modules to uninstall',
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-
-                  return ListView.builder(
-                    itemCount: installedModules.length,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (BuildContext context, int index) {
-                      final module = installedModules[index];
-                      return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF363647),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: const Color(0xFF663399).withOpacity(0.3),
-                            width: 1,
+                if (installedModules.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.inbox_outlined,
+                            size: 48,
+                            color: Colors.grey[400],
                           ),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 2),
-                          title: Text(
-                            module.name,
+                          const SizedBox(height: 16),
+                          Text(
+                            'No installed modules to uninstall',
                             style: TextStyle(
-                              color: Colors.grey[200],
+                              color: Colors.grey[400],
                               fontSize: 16,
                             ),
                           ),
-                          onTap: () => _handleUninstall(
-                              context, module, provider.reloadModules),
-                        ),
-                      );
-                    },
+                        ],
+                      ),
+                    ),
                   );
-                },
-              );
-            }),
+                }
+
+                return ListView.builder(
+                  itemCount: installedModules.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (BuildContext context, int index) {
+                    final module = installedModules[index];
+                    final isUninstalling = provider.isUninstalling(module.name);
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF363647),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFF663399).withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 2),
+                        title: Text(
+                          module.name,
+                          style: TextStyle(
+                            color: Colors.grey[200],
+                            fontSize: 16,
+                          ),
+                        ),
+                        trailing: isUninstalling
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF663399),
+                                  ),
+                                ),
+                              )
+                            : null,
+                        onTap: isUninstalling
+                            ? null // Disable tap when uninstalling
+                            : () => _handleUninstall(context, module),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
             const SizedBox(height: 30),
           ],
         ),
