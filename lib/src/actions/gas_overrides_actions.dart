@@ -1,10 +1,18 @@
 part of '../../variance_dart.dart';
 
-typedef Percent = double;
-typedef GasTransformFn = BigInt Function(BigInt?)?;
+@Deprecated("Use GasOverrides instead")
+class GasSettings extends GasOverrides {
+  GasSettings({
+    super.callGasMultiplierPercentage,
+    super.verificationGasMultiplierPercentage,
+    super.preVerificationGasMultiplierPercentage,
+    super.userDefinedMaxFeePerGas,
+    super.userDefinedMaxPriorityFeePerGas,
+  });
+}
 
 /// A class that represents gas settings for Ethereum transactions.
-class GasSettings {
+class GasOverrides {
   // New approach with direct gas value modifications
   final GasTransformFn callGas;
   final GasTransformFn verificationGas;
@@ -24,7 +32,7 @@ class GasSettings {
   @Deprecated("Use maxPriorityFeePerGas instead")
   BigInt? userDefinedMaxPriorityFeePerGas;
 
-  GasSettings({
+  GasOverrides({
     this.callGas,
     this.verificationGas,
     this.preVerificationGas,
@@ -42,25 +50,23 @@ class GasSettings {
     @Deprecated("Use maxPriorityFeePerGas transform fn instead")
     this.userDefinedMaxPriorityFeePerGas,
   }) : assert(
-            callGasMultiplierPercentage >= 0 &&
-                callGasMultiplierPercentage <= 100 &&
-                verificationGasMultiplierPercentage >= 0 &&
-                preVerificationGasMultiplierPercentage >= 0,
-            RangeOutOfBounds("Wrong Gas multiplier percentage", 0, 100));
+         callGasMultiplierPercentage >= 0 &&
+             callGasMultiplierPercentage <= 100 &&
+             verificationGasMultiplierPercentage >= 0 &&
+             preVerificationGasMultiplierPercentage >= 0,
+         RangeOutOfBounds("Wrong Gas multiplier percentage", 0, 100),
+       );
 }
 
-/// A mixin that provides methods for managing gas settings for user operations.
-mixin _gasOverridesActions {
-  /// The gas settings for user operations.
-  GasSettings _gasParams = GasSettings();
-
-  set gasOverride(GasSettings gasParams) => _gasParams = gasParams;
+/// A stateless mixin that provides gas override functionality for smart wallet operations
+mixin _GasOverridesActions on SmartWalletBase {
+  set gasOverrides(GasOverrides overrides) => state.gasOverrides = overrides;
 
   /// Sets the gas settings for user operations.
   ///
   /// [gasParams] is an instance of the [GasSettings] class containing the gas settings.
-  @Deprecated("use [gasOverride] method")
-  set gasSettings(GasSettings gasParams) => _gasParams = gasParams;
+  @Deprecated("use [gasOverrides] setter")
+  set gasSettings(GasSettings gasParams) => state.gasOverrides = gasParams;
 
   /// Applies the gas settings to a user operation, by multiplying the gas limits by a certain percentage.
   ///
@@ -68,32 +74,42 @@ mixin _gasOverridesActions {
   ///
   /// Returns a new [UserOperation] object with the updated gas settings.
   UserOperation _applyGasOverrides(UserOperation op) {
+    if (state.gasOverrides == null) return op;
+
     // Handle legacy multiplier logic
-    final cglMultiplier = _gasParams.callGasMultiplierPercentage / 100 + 1;
+    // ! To bo removed ---- start
+    final cglMultiplier =
+        state.gasOverrides!.callGasMultiplierPercentage / 100 + 1;
     final vglMultiplier =
-        _gasParams.verificationGasMultiplierPercentage / 100 + 1;
+        state.gasOverrides!.verificationGasMultiplierPercentage / 100 + 1;
     final preVglMultiplier =
-        _gasParams.preVerificationGasMultiplierPercentage / 100 + 1;
+        state.gasOverrides!.preVerificationGasMultiplierPercentage / 100 + 1;
+    // ! To bo removed ---- end
 
-    final newCallGas = _gasParams.callGas != null
-        ? _gasParams.callGas!(op.callGasLimit)
-        : BigInt.from(op.callGasLimit.toDouble() * cglMultiplier);
+    final newCallGas =
+        state.gasOverrides?.callGas != null
+            ? state.gasOverrides?.callGas!(op.callGasLimit)
+            : BigInt.from(op.callGasLimit.toDouble() * cglMultiplier);
 
-    final newVerificationGas = _gasParams.verificationGas != null
-        ? _gasParams.verificationGas!(op.verificationGasLimit)
-        : BigInt.from(op.verificationGasLimit.toDouble() * vglMultiplier);
+    final newVerificationGas =
+        state.gasOverrides?.verificationGas != null
+            ? state.gasOverrides?.verificationGas!(op.verificationGasLimit)
+            : BigInt.from(op.verificationGasLimit.toDouble() * vglMultiplier);
 
-    final newPreVerificationGas = _gasParams.preVerificationGas != null
-        ? _gasParams.preVerificationGas!(op.preVerificationGas)
-        : BigInt.from(op.preVerificationGas.toDouble() * preVglMultiplier);
+    final newPreVerificationGas =
+        state.gasOverrides?.preVerificationGas != null
+            ? state.gasOverrides?.preVerificationGas!(op.preVerificationGas)
+            : BigInt.from(op.preVerificationGas.toDouble() * preVglMultiplier);
 
-    final newMaxFeePerGas = _gasParams.maxFeePerGas != null
-        ? _gasParams.maxFeePerGas!(op.maxFeePerGas)
-        : _gasParams.userDefinedMaxFeePerGas;
+    final newMaxFeePerGas =
+        state.gasOverrides?.maxFeePerGas != null
+            ? state.gasOverrides?.maxFeePerGas!(op.maxFeePerGas)
+            : state.gasOverrides?.userDefinedMaxFeePerGas;
 
-    final newMaxPriorityFeePerGas = _gasParams.maxPriorityFeePerGas != null
-        ? _gasParams.maxPriorityFeePerGas!(op.maxPriorityFeePerGas)
-        : _gasParams.userDefinedMaxPriorityFeePerGas;
+    final newMaxPriorityFeePerGas =
+        state.gasOverrides?.maxPriorityFeePerGas != null
+            ? state.gasOverrides?.maxPriorityFeePerGas!(op.maxPriorityFeePerGas)
+            : state.gasOverrides?.userDefinedMaxPriorityFeePerGas;
 
     if (newCallGas == op.callGasLimit &&
         newVerificationGas == op.verificationGasLimit &&
@@ -104,10 +120,11 @@ mixin _gasOverridesActions {
     }
 
     return op.copyWith(
-        callGasLimit: newCallGas,
-        verificationGasLimit: newVerificationGas,
-        preVerificationGas: newPreVerificationGas,
-        maxFeePerGas: newMaxFeePerGas,
-        maxPriorityFeePerGas: newMaxPriorityFeePerGas);
+      callGasLimit: newCallGas,
+      verificationGasLimit: newVerificationGas,
+      preVerificationGas: newPreVerificationGas,
+      maxFeePerGas: newMaxFeePerGas,
+      maxPriorityFeePerGas: newMaxPriorityFeePerGas,
+    );
   }
 }

@@ -1,5 +1,55 @@
 part of 'interfaces.dart';
 
+interface class SmartWalletState {
+  final Chain chain;
+
+  final EthereumAddress address;
+
+  final MSI signer;
+
+  final Uint8List initCode;
+
+  final RPCBase jsonRpc;
+
+  final RPCBase bundler;
+
+  final RPCBase? paymaster;
+
+  final Safe? safe;
+
+  /// Optional gas overrides for user operations.
+  ///
+  /// This can be used to override default gas parameters like maxFeePerGas,
+  /// maxPriorityFeePerGas, and callGasLimit when creating user operations.
+  GasOverrides? gasOverrides;
+
+  /// The address of the Paymaster contract.
+  ///
+  /// This is an optional parameter and can be left null if the paymaster address
+  /// is not known or needed.
+  EthereumAddress? paymasterAddress;
+
+  /// The context data for the Paymaster.
+  ///
+  /// This is an optional parameter and can be used to provide additional context
+  /// information to the Paymaster when sponsoring user operations.
+  Map<String, String>? paymasterContext;
+
+  SmartWalletState({
+    required this.chain,
+    required this.address,
+    required this.signer,
+    required this.initCode,
+    required this.jsonRpc,
+    required this.bundler,
+    this.paymaster,
+    this.safe,
+    this.gasOverrides,
+    this.paymasterAddress,
+    this.paymasterContext,
+  });
+}
+
 /// An abstract class representing the base structure of a Smart Wallet.
 ///
 /// The SmartWalletBase class defines the common structure and methods that
@@ -7,6 +57,10 @@ part of 'interfaces.dart';
 /// creating different implementations of Smart Wallets while adhering to a
 /// common interface.
 abstract class SmartWalletBase {
+  /// Returns the internal state of the wallet
+  @protected
+  SmartWalletState get state;
+
   /// The Ethereum address of the Smart Wallet.
   EthereumAddress get address;
 
@@ -89,8 +143,10 @@ abstract class SmartWalletBase {
   /// latest nonce and gas prices. Defaults to `true`.
   ///
   /// Returns a [Future] that resolves to the prepared [UserOperation] object.
-  Future<UserOperation> prepareUserOperation(UserOperation op,
-      {bool update = true});
+  Future<UserOperation> prepareUserOperation(
+    UserOperation op, {
+    bool update = true,
+  });
 
   /// Sponsors a user operation by intercepting it with the paymaster plugin, if present.
   ///
@@ -119,8 +175,10 @@ abstract class SmartWalletBase {
   /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
   /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> send(
-      EthereumAddress recipient, EtherAmount amount,
-      {Uint256? nonceKey});
+    EthereumAddress recipient,
+    EtherAmount amount, {
+    Uint256? nonceKey,
+  });
 
   /// Asynchronously sends a batched Ethereum transaction to multiple recipients with the given calls and optional amounts.
   ///
@@ -150,8 +208,11 @@ abstract class SmartWalletBase {
   /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
   /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> sendBatchedTransaction(
-      List<EthereumAddress> recipients, List<Uint8List> calls,
-      {List<EtherAmount>? amounts, Uint256? nonceKey});
+    List<EthereumAddress> recipients,
+    List<Uint8List> calls, {
+    List<EtherAmount>? amounts,
+    Uint256? nonceKey,
+  });
 
   /// Asynchronously sends a signed user operation to the bundler for execution.
   ///
@@ -189,8 +250,11 @@ abstract class SmartWalletBase {
   /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
   /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> sendTransaction(
-      EthereumAddress to, Uint8List encodedFunctionData,
-      {EtherAmount? amount, Uint256? nonceKey});
+    EthereumAddress to,
+    Uint8List encodedFunctionData, {
+    EtherAmount? amount,
+    Uint256? nonceKey,
+  });
 
   /// Asynchronously sends a user operation after signing it and obtaining the required signatures.
   ///
@@ -206,8 +270,10 @@ abstract class SmartWalletBase {
   /// // when using passkey signer, the credentialId idenfies the credential that is associated with the account.
   /// var response = await sendUserOperation(myUserOperation, id: 'credentialId'); // index is effectively ignored even if provided
   /// ```
-  Future<UserOperationResponse> sendUserOperation(UserOperation op,
-      {Uint256? nonceKey});
+  Future<UserOperationResponse> sendUserOperation(
+    UserOperation op, {
+    Uint256? nonceKey,
+  });
 
   /// Asynchronously signs a user operation with the required signatures.
   ///

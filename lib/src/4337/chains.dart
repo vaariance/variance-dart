@@ -55,15 +55,16 @@ class Chain {
   /// );
   /// ```
 
-  Chain(
-      {required this.chainId,
-      required this.explorer,
-      required this.entrypoint,
-      this.accountFactory,
-      this.jsonRpcUrl,
-      this.bundlerUrl,
-      this.paymasterUrl,
-      this.testnet = false});
+  Chain({
+    required this.chainId,
+    required this.explorer,
+    required this.entrypoint,
+    this.accountFactory,
+    this.jsonRpcUrl,
+    this.bundlerUrl,
+    this.paymasterUrl,
+    this.testnet = false,
+  });
 }
 
 //predefined Chains you can use
@@ -110,15 +111,17 @@ class Chains {
       entrypoint: EntryPointAddress.v07,
     ),
     Network.sepolia: Chain(
-        chainId: 11155111,
-        explorer: "https://sepolia.etherscan.io/",
-        entrypoint: EntryPointAddress.v07,
-        testnet: true),
+      chainId: 11155111,
+      explorer: "https://sepolia.etherscan.io/",
+      entrypoint: EntryPointAddress.v07,
+      testnet: true,
+    ),
     Network.baseTestnet: Chain(
-        chainId: 84532,
-        explorer: "https://sepolia.basescan.org/",
-        entrypoint: EntryPointAddress.v07,
-        testnet: true)
+      chainId: 84532,
+      explorer: "https://sepolia.basescan.org/",
+      entrypoint: EntryPointAddress.v07,
+      testnet: true,
+    ),
   };
 
   const Chains._();

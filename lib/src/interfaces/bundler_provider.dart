@@ -13,7 +13,7 @@ abstract class BundlerProviderBase {
     'eth_getUserOperationByHash',
     'eth_getUserOperationReceipt',
     'eth_supportedEntryPoints',
-    'pm_sponsorUserOperation'
+    'pm_sponsorUserOperation',
   };
 
   /// Asynchronously estimates the gas cost for a user operation using the provided data and entrypoint.
@@ -28,13 +28,15 @@ abstract class BundlerProviderBase {
   /// Example:
   /// ```dart
   /// var gasEstimation = await estimateUserOperationGas(
-  ///   myUserOp, // Map<String, dynamic>
+  ///   myUserOp, // Dict
   ///   EthereumAddress.fromHex('0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'),
   /// );
   /// ```
   /// This method uses the bundled RPC to estimate the gas cost for the provided user operation data.
   Future<UserOperationGas> estimateUserOperationGas(
-      Map<String, dynamic> userOp, EntryPointAddress entrypoint);
+    Dict userOp,
+    EntryPointAddress entrypoint,
+  );
 
   /// Asynchronously retrieves information about a user operation using its hash.
   ///
@@ -78,13 +80,15 @@ abstract class BundlerProviderBase {
   /// Example:
   /// ```dart
   /// var response = await sendUserOperation(
-  ///   myUserOp, // Map<String, dynamic>
+  ///   myUserOp, // Dict
   ///   EthereumAddress.fromHex('0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'),
   /// );
   /// ```
   /// This method uses the bundled RPC to send the specified user operation for execution and returns the response.
   Future<UserOperationResponse> sendRawUserOperation(
-      Map<String, dynamic> userOp, EntryPointAddress entrypoint);
+    Dict userOp,
+    EntryPointAddress entrypoint,
+  );
 
   /// Asynchronously retrieves a list of supported entrypoints from the bundler.
   ///

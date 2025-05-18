@@ -1,10 +1,16 @@
 part of '../../variance_dart.dart';
 
-mixin _callActions on SmartWalletBase {
-  /// The safe plugin
-  ///  if this is a safe wallet, it must be set
-  late final _SafeModule? _safe;
-
+/// A stateless mixin that provides smart wallet call action functionality.
+///
+/// This mixin contains methods for encoding various smart wallet operations including:
+/// - Batch execution of multiple operations
+/// - Single operation execution
+/// - ERC-20 token operations (approve, transfer)
+/// - ERC-721 NFT operations (approve, transfer)
+///
+/// It is designed to work with the [SmartWalletBase] class and provides core
+/// functionality for interacting with smart contract wallets on the blockchain.
+mixin _CallActions on SmartWalletBase {
   /// Encodes a function call to execute a batch of operations in a smart wallet.
   ///
   /// Parameters:
@@ -48,13 +54,17 @@ mixin _callActions on SmartWalletBase {
 
     String method = 'executeBatch';
 
-    if (_safe != null) {
+    if (state.safe != null) {
       method = 'executeUserOpWithErrorString';
       params = [
         Addresses.safeMultiSendaddress,
         EtherAmount.zero().getInWei,
-        _safe.getSafeMultisendCallData(recipients, amounts, innerCalls),
-        BigInt.one
+        state.safe!.module.getSafeMultisendCallData(
+          recipients,
+          amounts,
+          innerCalls,
+        ),
+        BigInt.one,
       ];
     }
 
@@ -98,7 +108,7 @@ mixin _callActions on SmartWalletBase {
 
     String method = 'execute';
 
-    if (_safe != null) {
+    if (state.safe != null) {
       method = 'executeUserOpWithErrorString';
       params.add(BigInt.zero);
     }
@@ -130,15 +140,19 @@ mixin _callActions on SmartWalletBase {
   /// );
   /// ```
   /// This method combines the 'execute' function and 'encodeERC721ApproveCall' to create a user operation.
-  UserOperation getNftApproveUserOperation(EthereumAddress contractAddress,
-      EthereumAddress spender, BigInt tokenId) {
+  UserOperation getNftApproveUserOperation(
+    EthereumAddress contractAddress,
+    EthereumAddress spender,
+    BigInt tokenId,
+  ) {
     final innerCallData = getExecuteCalldata(
-        to: contractAddress,
-        innerCallData: Contract.encodeERC721ApproveCall(
-          contractAddress,
-          spender,
-          tokenId,
-        ));
+      to: contractAddress,
+      innerCallData: Contract.encodeERC721ApproveCall(
+        contractAddress,
+        spender,
+        tokenId,
+      ),
+    );
     return UserOperation.partial(callData: innerCallData);
   }
 
@@ -161,16 +175,20 @@ mixin _callActions on SmartWalletBase {
   /// );
   /// ```
   /// This method combines the 'execute' function and 'encodeERC721SafeTransferCall' to create a user operation.
-  UserOperation getNftTransferUserOperation(EthereumAddress contractAddress,
-      EthereumAddress recipient, BigInt tokenId) {
+  UserOperation getNftTransferUserOperation(
+    EthereumAddress contractAddress,
+    EthereumAddress recipient,
+    BigInt tokenId,
+  ) {
     final innerCallData = getExecuteCalldata(
-        to: contractAddress,
-        innerCallData: Contract.encodeERC721SafeTransferFromCall(
-          contractAddress,
-          address,
-          recipient,
-          tokenId,
-        ));
+      to: contractAddress,
+      innerCallData: Contract.encodeERC721SafeTransferFromCall(
+        contractAddress,
+        address,
+        recipient,
+        tokenId,
+      ),
+    );
     return UserOperation.partial(callData: innerCallData);
   }
 
@@ -199,9 +217,13 @@ mixin _callActions on SmartWalletBase {
     EtherAmount amount,
   ) {
     final callData = getExecuteCalldata(
-        to: contractAddress,
-        innerCallData:
-            Contract.encodeERC20ApproveCall(contractAddress, spender, amount));
+      to: contractAddress,
+      innerCallData: Contract.encodeERC20ApproveCall(
+        contractAddress,
+        spender,
+        amount,
+      ),
+    );
     return UserOperation.partial(callData: callData);
   }
 
@@ -224,33 +246,47 @@ mixin _callActions on SmartWalletBase {
   /// );
   /// ```
   /// This method combines the 'execute' function and 'encodeERC20TransferCall' to create a user operation.
-  UserOperation getTokenTransferUserOperation(EthereumAddress contractAddress,
-      EthereumAddress recipient, EtherAmount amount) {
+  UserOperation getTokenTransferUserOperation(
+    EthereumAddress contractAddress,
+    EthereumAddress recipient,
+    EtherAmount amount,
+  ) {
     final callData = getExecuteCalldata(
-        to: contractAddress,
-        innerCallData: Contract.encodeERC20TransferCall(
-            contractAddress, recipient, amount));
+      to: contractAddress,
+      innerCallData: Contract.encodeERC20TransferCall(
+        contractAddress,
+        recipient,
+        amount,
+      ),
+    );
     return UserOperation.partial(callData: callData);
   }
 
   Future<Uint8List> getUserOperationHash(
-      UserOperation op, BlockInformation blockInfo) async {
-    return _safe != null
-        ? _safe.getSafeOperationHash(op, blockInfo)
+    UserOperation op,
+    BlockInformation blockInfo,
+  ) async {
+    return state.safe != null
+        ? state.safe!.module.getSafeOperationHash(op, blockInfo)
         : op.hash(chain);
   }
 
   Future<String Function(BlockInformation)> Function(
-          Future<T> Function(T, {int? index}), int? index)
-      _getUserOperationSignHandler<T extends Uint8List>(
-          Future<T> Function() getHash) {
+    Future<T> Function(T, {int? index}),
+    int? index,
+  )
+  _getUserOperationSignHandler<T extends Uint8List>(
+    Future<T> Function() getHash,
+  ) {
     return (Future<T> Function(T, {int? index}) sign, int? index) async {
       final hash = await getHash();
       final signature = await sign(hash);
       final signatureHex = hexlify(signature);
-      return (BlockInformation blockInfo) => _safe != null
-          ? _safe.getSafeSignature(signatureHex, blockInfo)
-          : signatureHex;
+      return (BlockInformation blockInfo) =>
+          state.safe != null
+              ? state.safe!.module.getSafeSignature(signatureHex, blockInfo)
+                  as String
+              : signatureHex;
     };
   }
 }

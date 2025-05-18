@@ -32,8 +32,10 @@ abstract class JsonRPCProviderBase {
   /// );
   /// ```
   /// This method uses an ethereum jsonRPC to check if a smart contract is deployed at the specified address.
-  Future<bool> deployed(EthereumAddress? address,
-      {BlockNum atBlock = const BlockNum.current()});
+  Future<bool> deployed(
+    EthereumAddress? address, {
+    BlockNum atBlock = const BlockNum.current(),
+  });
 
   /// Asynchronously retrieves the balance of an Ethereum address.
   ///
@@ -52,8 +54,10 @@ abstract class JsonRPCProviderBase {
   /// );
   /// ```
   /// This method uses an ethereum jsonRPC to  fetch the balance of the specified Ethereum address.
-  Future<EtherAmount> balanceOf(EthereumAddress? address,
-      {BlockNum atBlock = const BlockNum.current()});
+  Future<EtherAmount> balanceOf(
+    EthereumAddress? address, {
+    BlockNum atBlock = const BlockNum.current(),
+  });
 
   /// Asynchronously calls a function on a smart contract with the provided parameters.
   ///
@@ -79,8 +83,12 @@ abstract class JsonRPCProviderBase {
   /// This method uses the an Ethereum jsonRPC to `staticcall` a function on the specified smart contract.
   /// **Note:** This method does not support contract calls with state changes.
   Future<List<dynamic>> readContract(
-      EthereumAddress contractAddress, ContractAbi abi, String methodName,
-      {List<dynamic>? params, EthereumAddress? sender});
+    EthereumAddress contractAddress,
+    ContractAbi abi,
+    String methodName, {
+    List<dynamic>? params,
+    EthereumAddress? sender,
+  });
 
   /// Asynchronously estimates the gas cost for a transaction to the specified address with the given calldata.
   ///
@@ -99,10 +107,7 @@ abstract class JsonRPCProviderBase {
   /// );
   /// ```
   /// This method uses an ethereum jsonRPC to estimate the gas cost for the specified transaction.
-  Future<BigInt> estimateGas(
-    EthereumAddress to,
-    String calldata,
-  );
+  Future<BigInt> estimateGas(EthereumAddress to, String calldata);
 
   /// Asynchronously retrieves the current block number from the Ethereum node.
   ///

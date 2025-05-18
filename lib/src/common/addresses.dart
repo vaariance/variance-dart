@@ -1,12 +1,15 @@
 part of '../../variance_dart.dart';
 
 class Addresses {
-  static EthereumAddress entrypointv06 =
-      EthereumAddress.fromHex("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789");
-  static EthereumAddress entrypointv07 =
-      EthereumAddress.fromHex("0x0000000071727De22E5E9d8BAf0edAc6f37da032");
-  static EthereumAddress zeroAddress =
-      EthereumAddress.fromHex("0x0000000000000000000000000000000000000000");
+  static EthereumAddress entrypointv06 = EthereumAddress.fromHex(
+    "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
+  );
+  static EthereumAddress entrypointv07 = EthereumAddress.fromHex(
+    "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
+  );
+  static EthereumAddress zeroAddress = EthereumAddress.fromHex(
+    "0x0000000000000000000000000000000000000000",
+  );
   static final EthereumAddress lightAccountFactoryAddressv06 =
       EthereumAddress.fromHex("0x00004EC70002a32400f8ae005A26081065620D20");
   static final EthereumAddress lightAccountFactoryAddressv07 =
@@ -17,24 +20,30 @@ class Addresses {
       EthereumAddress.fromHex("0xa581c4A4DB7175302464fF3C06380BC3270b4037");
   static final EthereumAddress safe4337ModuleAddressv07 =
       EthereumAddress.fromHex("0x75cf11467937ce3F2f357CE24ffc3DBF8fD5c226");
-  static final EthereumAddress safeSingletonAddress =
-      EthereumAddress.fromHex("0x41675C099F32341bf84BFc5382aF534df5C7461a");
-  static final EthereumAddress safeL2SingletonAddress =
-      EthereumAddress.fromHex("0x29fcB43b46531BcA003ddC8FCB67FFE91900C762");
+  static final EthereumAddress safeSingletonAddress = EthereumAddress.fromHex(
+    "0x41675C099F32341bf84BFc5382aF534df5C7461a",
+  );
+  static final EthereumAddress safeL2SingletonAddress = EthereumAddress.fromHex(
+    "0x29fcB43b46531BcA003ddC8FCB67FFE91900C762",
+  );
   static final EthereumAddress safeModuleSetupAddressv06 =
       EthereumAddress.fromHex("0x8EcD4ec46D4D2a6B64fE960B3D64e8B94B2234eb");
   static final EthereumAddress safeModuleSetupAddressv07 =
       EthereumAddress.fromHex("0x2dd68b007B46fBe91B9A7c3EDa5A7a1063cB5b47");
-  static final EthereumAddress safeMultiSendaddress =
-      EthereumAddress.fromHex("0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526");
-  static final EthereumAddress p256VerifierAddress =
-      EthereumAddress.fromHex("0x0000000000000000000000000000000000000100");
-  static final EthereumAddress sharedSignerAddress =
-      EthereumAddress.fromHex("0x94a4F6affBd8975951142c3999aEAB7ecee555c2");
+  static final EthereumAddress safeMultiSendaddress = EthereumAddress.fromHex(
+    "0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526",
+  );
+  static final EthereumAddress p256VerifierAddress = EthereumAddress.fromHex(
+    "0x0000000000000000000000000000000000000100",
+  );
+  static final EthereumAddress sharedSignerAddress = EthereumAddress.fromHex(
+    "0x94a4F6affBd8975951142c3999aEAB7ecee555c2",
+  );
 
   // !!! Not Confirmed to be the official cannonical address for the safe7579 accross all chains
-  static final EthereumAddress safe7579 =
-      EthereumAddress.fromHex("0x7579EE8307284F293B1927136486880611F20002");
+  static final EthereumAddress safe7579 = EthereumAddress.fromHex(
+    "0x7579EE8307284F293B1927136486880611F20002",
+  );
 
   Addresses._();
 }
@@ -42,16 +51,12 @@ class Addresses {
 /// Represents the address of an EntryPoint contract on the Ethereum blockchain.
 class EntryPointAddress {
   /// Returns the EntryPoint address for version 0.6 of the EntryPoint contract.
-  static EntryPointAddress get v06 => EntryPointAddress(
-        0.6,
-        Addresses.entrypointv06,
-      );
+  static EntryPointAddress get v06 =>
+      EntryPointAddress(0.6, Addresses.entrypointv06);
 
   /// Returns the EntryPoint address for version 0.7 of the EntryPoint contract.
-  static EntryPointAddress get v07 => EntryPointAddress(
-        0.7,
-        Addresses.entrypointv07,
-      );
+  static EntryPointAddress get v07 =>
+      EntryPointAddress(0.7, Addresses.entrypointv07);
 
   /// The version of the EntryPoint contract.
   final double version;
@@ -115,13 +120,15 @@ class Safe4337ModuleAddress {
   /// ```dart
   /// final moduleAddress = Safe4337ModuleAddress.fromVersion(0.6);
   /// ```
-  factory Safe4337ModuleAddress.fromVersion(double version,
-      {bool safe7579 = false}) {
+  factory Safe4337ModuleAddress.fromVersion(
+    double version, {
+    bool isSafe7579 = false,
+  }) {
     switch (version) {
       case 0.6:
         return Safe4337ModuleAddress.v06;
       case 0.7:
-        return safe7579
+        return isSafe7579
             ? Safe4337ModuleAddress.v07_7579
             : Safe4337ModuleAddress.v07;
       default:
@@ -131,11 +138,13 @@ class Safe4337ModuleAddress {
 }
 
 class SafeSingletonAddress {
-  static SafeSingletonAddress l1 =
-      SafeSingletonAddress(Addresses.safeSingletonAddress);
+  static SafeSingletonAddress l1 = SafeSingletonAddress(
+    Addresses.safeSingletonAddress,
+  );
 
-  static SafeSingletonAddress l2 =
-      SafeSingletonAddress(Addresses.safeL2SingletonAddress);
+  static SafeSingletonAddress l2 = SafeSingletonAddress(
+    Addresses.safeL2SingletonAddress,
+  );
 
   final EthereumAddress address;
 

@@ -65,7 +65,7 @@ abstract class UserOperationBase {
   /// Converts the user operation to a map.
   ///
   /// Returns a [Map] representing the user operation.
-  Map<String, dynamic> toMap();
+  Dict toMap();
 
   /// Creates a [UserOperation] by updating an existing operation gas params.
   ///

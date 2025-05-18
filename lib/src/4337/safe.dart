@@ -1,5 +1,130 @@
 part of '../../variance_dart.dart';
 
+abstract class Safe {
+  dynamic get initializer;
+  bool get isSafe7579;
+  dynamic get module;
+}
+
+abstract class Safe7579Initializer implements _SafeInitializer {
+  /// Optional list of attester addresses that can validate transactions.
+  Iterable<EthereumAddress>? get attesters;
+
+  /// Optional threshold for the number of attesters required to validate a transaction.
+  int? get attestersThreshold;
+
+  /// Optional list of executor module configurations to be initialized with the Safe.
+  Iterable<ModuleInit>? get executors;
+
+  /// Optional list of fallback module configurations to be initialized with the Safe.
+  Iterable<ModuleInit>? get fallbacks;
+
+  /// Optional list of hook module configurations to be initialized with the Safe.
+  Iterable<ModuleInit>? get hooks;
+
+  /// The address of the launchpad contract that will be used for initialization.
+  EthereumAddress get launchpad;
+
+  /// The data to be passed to the setup contract for initialization.
+  Uint8List get setupData;
+
+  /// The address of the setup contract that will be used for preValidation setup.
+  EthereumAddress get setupTo;
+
+  /// Optional list of validator module configurations to be initialized with the Safe.
+  Iterable<ModuleInit>? get validators;
+
+  /// Generates the initialization data for the launchpad contract.
+  ///
+  /// Returns a [Uint8List] containing the encoded initialization data.
+  Uint8List getLaunchpadInitData();
+}
+
+class _Safe implements Safe {
+  @override
+  final bool isSafe7579;
+  @override
+  final _SafeModule module;
+  @override
+  final _SafeInitializer initializer;
+
+  _Safe({
+    required this.isSafe7579,
+    required this.module,
+    required this.initializer,
+  });
+}
+
+class _Safe7579Initializer extends _SafeInitializer
+    implements Safe7579Initializer {
+  @override
+  final EthereumAddress launchpad;
+  @override
+  final Iterable<ModuleInit>? validators;
+  @override
+  final Iterable<ModuleInit>? executors;
+  @override
+  final Iterable<ModuleInit>? fallbacks;
+  @override
+  final Iterable<ModuleInit>? hooks;
+  @override
+  final Iterable<EthereumAddress>? attesters;
+  @override
+  final int? attestersThreshold;
+  @override
+  final EthereumAddress setupTo;
+  @override
+  final Uint8List setupData;
+
+  _Safe7579Initializer({
+    required super.owners,
+    required super.threshold,
+    required super.module,
+    required super.singleton,
+    required this.launchpad,
+    required this.setupTo,
+    required this.setupData,
+    this.validators,
+    this.executors,
+    this.fallbacks,
+    this.hooks,
+    this.attesters,
+    this.attestersThreshold,
+  });
+
+  @override
+  Uint8List getInitializer() {
+    final initData = getLaunchpadInitData();
+    final initHash = get7579InitHash(
+      launchpadInitData: initData,
+      launchpad: launchpad,
+      owners: owners,
+      threshold: threshold,
+      module: module,
+      singleton: singleton,
+    );
+    return encode7579InitCalldata(
+      launchpad: launchpad,
+      initHash: initHash,
+      setupTo: setupTo,
+      setupData: setupData,
+    );
+  }
+
+  @override
+  Uint8List getLaunchpadInitData() {
+    return encode7579LaunchpadInitdata(
+      launchpad: launchpad,
+      module: module,
+      attesters: attesters,
+      executors: executors,
+      fallbacks: fallbacks,
+      hooks: hooks,
+      attestersThreshold: attestersThreshold,
+    );
+  }
+}
+
 class _SafeInitializer {
   final Iterable<EthereumAddress> owners;
 
@@ -25,9 +150,13 @@ class _SafeInitializer {
   Uint8List getInitializer() {
     encodeModuleSetup() {
       return Contract.encodeFunctionCall(
-          "enableModules", module.setup, ContractAbis.get("enableModules"), [
-        [module.address]
-      ]);
+        "enableModules",
+        module.setup,
+        ContractAbis.get("enableModules"),
+        [
+          [module.address],
+        ],
+      );
     }
 
     final setup = {
@@ -47,16 +176,20 @@ class _SafeInitializer {
     }
 
     return Contract.encodeFunctionCall(
-        "setup", singleton.address, ContractAbis.get("setup"), [
-      setup["owners"],
-      setup["threshold"],
-      setup["to"],
-      setup["data"],
-      setup["fallbackHandler"],
-      Addresses.zeroAddress,
-      BigInt.zero,
-      Addresses.zeroAddress,
-    ]);
+      "setup",
+      singleton.address,
+      ContractAbis.get("setup"),
+      [
+        setup["owners"],
+        setup["threshold"],
+        setup["to"],
+        setup["data"],
+        setup["fallbackHandler"],
+        Addresses.zeroAddress,
+        BigInt.zero,
+        Addresses.zeroAddress,
+      ],
+    );
   }
 }
 
@@ -68,26 +201,27 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
   /// [address] is the address of the Safe 4337 module.
   /// [chainId] is the ID of the blockchain chain.
   /// [client] is the client used for interacting with the blockchain.
-  _SafeModule({
-    required super.address,
-    super.chainId,
-    required super.client,
-  });
+  _SafeModule({required super.address, super.chainId, required super.client});
 
-  Uint8List getSafeMultisendCallData(List<EthereumAddress> recipients,
-      List<EtherAmount>? amounts, List<Uint8List>? innerCalls,
-      [List<Uint8List>? operations]) {
+  Uint8List getSafeMultisendCallData(
+    List<EthereumAddress> recipients,
+    List<EtherAmount>? amounts,
+    List<Uint8List>? innerCalls, [
+    List<Uint8List>? operations,
+  ]) {
     Uint8List packedCallData = Uint8List(0);
 
     for (int i = 0; i < recipients.length; i++) {
       Uint8List operation = operations?[i] ?? intToBytes(BigInt.zero);
       Uint8List to = recipients[i].addressBytes;
-      Uint8List value = amounts != null
-          ? padTo32Bytes(amounts[i].getInWei)
-          : padTo32Bytes(BigInt.zero);
-      Uint8List dataLength = innerCalls != null
-          ? padTo32Bytes(BigInt.from(innerCalls[i].length))
-          : padTo32Bytes(BigInt.zero);
+      Uint8List value =
+          amounts != null
+              ? padTo32Bytes(amounts[i].getInWei)
+              : padTo32Bytes(BigInt.zero);
+      Uint8List dataLength =
+          innerCalls != null
+              ? padTo32Bytes(BigInt.from(innerCalls[i].length))
+              : padTo32Bytes(BigInt.zero);
       Uint8List data =
           innerCalls != null ? innerCalls[i] : Uint8List.fromList([]);
       packedCallData = packedCallData
@@ -99,10 +233,11 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
     }
 
     return Contract.encodeFunctionCall(
-        "multiSend",
-        Addresses.safeMultiSendaddress,
-        ContractAbis.get("multiSend"),
-        [packedCallData]);
+      "multiSend",
+      Addresses.safeMultiSendaddress,
+      ContractAbis.get("multiSend"),
+      [packedCallData],
+    );
   }
 
   /// Computes the hash of a Safe UserOperation.
@@ -112,7 +247,9 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
   ///
   /// Returns a Future that resolves to the hash of the user operation as a Uint8List.
   Future<Uint8List> getSafeOperationHash(
-      UserOperation op, BlockInformation blockInfo) async {
+    UserOperation op,
+    BlockInformation blockInfo,
+  ) async {
     if (self.address == Safe4337ModuleAddress.v07_7579.address) {
       final operationData = await getSafeOp((
         entryPoint: EntryPointAddress.v07.address,
@@ -125,8 +262,8 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
           op.preVerificationGas,
           packUints(op.maxPriorityFeePerGas, op.maxFeePerGas),
           op.paymasterAndData,
-          hexToBytes(getSafeSignature(op.signature, blockInfo))
-        ]
+          hexToBytes(getSafeSignature(op.signature, blockInfo)),
+        ],
       ));
       return keccak256(operationData.operationData);
     } else if (self.address == Safe4337ModuleAddress.v07.address) {
@@ -140,8 +277,8 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
           op.preVerificationGas,
           packUints(op.maxPriorityFeePerGas, op.maxFeePerGas),
           op.paymasterAndData,
-          hexToBytes(getSafeSignature(op.signature, blockInfo))
-        ]
+          hexToBytes(getSafeSignature(op.signature, blockInfo)),
+        ],
       ));
     } else {
       return getOperationHash((
@@ -156,8 +293,8 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
           op.maxFeePerGas,
           op.maxPriorityFeePerGas,
           op.paymasterAndData,
-          hexToBytes(getSafeSignature(op.signature, blockInfo))
-        ]
+          hexToBytes(getSafeSignature(op.signature, blockInfo)),
+        ],
       ));
     }
   }

@@ -85,9 +85,16 @@ class Contract {
   /// ```
   /// This method uses the ERC-721 contract ABI to return a `calldata` for 'approve' function call.
   static Uint8List encodeERC721ApproveCall(
-      EthereumAddress contractAddress, EthereumAddress to, BigInt tokenId) {
-    return encodeFunctionCall("approve", contractAddress,
-        ContractAbis.get("ERC721_Approve"), [to.hex, tokenId]);
+    EthereumAddress contractAddress,
+    EthereumAddress to,
+    BigInt tokenId,
+  ) {
+    return encodeFunctionCall(
+      "approve",
+      contractAddress,
+      ContractAbis.get("ERC721_Approve"),
+      [to.hex, tokenId],
+    );
   }
 
   /// Encodes an ERC-721 token safe transfer function call.
@@ -112,15 +119,17 @@ class Contract {
   /// ```
   /// This method uses the ERC-721 contract ABI  to return a `calldata` for 'safeTransferFrom' function call.
   static Uint8List encodeERC721SafeTransferFromCall(
-      EthereumAddress contractAddress,
-      EthereumAddress from,
-      EthereumAddress to,
-      BigInt tokenId) {
+    EthereumAddress contractAddress,
+    EthereumAddress from,
+    EthereumAddress to,
+    BigInt tokenId,
+  ) {
     return encodeFunctionCall(
-        "safeTransferFrom",
-        contractAddress,
-        ContractAbis.get("ERC721_SafeTransferFrom"),
-        [from.hex, to.hex, tokenId]);
+      "safeTransferFrom",
+      contractAddress,
+      ContractAbis.get("ERC721_SafeTransferFrom"),
+      [from.hex, to.hex, tokenId],
+    );
   }
 
   /// Encodes a function call for a smart contract.
@@ -144,8 +153,12 @@ class Contract {
   /// );
   /// ```
   /// This method uses the specified ABI to encode the function call for the smart contract.
-  static Uint8List encodeFunctionCall(String methodName,
-      EthereumAddress contractAddress, ContractAbi abi, List<dynamic> params) {
+  static Uint8List encodeFunctionCall(
+    String methodName,
+    EthereumAddress contractAddress,
+    ContractAbi abi,
+    List<dynamic> params,
+  ) {
     final func = getContractFunction(methodName, contractAddress, abi);
     return func.encodeCall(params);
   }
@@ -170,7 +183,10 @@ class Contract {
   /// ```
   /// This method uses the 'function' method of the DeployedContract instance.
   static ContractFunction getContractFunction(
-      String methodName, EthereumAddress contractAddress, ContractAbi abi) {
+    String methodName,
+    EthereumAddress contractAddress,
+    ContractAbi abi,
+  ) {
     final instance = DeployedContract(abi, contractAddress);
     return instance.function(methodName);
   }

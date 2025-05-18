@@ -1,7 +1,8 @@
 part of '../../variance_dart.dart';
 
-final EthereumAddress SENTINEL_ADDRESS =
-    EthereumAddress.fromHex("0x0000000000000000000000000000000000000001");
+final EthereumAddress SENTINEL_ADDRESS = EthereumAddress.fromHex(
+  "0x0000000000000000000000000000000000000001",
+);
 
 const int MODULE_TYPE_VALIDATOR = 1;
 const int MODULE_TYPE_EXECUTOR = 2;
@@ -52,9 +53,10 @@ class ExecutionMode {
   Uint8List? selector;
   Uint8List? context;
 
-  ExecutionMode(
-      {required this.type,
-      this.revertOnError = false,
-      this.selector,
-      this.context});
+  ExecutionMode({
+    required this.type,
+    this.revertOnError = false,
+    this.selector,
+    this.context,
+  });
 }
