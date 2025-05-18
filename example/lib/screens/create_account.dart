@@ -138,16 +138,19 @@ class _CreateAccountContent extends StatelessWidget {
       accountProvider.selectSafeSigner(option.id);
     }
 
+    handleCreate() {
+      return _createWallet(context, option.id, option.accountType);
+    }
+
     if (option.id == 'passkey') {
-      PasskeyBottomSheet.show(context);
+      PasskeyBottomSheet.show(context, handleCreate);
       return;
     }
 
     accountProvider.setLoading(message: 'Creating ${option.name}...');
 
     try {
-      final result =
-          await _createWallet(context, option.id, option.accountType);
+      final result = await handleCreate();
 
       if (result.success) {
         Navigator.pushReplacementNamed(context, '/home');

@@ -29,10 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
       (WalletProvider provider) => provider,
     );
 
-    final wallet = provider.wallet;
-
-    bool isFromModularAccounts = wallet?.is7579Enabled ?? false;
-
     return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.onSurface,
         body: SafeArea(
@@ -255,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
 
                   const SizedBox(height: 24),
-                  if (isFromModularAccounts) ...[
+                  if (provider.isModular) ...[
                     const Padding(
                       padding: EdgeInsets.all(0.0),
                       child: ModularActionsCard(),

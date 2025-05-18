@@ -7,8 +7,6 @@ import 'package:web3dart/web3dart.dart';
 
 import '../models/wallet_creation_result.dart';
 
-typedef Dict = Map<String, dynamic>;
-
 enum WalletCreationState {
   idle,
   loading,
@@ -27,6 +25,9 @@ class WalletProvider extends ChangeNotifier {
   // State management
   WalletCreationState _creationState = WalletCreationState.idle;
   WalletCreationState get creationState => _creationState;
+
+  bool _isModular = false;
+  bool get isModular => _isModular;
 
   String _errorMessage = "";
   String get errorMessage => _errorMessage;
@@ -200,6 +201,7 @@ class WalletProvider extends ChangeNotifier {
               attesters: [attester], attestersThreshold: 1);
           break;
       }
+      _isModular = true;
       overrideGas();
       log("Wallet created: ${_wallet?.address.hex}");
       _setSuccess();
@@ -267,7 +269,7 @@ class WalletProvider extends ChangeNotifier {
   // Override gas
   void overrideGas() {
     // @dev use only when needed
-    _wallet?.gasOverride = GasSettings(
+    _wallet?.gasOverrides = GasOverrides(
       maxPriorityFeePerGas: (p0) => BigInt.from(13600000),
     );
   }

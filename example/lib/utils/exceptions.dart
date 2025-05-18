@@ -11,6 +11,8 @@ class ModuleInstallationException implements Exception {
 String parseUserOperationError(dynamic error) {
   String errorString = error.toString();
 
+  print(errorString);
+
   RegExp aaCodeRegex = RegExp(r'AA(\d{2})');
   Match? match = aaCodeRegex.firstMatch(errorString);
 

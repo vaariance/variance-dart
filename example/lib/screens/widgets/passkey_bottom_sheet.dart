@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/wallet_creation_result.dart';
 import '../../providers/wallet_provider.dart';
 import '../../utils/utils.dart';
 
-class  PasskeyBottomSheet extends StatefulWidget {
-  const PasskeyBottomSheet({Key? key}) : super(key: key);
+class PasskeyBottomSheet extends StatefulWidget {
+  final Future<WalletCreationResult> Function() handleCreate;
+  
+  const PasskeyBottomSheet({
+    Key? key,
+    required this.handleCreate,
+  }) : super(key: key);
 
-  static void show(BuildContext context) {
+  static void show(BuildContext context, Future<WalletCreationResult> Function() handleCreate) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const PasskeyBottomSheet(),
+      builder: (context) => PasskeyBottomSheet(handleCreate: handleCreate),
     );
   }
 
@@ -100,21 +106,20 @@ class _PasskeyBottomSheetState extends State<PasskeyBottomSheet> {
               ),
               child: isLoading
                   ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.black,
-                  strokeWidth: 2,
-                ),
-              )
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.black,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : const Text(
-                'Continue',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white
-                ),
-              ),
+                      'Continue',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white),
+                    ),
             ),
           ),
           const SizedBox(height: 20),
@@ -126,30 +131,43 @@ class _PasskeyBottomSheetState extends State<PasskeyBottomSheet> {
   Future<void> _handleContinue() async {
     if (!_formKey.currentState!.validate()) return;
 
-    Navigator.pop(context);
-
-    setState(() {
-      isLoading = true;
-    });
+    setState(() => isLoading = true);
+    final walletProvider = context.read<WalletProvider>();
 
     try {
-      final walletProvider = context.read<WalletProvider>();
-      final result = await walletProvider.createSafeWallet(
-       'passkey',
-      );
+      // Use the handleCreate function passed from the widget
+      final result = await widget.handleCreate();
 
-      if (!result.success) {
-        WalletUtils.showToast(context, walletProvider.errorMessage, isError: true);
+      if (!mounted) return;
+
+      if (result.success) {
+        Navigator.of(context).pop(); // Dismiss bottom sheet
+        // Navigate after current frame
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/home');
+          }
+        });
       } else {
-        Navigator.pushReplacementNamed(context, '/home');
+        WalletUtils.showToast(
+          context,
+          walletProvider.errorMessage.isNotEmpty
+              ? walletProvider.errorMessage
+              : 'Passkey creation failed. Please try again.',
+          isError: true,
+        );
       }
     } catch (e) {
-      WalletUtils.showToast(context, e.toString(), isError: true);
+      if (!mounted) return;
+
+      String message = e.toString().contains('CredManProvService')
+          ? 'Failed to create passkey. Make sure you have a supported device or Google Account.'
+          : e.toString();
+
+      WalletUtils.showToast(context, message, isError: true);
     } finally {
       if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
+        setState(() => isLoading = false);
       }
     }
   }
