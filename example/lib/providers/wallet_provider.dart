@@ -21,7 +21,14 @@ class WalletProvider extends ChangeNotifier {
 
   // Wallet instance
   SmartWallet? _wallet;
+
   SmartWallet? get wallet => _wallet;
+
+  PassKeyPair? _keyPair;
+  PassKeyPair? get keyPair => _keyPair;
+
+  String? _signerType;
+  String? get signerType => _signerType;
 
   // State management
   WalletCreationState _creationState = WalletCreationState.idle;
@@ -114,6 +121,17 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
+  WebauthnValidator? _getWebauthnValidator() {
+    // Only return the validator for passkey-based modular accounts
+    if (_isModular &&
+        _keyPair != null &&
+        _wallet != null &&
+        _signerType == 'passkey') {
+      return WebauthnValidator(_wallet!, BigInt.one, _keyPair!);
+    }
+    return null;
+  }
+
   Future<WalletCreationResult> createSafeWallet(String signerType) async {
     _setLoading();
 
@@ -127,6 +145,8 @@ class WalletProvider extends ChangeNotifier {
             "${DateTime.timestamp().millisecondsSinceEpoch}@variance.space",
             'variance',
           );
+          _keyPair = keypair;
+          _signerType = signerType;
           _wallet = await factory.createSafeAccountWithPasskey(keypair, salt);
           break;
         default:
@@ -232,7 +252,15 @@ class WalletProvider extends ChangeNotifier {
         "safeMint", nft, mintAbi, [_wallet?.address]);
 
     try {
-      final tx = await _wallet?.sendTransaction(nft, mintCall);
+      UserOperationResponse? tx;
+      final validator = _getWebauthnValidator();
+      if (validator != null) {
+        //use webauthn validator for passkey-based modular accounts
+        tx = await validator.sendTransaction(nft, mintCall);
+      } else {
+        tx = await _wallet?.sendTransaction(nft, mintCall);
+      }
+
       final receipt = await tx?.wait();
       final txHash = receipt?.txReceipt.transactionHash;
       log("Transaction receipt Hash: $txHash");
@@ -256,8 +284,15 @@ class WalletProvider extends ChangeNotifier {
     final transferCall = Contract.encodeERC20TransferCall(erc20, dump, amount);
 
     try {
-      final tx = await _wallet
-          ?.sendBatchedTransaction([erc20, erc20], [mintCall, transferCall]);
+      UserOperationResponse? tx;
+      final validator = _getWebauthnValidator();
+      if (validator != null) {
+        tx = await validator
+            .sendBatchedTransaction([erc20, erc20], [mintCall, transferCall]);
+      } else {
+        tx = await _wallet
+            ?.sendBatchedTransaction([erc20, erc20], [mintCall, transferCall]);
+      }
       final receipt = await tx?.wait();
       final txHash = receipt?.txReceipt.transactionHash;
       log("Transaction receipt Hash: $txHash");
