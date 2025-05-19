@@ -132,12 +132,7 @@ class _CreateAccountContent extends StatelessWidget {
     final accountProvider = context.read<AccountProvider>();
     final walletProvider = context.read<WalletProvider>();
 
-    if (accountProvider.lightAccountOptions.contains(option)) {
-      accountProvider.selectLightSigner(option.id);
-    } else {
-      accountProvider.selectSafeSigner(option.id);
-    }
-
+  
     handleCreate() {
       return _createWallet(context, option.id, option.accountType);
     }

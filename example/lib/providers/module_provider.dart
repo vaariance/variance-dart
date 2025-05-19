@@ -17,7 +17,7 @@ class Modules {
 
 class ModuleProvider extends ChangeNotifier {
   final SmartWallet _wallet;
-
+  final PassKeyPair? _keyPair;
   final BigInt threshold = BigInt.two;
   final PrivateKeySigner _guardian1 = PrivateKeySigner.createRandom("test");
   final PrivateKeySigner _guardian2 = PrivateKeySigner.createRandom("test");
@@ -25,18 +25,23 @@ class ModuleProvider extends ChangeNotifier {
   late final Base7579ModuleInterface socialRecovery;
   late final Base7579ModuleInterface ownableExecutor;
   late final Base7579ModuleInterface ownableValidator;
+  late final WebauthnValidator webAuthnValidator;
 
   Modules? _cachedModules;
 
   final Map<String, bool> _installingModules = {};
   final Map<String, bool> _uninstallingModules = {};
+ 
+  
 
-  ModuleProvider(this._wallet) {
+  ModuleProvider(this._wallet, {PassKeyPair? keyPair})
+      : _keyPair = keyPair {
     final owners = [_guardian1.address, _guardian2.address];
 
     ownableValidator = OwnableValidator(_wallet, threshold, owners);
     socialRecovery = SocialRecovery(_wallet, threshold, owners);
     ownableExecutor = OwnableExecutor(_wallet, _guardian1.address);
+    webAuthnValidator = WebauthnValidator(_wallet, threshold, _keyPair!);
   }
 
   Modules? get modules => _cachedModules;
@@ -56,7 +61,12 @@ class ModuleProvider extends ChangeNotifier {
   }
 
   List<Base7579ModuleInterface> _getAllModules() {
-    return [socialRecovery, ownableExecutor, ownableValidator];
+    return [
+      socialRecovery,
+      ownableExecutor,
+      ownableValidator,
+      webAuthnValidator
+    ];
   }
 
   Future<Modules> moduleList({bool forceRefresh = false}) async {

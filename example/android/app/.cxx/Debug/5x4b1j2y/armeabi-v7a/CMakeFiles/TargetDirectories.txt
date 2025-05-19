@@ -1,0 +1,2 @@
+/Users/godwinekainu/variance-dart/example/android/app/.cxx/Debug/5x4b1j2y/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/godwinekainu/variance-dart/example/android/app/.cxx/Debug/5x4b1j2y/armeabi-v7a/CMakeFiles/rebuild_cache.dir
