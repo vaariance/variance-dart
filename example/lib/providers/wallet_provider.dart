@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:variance_modules/modules.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:variance_dart/variance_dart.dart';
 import 'package:web3dart/web3dart.dart';
@@ -194,7 +195,12 @@ class WalletProvider extends ChangeNotifier {
           );
           _wallet = await factory.createSafe7579AccountWithPasskey(
               keypair, salt, launchpad,
-              attesters: [attester], attestersThreshold: 1);
+              attesters: [attester],
+              attestersThreshold: 1,
+              validators: List.from([
+                ModuleInit(WebauthnValidator.getAddress(),
+                    WebauthnValidator.parseInitData(BigInt.one, keypair))
+              ]));
           break;
         default:
           _wallet = await factory.createSafe7579Account(salt, launchpad,

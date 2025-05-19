@@ -136,8 +136,8 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
         ContractAbis.get("enableWebauthn"),
         [
           [
-            keyPair.authData.publicKey.item1.value,
-            keyPair.authData.publicKey.item2.value,
+            keyPair.authData.publicKey.$1.value,
+            keyPair.authData.publicKey.$2.value,
             hexToInt(verifier.hexNo0x.padLeft(44, '0')),
           ],
         ],
@@ -204,8 +204,8 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
         ContractAbis.get("enableWebauthn"),
         [
           [
-            keyPair.authData.publicKey.item1.value,
-            keyPair.authData.publicKey.item2.value,
+            keyPair.authData.publicKey.$1.value,
+            keyPair.authData.publicKey.$2.value,
             hexToInt(verifier.hexNo0x.padLeft(44, '0')),
           ],
         ],

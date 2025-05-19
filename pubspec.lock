@@ -57,6 +57,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  buffer:
+    dependency: transitive
+    description:
+      name: buffer
+      sha256: "389da2ec2c16283c8787e0adaede82b1842102f8c8aae2f49003a766c5c6b3d1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.3"
   build:
     dependency: transitive
     description:
@@ -193,6 +201,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  equatable:
+    dependency: transitive
+    description:
+      name: equatable
+      sha256: "567c64b3cb4cf82397aac55f4f0cbd3ca20d77c6c03bedbc4ceaddc08904aef7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.7"
+  eth_sig_util:
+    dependency: transitive
+    description:
+      name: eth_sig_util
+      sha256: "20fdc5ce3864e70e5ade1c1cd03cce4ef01018db00adab107303f9055d26b01a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.9"
   file:
     dependency: transitive
     description:
@@ -628,10 +652,10 @@ packages:
     dependency: "direct main"
     description:
       name: web3_signers
-      sha256: f2c4ce74ef4546108926bc9ccbdb3c45b495685cbe8b94edbb1e0db22555485b
+      sha256: c5d136a01923f631aa0913c90a1430bd139322be04d896493c20e5e6166f6620
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.7"
+    version: "0.1.11"
   web3dart:
     dependency: "direct main"
     description:
