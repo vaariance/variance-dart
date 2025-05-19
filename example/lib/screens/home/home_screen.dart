@@ -128,13 +128,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Expanded(
-                        flex: 1,
+                        flex: 1, // Ensures 50% width
                         child: Padding(
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Column(
                             children: [
                               SizedBox(
-                                width: double.infinity,
+                                width:
+                                    double.infinity, // Makes button fill width
                                 height: 45,
                                 child: ElevatedButton.icon(
                                   onPressed: _isLoadingMint
