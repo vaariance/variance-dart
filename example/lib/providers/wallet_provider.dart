@@ -27,9 +27,6 @@ class WalletProvider extends ChangeNotifier {
   PassKeyPair? _keyPair;
   PassKeyPair? get keyPair => _keyPair;
 
-  String? _signerType;
-  String? get signerType => _signerType;
-
   // State management
   WalletCreationState _creationState = WalletCreationState.idle;
   WalletCreationState get creationState => _creationState;
@@ -121,17 +118,6 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  WebauthnValidator? _getWebauthnValidator() {
-    // Only return the validator for passkey-based modular accounts
-    if (_isModular &&
-        _keyPair != null &&
-        _wallet != null &&
-        _signerType == 'passkey') {
-      return WebauthnValidator(_wallet!, BigInt.one, _keyPair!);
-    }
-    return null;
-  }
-
   Future<WalletCreationResult> createSafeWallet(String signerType) async {
     _setLoading();
 
@@ -146,7 +132,6 @@ class WalletProvider extends ChangeNotifier {
             'variance',
           );
           _keyPair = keypair;
-          _signerType = signerType;
           _wallet = await factory.createSafeAccountWithPasskey(keypair, salt);
           break;
         default:
@@ -221,6 +206,7 @@ class WalletProvider extends ChangeNotifier {
                 ModuleInit(WebauthnValidator.getAddress(),
                     WebauthnValidator.parseInitData(BigInt.one, keypair))
               ]));
+          _keyPair = keypair;
           break;
         default:
           _wallet = await factory.createSafe7579Account(salt, launchpad,
@@ -246,17 +232,15 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  Future<(bool, String)> simulateMint() async {
+  Future<(bool, String)> simulateMint([TransactionBuilder? builder]) async {
     final mintAbi = ContractAbis.get("ERC721_SafeMint");
     final mintCall = Contract.encodeFunctionCall(
         "safeMint", nft, mintAbi, [_wallet?.address]);
 
     try {
       UserOperationResponse? tx;
-      final validator = _getWebauthnValidator();
-      if (validator != null) {
-        //use webauthn validator for passkey-based modular accounts
-        tx = await validator.sendTransaction(nft, mintCall);
+      if (builder != null) {
+        tx = await builder.sendTransaction(nft, mintCall);
       } else {
         tx = await _wallet?.sendTransaction(nft, mintCall);
       }
@@ -275,7 +259,7 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  Future<(bool, String)> simulateTransfer() async {
+  Future<(bool, String)> simulateTransfer([TransactionBuilder? builder]) async {
     final mintAbi = ContractAbis.get("ERC20_Mint");
     final amount = EtherAmount.fromInt(EtherUnit.ether, 20);
 
@@ -285,9 +269,8 @@ class WalletProvider extends ChangeNotifier {
 
     try {
       UserOperationResponse? tx;
-      final validator = _getWebauthnValidator();
-      if (validator != null) {
-        tx = await validator
+      if (builder != null) {
+        tx = await builder
             .sendBatchedTransaction([erc20, erc20], [mintCall, transferCall]);
       } else {
         tx = await _wallet

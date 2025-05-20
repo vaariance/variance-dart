@@ -22,9 +22,10 @@ void main() async {
       create: (_) => null,
       update: (context, walletProvider, previousModule) {
         final wallet = walletProvider.wallet;
+        final keyPair = walletProvider.keyPair;
         if (wallet == null) return previousModule;
 
-        return ModuleProvider(wallet);
+        return ModuleProvider(wallet, keyPair);
       },
     ),
   ], child: const MyApp()));

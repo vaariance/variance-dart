@@ -192,21 +192,14 @@ class SmartWallet extends SmartWalletBase
 
   @override
   Future<Uint256> getNonce([Uint256? key]) {
-    return isDeployed.then(
-      (deployed) =>
-          !deployed
-              ? Future.value(Uint256.zero)
-              : readContract(
-                    _state.chain.entrypoint.address,
-                    ContractAbis.get('getNonce'),
-                    "getNonce",
-                    params: [_state.address, key?.value ?? BigInt.zero],
-                  )
-                  .then((value) => Uint256(value[0]))
-                  .catchError(
-                    (e) => throw NonceError(e.toString(), _state.address),
-                  ),
-    );
+    return readContract(
+          _state.chain.entrypoint.address,
+          ContractAbis.get('getNonce'),
+          "getNonce",
+          params: [_state.address, key?.value ?? BigInt.zero],
+        )
+        .then((value) => Uint256(value[0]))
+        .catchError((e) => throw NonceError(e.toString(), _state.address));
   }
 
   @protected

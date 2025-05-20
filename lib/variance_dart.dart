@@ -16,6 +16,7 @@ import 'src/abis/abis.dart';
 import 'src/interfaces/interfaces.dart';
 
 export 'src/abis/abis.dart' show ContractAbis, Safe7579Abis;
+export 'src/interfaces/interfaces.dart' show TransactionBuilder;
 
 // 4337
 part 'src/4337/chains.dart';

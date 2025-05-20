@@ -25,18 +25,22 @@ class ModuleProvider extends ChangeNotifier {
   late final Base7579ModuleInterface socialRecovery;
   late final Base7579ModuleInterface ownableExecutor;
   late final Base7579ModuleInterface ownableValidator;
+  late final Base7579ModuleInterface? webauthnValidator;
 
   Modules? _cachedModules;
 
   final Map<String, bool> _installingModules = {};
   final Map<String, bool> _uninstallingModules = {};
 
-  ModuleProvider(this._wallet) {
+  ModuleProvider(this._wallet, [PassKeyPair? keyPair]) {
     final owners = [_guardian1.address, _guardian2.address];
 
     ownableValidator = OwnableValidator(_wallet, threshold, owners);
     socialRecovery = SocialRecovery(_wallet, threshold, owners);
     ownableExecutor = OwnableExecutor(_wallet, _guardian1.address);
+    if (keyPair != null) {
+      webauthnValidator = WebauthnValidator(_wallet, threshold, keyPair);
+    }
   }
 
   Modules? get modules => _cachedModules;
