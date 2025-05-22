@@ -2,7 +2,8 @@ import 'dart:typed_data';
 
 import 'package:eip1559/eip1559.dart';
 import 'package:meta/meta.dart';
-import 'package:web3_signers/web3_signers.dart' show MSI, PassKeyPair, Uint256;
+import 'package:web3_signers/web3_signers.dart'
+    show MSI, PassKeyPair, PassKeySigner, Uint256;
 import 'package:web3dart/web3dart.dart';
 
 import '../../variance_dart.dart'
@@ -12,7 +13,7 @@ import '../../variance_dart.dart'
         EntryPointAddress,
         GasOverrides,
         InvalidBundlerMethod,
-        ModuleInit,
+        ModuleInitType,
         RPCBase,
         Safe,
         SafeSingletonAddress,

@@ -101,10 +101,7 @@ abstract class SmartWalletBase extends TransactionBuilder {
   /// latest nonce and gas prices. Defaults to `true`.
   ///
   /// Returns a [Future] that resolves to the prepared [UserOperation] object.
-  Future<UserOperation> prepareUserOperation(
-    UserOperation op, {
-    bool update = true,
-  });
+  Future<UserOperation> prepareUserOperation(UserOperation op);
 
   /// Asynchronously sends a signed user operation to the bundler for execution.
   ///
@@ -213,6 +210,22 @@ interface class SmartWalletState {
     this.paymasterAddress,
     this.paymasterContext,
   });
+
+  SmartWalletState copyWith({MSI? signer}) {
+    return SmartWalletState(
+      signer: signer ?? this.signer,
+      chain: chain,
+      address: address,
+      initCode: initCode,
+      jsonRpc: jsonRpc,
+      bundler: bundler,
+      paymaster: paymaster,
+      safe: safe,
+      gasOverrides: gasOverrides,
+      paymasterAddress: paymasterAddress,
+      paymasterContext: paymasterContext,
+    );
+  }
 }
 
 abstract class TransactionBuilder {

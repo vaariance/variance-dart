@@ -102,6 +102,7 @@ class _Safe7579Initializer extends _SafeInitializer
       threshold: threshold,
       module: module,
       singleton: singleton,
+      validators: validators,
     );
     return encode7579InitCalldata(
       launchpad: launchpad,

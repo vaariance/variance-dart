@@ -766,11 +766,10 @@ packages:
   web3_signers:
     dependency: "direct main"
     description:
-      name: web3_signers
-      sha256: c5d136a01923f631aa0913c90a1430bd139322be04d896493c20e5e6166f6620
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.11"
+      path: "../../web3-signers"
+      relative: true
+    source: path
+    version: "0.2.0"
   web3dart:
     dependency: "direct main"
     description:

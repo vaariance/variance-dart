@@ -25,7 +25,7 @@ class ModuleProvider extends ChangeNotifier {
   late final Base7579ModuleInterface socialRecovery;
   late final Base7579ModuleInterface ownableExecutor;
   late final Base7579ModuleInterface ownableValidator;
-  late final Base7579ModuleInterface? webauthnValidator;
+  Base7579ModuleInterface? webauthnValidator;
 
   Modules? _cachedModules;
 
@@ -39,7 +39,7 @@ class ModuleProvider extends ChangeNotifier {
     socialRecovery = SocialRecovery(_wallet, threshold, owners);
     ownableExecutor = OwnableExecutor(_wallet, _guardian1.address);
     if (keyPair != null) {
-      webauthnValidator = WebauthnValidator(_wallet, threshold, keyPair);
+      webauthnValidator = WebauthnValidator(_wallet, BigInt.one, keyPair);
     }
   }
 

@@ -2,11 +2,10 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 
 import 'package:eip1559/eip1559.dart';
 import 'package:http/http.dart' as http;
-import 'package:meta/meta.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:web3dart/crypto.dart';

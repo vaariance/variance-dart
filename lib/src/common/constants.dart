@@ -30,6 +30,8 @@ enum SafeHookType {
   const SafeHookType({required this.value});
 }
 
+typedef ModuleInitType = ModuleInit<EthereumAddress, Uint8List>;
+
 class ModuleInit<T1 extends EthereumAddress, T2 extends Uint8List> {
   final T1 module;
   final T2 initData;

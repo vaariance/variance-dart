@@ -63,37 +63,13 @@ class SmartWallet extends SmartWalletBase
   @Deprecated("Does not allow getting nonce with key, use `getNonce` instead")
   Future<Uint256> get nonce => getNonce();
 
-  @override
-  @Deprecated("get `hex` from wallet [address]. e.g walletInstance.address.hex")
-  String? get toHex => _state.address.hexEip55;
-
   @protected
   @override
   SmartWalletState get state => _state;
 
   @override
-  UserOperation buildUserOperation({
-    required Uint8List callData,
-    BigInt? customNonce,
-  }) {
-    return UserOperation.partial(
-      callData: callData,
-      initCode: _state.initCode,
-      sender: _state.address,
-      nonce: customNonce,
-    );
-  }
-
-  @override
-  Future<UserOperation> prepareUserOperation(
-    UserOperation op, {
-    bool update = true,
-    Uint256? nonceKey,
-  }) async {
-    if (update) op = await _updateUserOperation(op, nonceKey: nonceKey);
-    op.validate(op.nonce > BigInt.zero, initCode);
-    return op;
-  }
+  @Deprecated("get `hex` from wallet [address]. e.g walletInstance.address.hex")
+  String? get toHex => _state.address.hexEip55;
 
   @override
   Future<UserOperationResponse> send(
@@ -162,6 +138,63 @@ class SmartWallet extends SmartWalletBase
   }
 
   @override
+  Future<UserOperationResponse> sendUserOperation(
+    UserOperation op, {
+    Uint256? nonceKey,
+  }) => prepareUserOperation(op, nonceKey: nonceKey)
+      .then(overrideGas)
+      .then(sponsorUserOperation)
+      .then(signUserOperation)
+      .then(sendSignedUserOperation);
+
+  @override
+  UserOperation buildUserOperation({
+    required Uint8List callData,
+    BigInt? customNonce,
+  }) {
+    return UserOperation.partial(
+      callData: callData,
+      initCode: _state.initCode,
+      sender: _state.address,
+      nonce: customNonce,
+    );
+  }
+
+  @override
+  Future<UserOperation> prepareUserOperation(
+    UserOperation op, {
+    Uint256? nonceKey,
+    String? signature,
+  }) async {
+    getSig(BlockInformation blockInfo) {
+      final dummySignature = _state.signer.getDummySignature();
+      if (_state.safe?.isSafe7579 ?? false) {
+        return _state.safe?.module.getSafeSignature(dummySignature, blockInfo);
+      }
+      return dummySignature;
+    }
+
+    final responses = await Future.wait<dynamic>([
+      getNonce(nonceKey),
+      getGasPrice(),
+      getBlockInformation(),
+      isDeployed,
+    ]);
+
+    final nonce = op.nonce > BigInt.zero ? op.nonce : responses[0].value;
+
+    op = op.copyWith(
+      nonce: nonce,
+      initCode: responses[3] ? Uint8List(0) : null,
+      signature: signature ?? getSig(responses[2]),
+    );
+
+    op = await _updateUserOperationGas(op, responses[1]);
+    op.validate(responses[3], initCode);
+    return op;
+  }
+
+  @override
   Future<UserOperation> signUserOperation(
     UserOperation op, {
     int? index,
@@ -181,16 +214,6 @@ class SmartWallet extends SmartWalletBase
   }
 
   @override
-  Future<UserOperationResponse> sendUserOperation(
-    UserOperation op, {
-    Uint256? nonceKey,
-  }) => prepareUserOperation(op, nonceKey: nonceKey)
-      .then(_applyGasOverrides)
-      .then(sponsorUserOperation)
-      .then(signUserOperation)
-      .then(sendSignedUserOperation);
-
-  @override
   Future<Uint256> getNonce([Uint256? key]) {
     return readContract(
           _state.chain.entrypoint.address,
@@ -198,14 +221,14 @@ class SmartWallet extends SmartWalletBase
           "getNonce",
           params: [_state.address, key?.value ?? BigInt.zero],
         )
-        .then((value) => Uint256(value[0]))
+        .then((value) => Uint256(value.first))
         .catchError((e) => throw NonceError(e.toString(), _state.address));
   }
 
   @protected
   Future<String> generateSignature(
     UserOperation op,
-    dynamic blockInfo,
+    BlockInformation blockInfo,
     int? index,
   ) async {
     getHashFn() => getUserOperationHash(op, blockInfo);
@@ -221,35 +244,6 @@ class SmartWallet extends SmartWalletBase
     return balanceOf(
       _state.address,
     ).catchError((e) => throw FetchBalanceError(e.toString(), _state.address));
-  }
-
-  /// Updates the user operation with the latest nonce and gas prices.
-  ///
-  /// [op] is the user operation to update.
-  ///
-  /// Returns a [Future] that resolves to the updated [UserOperation] object.
-  Future<UserOperation> _updateUserOperation(
-    UserOperation op, {
-    Uint256? nonceKey,
-  }) async {
-    final responses = await Future.wait<dynamic>([
-      getNonce(nonceKey),
-      getGasPrice(),
-      getBlockInformation(),
-    ]);
-    final dummySignature = _state.signer.getDummySignature();
-    final signature =
-        _state.safe?.isSafe7579 ?? false
-            ? _state.safe?.module.getSafeSignature(dummySignature, responses[2])
-            : dummySignature;
-
-    op = op.copyWith(
-      nonce: op.nonce > BigInt.zero ? op.nonce : responses[0].value,
-      initCode: responses[0] > Uint256.zero ? Uint8List(0) : null,
-      signature: signature,
-    );
-
-    return _updateUserOperationGas(op, responses[1]);
   }
 
   /// Updates the gas information for the user operation.

@@ -67,10 +67,10 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     Uint256 salt,
     EthereumAddress launchpad, {
     SafeSingletonAddress? singleton,
-    Iterable<ModuleInit<EthereumAddress, Uint8List>>? validators,
-    Iterable<ModuleInit<EthereumAddress, Uint8List>>? executors,
-    Iterable<ModuleInit<EthereumAddress, Uint8List>>? fallbacks,
-    Iterable<ModuleInit<EthereumAddress, Uint8List>>? hooks,
+    Iterable<ModuleInitType>? validators,
+    Iterable<ModuleInitType>? executors,
+    Iterable<ModuleInitType>? fallbacks,
+    Iterable<ModuleInitType>? hooks,
     Iterable<EthereumAddress>? attesters,
     int? attestersThreshold,
   }) async {
@@ -111,10 +111,10 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     EthereumAddress launchpad, {
     EthereumAddress? p256Verifier,
     SafeSingletonAddress? singleton,
-    Iterable<ModuleInit<EthereumAddress, Uint8List>>? validators,
-    Iterable<ModuleInit<EthereumAddress, Uint8List>>? executors,
-    Iterable<ModuleInit<EthereumAddress, Uint8List>>? fallbacks,
-    Iterable<ModuleInit<EthereumAddress, Uint8List>>? hooks,
+    Iterable<ModuleInitType>? validators,
+    Iterable<ModuleInitType>? executors,
+    Iterable<ModuleInitType>? fallbacks,
+    Iterable<ModuleInitType>? hooks,
     Iterable<EthereumAddress>? attesters,
     int? attestersThreshold,
   }) async {

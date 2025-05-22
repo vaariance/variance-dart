@@ -29,8 +29,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final provider = context.select(
       (WalletProvider provider) => provider,
     );
-    final validator =
-        context.select((ModuleProvider provider) => provider.webauthnValidator);
+    final module = context.select((ModuleProvider provider) => provider);
+
+    final validator = provider.isModular ? module.webauthnValidator : null;
 
     return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.onSurface,
