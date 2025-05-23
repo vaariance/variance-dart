@@ -1,187 +1,196 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
-import 'package:variancedemo/main.dart';
-import 'package:variancedemo/providers/wallet_provider.dart';
+import 'package:variancedemo/constants/enums.dart';
+import 'package:variancedemo/screens/widgets/loading_overlay.dart';
+import 'package:variancedemo/screens/widgets/passkey_bottom_sheet.dart';
+import '../models/signer_options.dart';
+import '../models/wallet_creation_result.dart';
+import '../providers/account_providers.dart';
+import '../providers/wallet_provider.dart';
+import '../utils/utils.dart';
+import '../utils/widgets.dart';
 
 class CreateAccountScreen extends StatefulWidget {
-  const CreateAccountScreen({super.key});
+  const CreateAccountScreen({Key? key}) : super(key: key);
 
   @override
   State<CreateAccountScreen> createState() => _CreateAccountScreenState();
 }
 
 class _CreateAccountScreenState extends State<CreateAccountScreen> {
-  final TextEditingController controller = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  FToast? fToast;
-
-  @override
-  void initState() {
-    super.initState();
-    fToast = FToast();
-    fToast?.init(context);
-  }
-
   @override
   Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AccountProvider()),
+      ],
+      child: _CreateAccountContent(),
+    );
+  }
+}
+
+class _CreateAccountContent extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final accountProvider = context.watch<AccountProvider>();
+    final walletProvider = context.watch<WalletProvider>();
+
     return SafeArea(
       child: Scaffold(
-        body: Consumer<WalletProvider>(
-          builder: (context, value, child) {
-            return Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.sp),
+        backgroundColor: Theme.of(context).colorScheme.onSurface,
+        appBar: AppBar(
+          title: const Text('Create Account'),
+          backgroundColor: Theme.of(context).colorScheme.onSurface,
+          elevation: 0,
+          leading: BackButton(color: Theme.of(context).colorScheme.onPrimary),
+        ),
+        body: LoadingOverlay(
+          isLoading: accountProvider.isLoading ||
+              walletProvider.creationState == WalletCreationState.loading,
+          message: accountProvider.loadingMessage,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Header
                   const Text(
                     'Create Account',
-                    style: TextStyle(fontSize: 51, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFFE6E6FA),
+                    ),
                   ),
-                  const SizedBox(height: 50),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                          child: Container(
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(25)),
-                        child: TextFormField(
-                          key: _formKey,
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return 'Please enter a username';
-                            }
-                            if (!RegExp(r'^[a-zA-Z]+$').hasMatch(value)) {
-                              return 'Username must contain only alphabets with no spaces';
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            setState(() {
-                              controller.text = value;
-                            });
-                          },
-                          controller: controller,
-                          maxLines: 1,
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.all(8),
-                              hintText: 'Choose a username',
-                              hintStyle: TextStyle(
-                                fontSize: 20.sp,
-                              ),
-                              border: const OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
-                                ),
-                              ),
-                              fillColor: Colors.white,
-                              filled: true),
-                        ),
-                      )),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      SizedBox(
-                        height: 45.h,
-                        child: TextButton(
-                          key: globalScaffoldMessengerKey,
-                          onPressed: () async {
-                            await value.registerWithPassKey(controller.text,
-                                requiresUserVerification: true);
-                            // ignore: use_build_context_synchronously
-                            if (value.errorMessage.isNotEmpty) {
-                              fToast?.showToast(
-                                  gravity: ToastGravity.BOTTOM,
-                                  child: Text(value.errorMessage));
-                            } else {
-                              Navigator.pushNamed(context, '/home');
-                            }
-                          },
-                          style: TextButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            backgroundColor: const Color(0xffE1FF01),
-                          ),
-                          child: const Text(
-                            'Continue',
-                            style: TextStyle(fontSize: 14, color: Colors.black),
-                          ),
-                        ),
-                      )
-                    ],
+                  const SizedBox(height: 8),
+                  Text(
+                    'Choose your preferred account type and authentication method',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[300],
+                    ),
                   ),
-                  18.verticalSpace,
-                  Container(
-                      margin: const EdgeInsets.only(left: 135),
-                      child: Text('OR', style: TextStyle(fontSize: 18.sp))),
-                  24.verticalSpace,
-                  Container(
-                    margin: const EdgeInsets.only(left: 30),
-                    child: TextButton.icon(
-                        onPressed: () {
-                          try {
-                            context
-                                .read<WalletProvider>()
-                                .createPrivateKeyWallet();
-                            Navigator.pushNamed(context, '/home');
-                          } catch (e) {
-                            'Something went wrong: $e';
-                          }
-                        },
-                        icon: const Icon(Icons.key),
-                        label: const Text(
-                            'Create Alchemy Light Account with private key')),
+                  const SizedBox(height: 30),
+
+                  // Light Account Dropdown
+                  AccountDropdown(
+                    title: 'Create Light Account',
+                    icon: Icons.bolt_outlined,
+                    color: const Color(0xFF663399),
+                    isExpanded: accountProvider.isLightAccountExpanded,
+                    onToggle: () =>
+                        accountProvider.toggleLightAccountExpanded(),
+                    options: accountProvider.lightAccountOptions,
+                    selectedSigner: accountProvider.selectedLightSigner,
+                    onSelect: (option) =>
+                        _handleOptionSelected(context, option),
                   ),
-                  18.verticalSpace,
-                  Container(
-                      margin: const EdgeInsets.only(left: 135),
-                      child: Text('OR', style: TextStyle(fontSize: 18.sp))),
-                  24.verticalSpace,
-                  Container(
-                    margin: const EdgeInsets.only(left: 30),
-                    child: TextButton.icon(
-                        onPressed: () {
-                          try {
-                            context.read<WalletProvider>().createEOAWallet();
-                            Navigator.pushNamed(context, '/home');
-                          } catch (e) {
-                            'Something went wrong: $e';
-                          }
-                        },
-                        icon: const Icon(Icons.key),
-                        label: const Text(
-                            'Create Alchemy Light Account with seed phrase')),
+
+                  const SizedBox(height: 16),
+
+                  // Safe Account Dropdown
+                  AccountDropdown(
+                    title: 'Create Safe Account',
+                    icon: Icons.shield_outlined,
+                    color: const Color(0xFF663399),
+                    isExpanded: accountProvider.isSafeAccountExpanded,
+                    onToggle: () => accountProvider.toggleSafeAccountExpanded(),
+                    options: accountProvider.safeAccountOptions,
+                    selectedSigner: accountProvider.selectedSafeSigner,
+                    onSelect: (option) =>
+                        _handleOptionSelected(context, option),
                   ),
-                  18.verticalSpace,
-                  Container(
-                      margin: const EdgeInsets.only(left: 135),
-                      child: Text('OR', style: TextStyle(fontSize: 18.sp))),
-                  24.verticalSpace,
-                  Container(
-                    margin: const EdgeInsets.only(left: 30),
-                    child: TextButton.icon(
-                        onPressed: () {
-                          try {
-                            context.read<WalletProvider>().createSafeWallet();
-                            Navigator.pushNamed(context, '/home');
-                          } catch (e) {
-                            'Something went wrong: $e';
-                          }
-                        },
-                        icon: const Icon(Icons.key),
-                        label: const Text('Create default Safe Account')),
+
+                  const SizedBox(height: 16),
+
+                  // Safe Account Dropdown
+                  AccountDropdown(
+                    title: 'Create Modular account',
+                    icon: Icons.view_module,
+                    color: const Color(0xFF663399),
+                    isExpanded: accountProvider.is7579AccountExpanded,
+                    onToggle: () => accountProvider.toggle7579AccountExpanded(),
+                    options: accountProvider.modularAccountOptions,
+                    selectedSigner: accountProvider.selected7579Signer,
+                    onSelect: (option) =>
+                        _handleOptionSelected(context, option),
                   ),
+
+                  const SizedBox(height: 30),
                 ],
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _handleOptionSelected(
+      BuildContext context, SignerOption option) async {
+    final accountProvider = context.read<AccountProvider>();
+    final walletProvider = context.read<WalletProvider>();
+
+    if (accountProvider.lightAccountOptions.contains(option)) {
+      accountProvider.selectLightSigner(option.id);
+    } else {
+      accountProvider.selectSafeSigner(option.id);
+    }
+
+    handleCreate() {
+      return _createWallet(context, option.id, option.accountType);
+    }
+
+    if (option.id == 'passkey') {
+      PasskeyBottomSheet.show(context, handleCreate);
+      return;
+    }
+
+    accountProvider.setLoading(message: 'Creating ${option.name}...');
+
+    try {
+      final result = await handleCreate();
+
+      if (result.success) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        WalletUtils.showToast(
+          context,
+          walletProvider.errorMessage.isNotEmpty
+              ? walletProvider.errorMessage
+              : 'Failed to create wallet',
+          isError: true,
+        );
+      }
+    } catch (e) {
+      WalletUtils.showToast(context, e.toString(), isError: true);
+    } finally {
+      accountProvider.clearLoading();
+    }
+  }
+
+  Future<WalletCreationResult> _createWallet(
+      BuildContext context, String optionId, AccountType accountType) async {
+    final walletProvider = context.read<WalletProvider>();
+
+    switch (optionId) {
+      case 'passkey':
+        switch (accountType) {
+          case AccountType.modular:
+            return await walletProvider.createModularWallet(optionId);
+          default:
+            return await walletProvider.createSafeWallet(optionId);
+        }
+      default:
+        switch (accountType) {
+          case AccountType.light:
+            return await walletProvider.createLightWallet(optionId);
+          case AccountType.modular:
+            return await walletProvider.createModularWallet(optionId);
+          default:
+            return await walletProvider.createSafeWallet(optionId);
+        }
+    }
   }
 }

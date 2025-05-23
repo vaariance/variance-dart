@@ -24,62 +24,128 @@ part of '../../variance_dart.dart';
 /// final amount = EtherAmount.fromUnitAndValue(EtherUnit.ether, 1);
 /// final response = await wallet.send(recipient, amount);
 /// ```
-class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
-  /// The chain configuration.
-  final Chain _chain;
+class SmartWallet extends SmartWalletBase
+    with
+        _CallActions,
+        _BundlerActions,
+        _JsonRPCActions,
+        _PaymasterActions,
+        _GasOverridesActions,
+        _Safe7579Actions {
+  final SmartWalletState _state;
 
-  /// The address of the Smart Wallet.
-  final EthereumAddress _walletAddress;
-
-  /// The initialization code for deploying the Smart Wallet contract.
-  Uint8List _initCode;
-
-  /// Creates a new instance of the [SmartWallet] class.
-  ///
-  /// [_chain] is an object representing the blockchain chain configuration.
-  /// [_walletAddress] is the address of the Smart Wallet.
-  /// [_initCode] is the initialization code for deploying the Smart Wallet contract.
-  SmartWallet(this._chain, this._walletAddress, this._initCode);
+  SmartWallet(this._state);
 
   @override
-  EthereumAddress get address => _walletAddress;
+  EthereumAddress get address => _state.address;
 
   @override
   Future<EtherAmount> get balance => _getBalance();
 
   @override
-  Future<bool> get isDeployed =>
-      plugin<Contract>("contract").deployed(_walletAddress);
+  Chain get chain => _state.chain;
 
   @override
-  String get initCode => hexlify(_initCode);
+  @Deprecated("Get the dummy signature directly from the signer")
+  String get dummySignature => _state.signer.getDummySignature();
 
   @override
-  Future<BigInt> get initCodeGas => _initCodeGas;
+  String get initCode => hexlify(_state.initCode);
 
   @override
-  Future<Uint256> get nonce => _getNonce();
+  Future<BigInt> get initCodeGas =>
+      estimateGas(_state.chain.entrypoint.address, initCode);
 
   @override
-  String? get toHex => _walletAddress.hexEip55;
+  Future<bool> get isDeployed => deployed(_state.address);
 
   @override
-  String get dummySignature => plugin<MSI>('signer').getDummySignature();
+  @Deprecated("Does not allow getting nonce with key, use `getNonce` instead")
+  Future<Uint256> get nonce => getNonce();
 
-  bool get isSafe => hasPlugin("safe");
-
-  /// Returns the estimated gas required for deploying the Smart Wallet contract.
-  ///
-  /// The gas estimation is performed by interacting with the 'jsonRpc' plugin
-  /// and estimating the gas for the initialization code.
-  Future<BigInt> get _initCodeGas => plugin<JsonRPCProviderBase>('jsonRpc')
-      .estimateGas(_chain.entrypoint.address, initCode);
+  @protected
+  @override
+  SmartWalletState get state => _state;
 
   @override
-  @Deprecated("Not recommended to modify the initcode")
-  void dangerouslySetInitCode(Uint8List code) {
-    _initCode = code;
+  @Deprecated("get `hex` from wallet [address]. e.g walletInstance.address.hex")
+  String? get toHex => _state.address.hexEip55;
+
+  @override
+  Future<UserOperationResponse> send(
+    EthereumAddress recipient,
+    EtherAmount amount, {
+    Uint256? nonceKey,
+  }) async {
+    final cd =
+        _state.safe?.isSafe7579 ?? false
+            ? await get7579ExecuteCalldata(to: recipient, amount: amount)
+            : getExecuteCalldata(to: recipient, amount: amount);
+    return sendUserOperation(
+      buildUserOperation(callData: cd),
+      nonceKey: nonceKey,
+    );
   }
+
+  @override
+  Future<UserOperationResponse> sendTransaction(
+    EthereumAddress to,
+    Uint8List encodedFunctionData, {
+    EtherAmount? amount,
+    Uint256? nonceKey,
+  }) async {
+    final cd =
+        _state.safe?.isSafe7579 ?? false
+            ? await get7579ExecuteCalldata(
+              to: to,
+              amount: amount,
+              innerCallData: encodedFunctionData,
+            )
+            : getExecuteCalldata(
+              to: to,
+              amount: amount,
+              innerCallData: encodedFunctionData,
+            );
+    return sendUserOperation(
+      buildUserOperation(callData: cd),
+      nonceKey: nonceKey,
+    );
+  }
+
+  @override
+  Future<UserOperationResponse> sendBatchedTransaction(
+    List<EthereumAddress> recipients,
+    List<Uint8List> calls, {
+    List<EtherAmount>? amounts,
+    Uint256? nonceKey,
+  }) async {
+    final cd =
+        _state.safe?.isSafe7579 ?? false
+            ? await get7579ExecuteBatchCalldata(
+              recipients: recipients,
+              amounts: amounts,
+              innerCalls: calls,
+            )
+            : getExecuteBatchCalldata(
+              recipients: recipients,
+              amounts: amounts,
+              innerCalls: calls,
+            );
+    return sendUserOperation(
+      buildUserOperation(callData: cd),
+      nonceKey: nonceKey,
+    );
+  }
+
+  @override
+  Future<UserOperationResponse> sendUserOperation(
+    UserOperation op, {
+    Uint256? nonceKey,
+  }) => prepareUserOperation(op, nonceKey: nonceKey)
+      .then(overrideGas)
+      .then(sponsorUserOperation)
+      .then(signUserOperation)
+      .then(sendSignedUserOperation);
 
   @override
   UserOperation buildUserOperation({
@@ -87,159 +153,97 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
     BigInt? customNonce,
   }) {
     return UserOperation.partial(
-        callData: callData,
-        initCode: _initCode,
-        sender: _walletAddress,
-        nonce: customNonce);
+      callData: callData,
+      initCode: _state.initCode,
+      sender: _state.address,
+      nonce: customNonce,
+    );
   }
 
   @override
-  Future<UserOperationResponse> send(
-      EthereumAddress recipient, EtherAmount amount) {
-    final cd = Contract.execute(_walletAddress,
-        to: recipient, amount: amount, isSafe: isSafe);
-    return sendUserOperation(buildUserOperation(callData: cd));
-  }
-
-  @override
-  Future<UserOperationResponse> sendTransaction(
-      EthereumAddress to, Uint8List encodedFunctionData,
-      {EtherAmount? amount}) {
-    final cd = Contract.execute(_walletAddress,
-        to: to,
-        amount: amount,
-        innerCallData: encodedFunctionData,
-        isSafe: isSafe);
-    return sendUserOperation(buildUserOperation(callData: cd));
-  }
-
-  @override
-  Future<UserOperationResponse> sendBatchedTransaction(
-      List<EthereumAddress> recipients, List<Uint8List> calls,
-      {List<EtherAmount>? amounts}) {
-    Uint8List cd;
-    if (isSafe) {
-      final innerCall = plugin<_SafePlugin>('safe')
-          .getSafeMultisendCallData(recipients, amounts, calls);
-      cd = Contract.executeBatch(
-          walletAddress: _walletAddress,
-          recipients: [Constants.safeMultiSendaddress],
-          amounts: [],
-          innerCalls: [innerCall],
-          isSafe: true);
-      return sendUserOperation(buildUserOperation(callData: cd));
-    } else {
-      cd = Contract.executeBatch(
-          walletAddress: _walletAddress,
-          recipients: recipients,
-          amounts: amounts,
-          innerCalls: calls);
-      return sendUserOperation(buildUserOperation(callData: cd));
+  Future<UserOperation> prepareUserOperation(
+    UserOperation op, {
+    Uint256? nonceKey,
+    String? signature,
+  }) async {
+    getSig(BlockInformation blockInfo) {
+      final dummySignature = _state.signer.getDummySignature();
+      if (_state.safe?.isSafe7579 ?? false) {
+        return _state.safe?.module.getSafeSignature(dummySignature, blockInfo);
+      }
+      return dummySignature;
     }
+
+    final responses = await Future.wait<dynamic>([
+      getNonce(nonceKey),
+      getGasPrice(),
+      getBlockInformation(),
+      isDeployed,
+    ]);
+
+    final nonce = op.nonce > BigInt.zero ? op.nonce : responses[0].value;
+
+    op = op.copyWith(
+      nonce: nonce,
+      initCode: responses[3] ? Uint8List(0) : null,
+      signature: signature ?? getSig(responses[2]),
+    );
+
+    op = await _updateUserOperationGas(op, responses[1]);
+    op.validate(responses[3], initCode);
+    return op;
+  }
+
+  @override
+  Future<UserOperation> signUserOperation(
+    UserOperation op, {
+    int? index,
+  }) async {
+    final blockInfo = await getBlockInformation();
+    op.signature = await generateSignature(op, blockInfo, index);
+    return op;
   }
 
   @override
   Future<UserOperationResponse> sendSignedUserOperation(UserOperation op) {
-    return plugin<BundlerProviderBase>('bundler')
-        .sendUserOperation(
-            op.toMap(_chain.entrypoint.version), _chain.entrypoint)
-        .catchError((e) => throw SendError(e.toString(), op));
+    final chain = _state.chain;
+    return sendRawUserOperation(
+      op.toMap(chain.entrypoint.version),
+      chain.entrypoint,
+    ).catchError((e) => throw SendError(e.toString(), op));
   }
 
   @override
-  Future<UserOperationResponse> sendUserOperation(UserOperation op) =>
-      prepareUserOperation(op)
-          .then(applyCustomGasSettings)
-          .then(sponsorUserOperation)
-          .then(signUserOperation)
-          .then(sendSignedUserOperation);
-
-  @override
-  Future<UserOperation> prepareUserOperation(UserOperation op,
-      {bool update = true}) async {
-    if (update) op = await _updateUserOperation(op);
-    op.validate(op.nonce > BigInt.zero, initCode);
-    return op;
+  Future<Uint256> getNonce([Uint256? key]) {
+    return readContract(
+          _state.chain.entrypoint.address,
+          ContractAbis.get('getNonce'),
+          "getNonce",
+          params: [_state.address, key?.value ?? BigInt.zero],
+        )
+        .then((value) => Uint256(value.first))
+        .catchError((e) => throw NonceError(e.toString(), _state.address));
   }
 
-  @override
-  Future<UserOperation> sponsorUserOperation(UserOperation op) async {
-    if (hasPlugin('paymaster')) {
-      op = await plugin<Paymaster>('paymaster').intercept(op);
-    }
-    return op;
-  }
-
-  @override
-  Future<UserOperation> signUserOperation(UserOperation op,
-      {int? index}) async {
-    final blockInfo =
-        await plugin<JsonRPCProviderBase>('jsonRpc').getBlockInformation();
-
-    calculateOperationHash(UserOperation op) async {
-      if (isSafe) {
-        return plugin<_SafePlugin>('safe').getSafeOperationHash(op, blockInfo);
-      } else {
-        return op.hash(_chain);
-      }
-    }
-
-    signOperationHash(Uint8List opHash, int? index) async {
-      final signature =
-          await plugin<MSI>('signer').personalSign(opHash, index: index);
-      final signatureHex = hexlify(signature);
-      if (isSafe) {
-        return plugin<_SafePlugin>('safe')
-            .getSafeSignature(signatureHex, blockInfo);
-      }
-      return signatureHex;
-    }
-
-    final opHash = await calculateOperationHash(op);
-    op.signature = await signOperationHash(opHash, index);
-    return op;
-  }
-
-  /// Returns the nonce for the Smart Wallet address.
-  ///
-  /// If the wallet is not deployed, returns 0.
-  /// Otherwise, retrieves the nonce by calling the 'getNonce' function on the entrypoint.
-  ///
-  /// If an error occurs during the nonce retrieval process, a [NonceError] exception is thrown.
-  Future<Uint256> _getNonce() {
-    return isDeployed.then((deployed) => !deployed
-        ? Future.value(Uint256.zero)
-        : plugin<Contract>("contract")
-            .read(_chain.entrypoint.address, ContractAbis.get('getNonce'),
-                "getNonce",
-                params: [_walletAddress, BigInt.zero])
-            .then((value) => Uint256(value[0]))
-            .catchError((e) => throw NonceError(e.toString(), _walletAddress)));
+  @protected
+  Future<String> generateSignature(
+    UserOperation op,
+    BlockInformation blockInfo,
+    int? index,
+  ) async {
+    getHashFn() => getUserOperationHash(op, blockInfo);
+    final sign = _getUserOperationSignHandler(getHashFn);
+    final getSignature = await sign(_state.signer.personalSign, index);
+    return getSignature(blockInfo);
   }
 
   /// Returns the balance for the Smart Wallet address.
   ///
   /// If an error occurs during the balance retrieval process, a [FetchBalanceError] exception is thrown.
   Future<EtherAmount> _getBalance() {
-    return plugin<Contract>("contract").getBalance(_walletAddress).catchError(
-        (e) => throw FetchBalanceError(e.toString(), _walletAddress));
-  }
-
-  /// Updates the user operation with the latest nonce and gas prices.
-  ///
-  /// [op] is the user operation to update.
-  ///
-  /// Returns a [Future] that resolves to the updated [UserOperation] object.
-  Future<UserOperation> _updateUserOperation(UserOperation op) async {
-    final responses = await Future.wait<dynamic>(
-        [_getNonce(), plugin<JsonRPCProviderBase>('jsonRpc').getGasPrice()]);
-
-    op = op.copyWith(
-        nonce: op.nonce > BigInt.zero ? op.nonce : responses[0].value,
-        initCode: responses[0] > Uint256.zero ? Uint8List(0) : null,
-        signature: dummySignature);
-
-    return _updateUserOperationGas(op, responses[1]);
+    return balanceOf(
+      _state.address,
+    ).catchError((e) => throw FetchBalanceError(e.toString(), _state.address));
   }
 
   /// Updates the gas information for the user operation.
@@ -251,9 +255,11 @@ class SmartWallet with _PluginManager, _GasSettings implements SmartWalletBase {
   ///
   /// If an error occurs during the gas estimation process, a [GasEstimationError] exception is thrown.
   Future<UserOperation> _updateUserOperationGas(UserOperation op, Fee fee) {
-    return plugin<BundlerProviderBase>('bundler')
-        .estimateUserOperationGas(
-            op.toMap(_chain.entrypoint.version), _chain.entrypoint)
+    final chain = _state.chain;
+    return estimateUserOperationGas(
+          op.toMap(chain.entrypoint.version),
+          chain.entrypoint,
+        )
         .then((opGas) => op.updateOpGas(opGas, fee))
         .catchError((e) => throw GasEstimationError(e.toString(), op));
   }

@@ -23,7 +23,11 @@ dependencies:
   fluttertoast: ^8.2.4
   variance_dart:
     path: ../
-  web3_signers: ^0.1.6
+  variance_modules:
+    path: ../../variance-modules
+  web3_signers: ^0.2.0
+  http: ^1.3.0
+  flutter_dotenv: ^5.2.1
 
 dev_dependencies:
   flutter_test:
@@ -35,6 +39,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-
-dependency_overrides:
-  stream_channel: ^2.1.2
+    - .env

@@ -24,11 +24,8 @@ abstract class SafeProxyFactoryBase {
   Future<Uint8List> proxyCreationCode({BlockNum? atBlock});
 
   Future<String> createProxyWithNonce(
-    ({
-      EthereumAddress singleton,
-      Uint8List initializer,
-      BigInt saltNonce
-    }) args, {
+    ({EthereumAddress singleton, Uint8List initializer, BigInt saltNonce})
+    args, {
     required Credentials credentials,
     Transaction? transaction,
   });

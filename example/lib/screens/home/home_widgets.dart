@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +9,8 @@ import 'package:variancedemo/providers/wallet_provider.dart';
 import 'package:variancedemo/variance_colors.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:web3dart/web3dart.dart';
+
+import '../../utils/shorten_address.dart';
 
 String address = '';
 
@@ -28,9 +29,6 @@ class _WalletBalanceState extends State<WalletBalance> {
     final wallet = context.select(
       (WalletProvider provider) => provider.wallet,
     );
-    // final hdWallet = context.select(
-    //   (WalletProvider provider) => provider.hdWalletSigner,
-    // );
 
     address = wallet?.address.hex ?? '';
 
@@ -40,7 +38,6 @@ class _WalletBalanceState extends State<WalletBalance> {
         balance = Uint256.fromWei(ether ?? EtherAmount.zero());
       });
     }
-    //if the wallet is created with a passkey
 
     getBalance();
     return Consumer<WalletProvider>(
@@ -48,33 +45,32 @@ class _WalletBalanceState extends State<WalletBalance> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text(
-                  'Total Balance',
-                  style: TextStyle(
-                      color: VarianceColors.secondary, fontSize: 14.sp),
-                ),
-                10.horizontalSpace,
-                const Image(
-                  image: AssetImage(
-                    'assets/images/down-arrow.png',
+            SizedBox(
+              width: double.infinity, // Provide bounded width
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Balance',
+                    style: TextStyle(
+                        color: VarianceColors.secondary, fontSize: 14.sp),
                   ),
-                  height: 10,
-                  width: 10,
-                  color: VarianceColors.secondary,
-                ),
-                const Spacer(),
-                Expanded(
-                  child: Text(
-                    address,
-                    style: const TextStyle(
-                      color: VarianceColors.secondary,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize
+                        .min, // Set to min to prevent unbounded width
+                    children: [
+                      CopyButton(text: address),
+                      Text(
+                        EthereumAddressUtils.shortenAddress(address),
+                        style: const TextStyle(
+                          color: VarianceColors.secondary,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                )
-              ],
+                ],
+              ),
             ),
             18.verticalSpace,
             Text(
@@ -90,41 +86,21 @@ class _WalletBalanceState extends State<WalletBalance> {
 }
 
 String message = address;
-final FutureBuilder<ui.Image> qrFutureBuilder = FutureBuilder<ui.Image>(
-  future: _loadOverlayImage(),
-  builder: (BuildContext ctx, AsyncSnapshot<ui.Image> snapshot) {
-    const double size = 280.0;
-    if (!snapshot.hasData) {
-      return const SizedBox(width: size, height: size);
-    }
-    return CustomPaint(
-      size: const Size.square(size),
-      painter: QrPainter(
-        data: message.toString(),
-        version: QrVersions.auto,
-        eyeStyle: const QrEyeStyle(
-          eyeShape: QrEyeShape.square,
-          color: Color(0xff000000),
-        ),
-        dataModuleStyle: const QrDataModuleStyle(
-          dataModuleShape: QrDataModuleShape.circle,
-          color: Color(0xff000000),
-        ),
-        // size: 320.0,
-        embeddedImage: snapshot.data,
-        embeddedImageStyle: const QrEmbeddedImageStyle(
-          size: Size.square(60),
-        ),
-      ),
-    );
-  },
+final CustomPaint qrCode = CustomPaint(
+  size: const Size.square(150.0),
+  painter: QrPainter(
+    data: message.toString(),
+    version: QrVersions.auto,
+    eyeStyle: QrEyeStyle(
+      eyeShape: QrEyeShape.circle,
+      color: Colors.grey[300],
+    ),
+    dataModuleStyle: QrDataModuleStyle(
+      dataModuleShape: QrDataModuleShape.square,
+      color: Colors.grey[300],
+    ),
+  ),
 );
-Future<ui.Image> _loadOverlayImage() async {
-  final Completer<ui.Image> completer = Completer<ui.Image>();
-  final ByteData byteData = await rootBundle.load('assets/images/ethereum.png');
-  ui.decodeImageFromList(byteData.buffer.asUint8List(), completer.complete);
-  return completer.future;
-}
 
 class Receive extends StatelessWidget {
   const Receive({super.key});
@@ -133,76 +109,74 @@ class Receive extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.89,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            50.verticalSpace,
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(10.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: qrFutureBuilder, // Replace with your content
-              ),
+      child: Column(
+        children: [
+          20.verticalSpace,
+          Container(
+            padding: const EdgeInsets.all(10.0),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2A2A3C),
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(height: 50),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              // margin: const EdgeInsets.symmetric(horizontal: 15),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey.shade400),
-              ),
-              child: Row(
-                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(
-                    width: 200,
-                    child: Text(
-                      message,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        overflow: TextOverflow.ellipsis,
-                        color: const Color(0xff32353E).withOpacity(0.5),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(
-                          text: message,
-                        ));
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xff32353E),
-                        padding: const EdgeInsets.only(left: 30, right: 30),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'copy',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Inter',
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+            child: qrCode,
+          ),
+          20.verticalSpace, // Added bottom spacing
+        ],
       ),
+    );
+  }
+}
+
+class CopyButton extends StatefulWidget {
+  final String text;
+
+  const CopyButton({Key? key, required this.text}) : super(key: key);
+
+  @override
+  State<CopyButton> createState() => _CopyButtonState();
+}
+
+class _CopyButtonState extends State<CopyButton> {
+  bool _isCopied = false;
+
+  void _copyToClipboard() {
+    Clipboard.setData(ClipboardData(text: widget.text));
+    setState(() {
+      _isCopied = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Copied to clipboard'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    // Reset after a short delay
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() {
+          _isCopied = false;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: _copyToClipboard,
+      icon: _isCopied
+          ? const Icon(
+              Icons.check_circle,
+              color: Colors.green,
+            )
+          : const Icon(
+              Icons.copy_all_rounded,
+              color: VarianceColors.secondary,
+            ),
+      constraints: const BoxConstraints(),
+      padding: EdgeInsets.zero,
     );
   }
 }

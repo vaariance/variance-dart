@@ -4,10 +4,9 @@ part of '../../variance_dart.dart';
 class SmartWalletFactory implements SmartWalletFactoryBase {
   final Chain _chain;
   final MSI _signer;
-
-  late final JsonRPCProvider _jsonRpc;
-  late final BundlerProvider _bundler;
-  late final Contract _contract;
+  final RPCBase _jsonRpc;
+  final RPCBase _bundler;
+  final RPCBase? _paymaster;
 
   /// Creates a new instance of the [SmartWalletFactory] class.
   ///
@@ -17,133 +16,234 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   /// Throws an [InvalidFactoryAddress] exception if the provided chain does not
   /// have a valid account factory address.
   SmartWalletFactory(this._chain, this._signer)
-      : assert(_chain.accountFactory != null,
-            InvalidFactoryAddress(_chain.accountFactory)),
-        _jsonRpc = JsonRPCProvider(_chain),
-        _bundler = BundlerProvider(_chain) {
-    _contract = Contract(_jsonRpc.rpc);
-  }
-
-  /// A getter for the SafePlugin instance.
-  _SafePlugin get _safePlugin => _SafePlugin(
-      address:
-          Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version).address,
-      chainId: _chain.chainId,
-      client: _safeProxyFactory.client);
-
-  /// A getter for the SafeProxyFactory contract instance.
-  _SafeProxyFactory get _safeProxyFactory => _SafeProxyFactory(
-      address: _chain.accountFactory!,
-      chainId: _chain.chainId,
-      rpc: _jsonRpc.rpc);
+    : assert(
+        _chain.accountFactory != null,
+        InvalidFactoryAddress(_chain.accountFactory),
+      ),
+      assert(_chain.jsonRpcUrl.isURL(), InvalidJsonRpcUrl(_chain.jsonRpcUrl)),
+      assert(_chain.bundlerUrl.isURL(), InvalidBundlerUrl(_chain.bundlerUrl)),
+      assert(
+        _chain.paymasterUrl != null && _chain.paymasterUrl.isURL(),
+        InvalidPaymasterUrl(_chain.paymasterUrl),
+      ),
+      _jsonRpc = RPCBase(_chain.jsonRpcUrl!),
+      _bundler = RPCBase(_chain.bundlerUrl!),
+      _paymaster =
+          _chain.paymasterUrl != null ? RPCBase(_chain.paymasterUrl!) : null;
 
   /// A getter for the LightAccountFactory contract instance.
   _LightAccountFactory get _lightAccountfactory => _LightAccountFactory(
-      address: _chain.accountFactory!,
-      chainId: _chain.chainId,
-      rpc: _jsonRpc.rpc);
+    address: _chain.accountFactory!,
+    chainId: _chain.chainId,
+    rpc: _jsonRpc,
+  );
+
+  /// A getter for the SafeProxyFactory contract instance.
+  _SafeProxyFactory get _safeProxyFactory => _SafeProxyFactory(
+    address: _chain.accountFactory!,
+    chainId: _chain.chainId,
+    rpc: _jsonRpc,
+  );
 
   @override
-  Future<SmartWallet> createSafeAccountWithPasskey(PassKeyPair keyPair,
-      Uint256 salt, EthereumAddress safeWebauthnSharedSigner,
-      [EthereumAddress? p256Verifier, SafeSingletonAddress? singleton]) {
-    final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
-    final verifier = p256Verifier ?? Constants.p256VerifierAddress;
-
-    encodeWebAuthnConfigure() {
-      return Contract.encodeFunctionCall("configure", safeWebauthnSharedSigner,
-          ContractAbis.get("enableWebauthn"), [
-        [
-          keyPair.authData.publicKey.item1.value,
-          keyPair.authData.publicKey.item2.value,
-          hexToInt(verifier.hexNo0x.padLeft(44, '0')),
-        ]
-      ]);
-    }
-
-    encodeWebauthnSetup(Uint8List Function() encodeModuleSetup) {
-      return _safePlugin.getSafeMultisendCallData(
-          [module.setup, safeWebauthnSharedSigner],
-          null,
-          [encodeModuleSetup(), encodeWebAuthnConfigure()],
-          [intToBytes(BigInt.one), intToBytes(BigInt.one)]);
-    }
-
-    return _createSafeAccount(
-        salt, safeWebauthnSharedSigner, module, encodeWebauthnSetup, singleton);
-  }
-
-  @override
-  Future<SmartWallet> createSafeAccount(Uint256 salt,
-      [SafeSingletonAddress? singleton]) {
+  Future<SmartWallet> createAlchemyLightAccount(Uint256 salt) async {
     final signer = EthereumAddress.fromHex(_signer.getAddress());
-    final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
 
-    return _createSafeAccount(salt, signer, module, null, singleton);
-  }
+    final address = await _lightAccountfactory.getAddress((
+      owner: signer,
+      salt: salt.value,
+    ));
 
-  @override
-  Future<SmartWallet> createAlchemyLightAccount(Uint256 salt,
-      [int? index]) async {
-    final signer =
-        EthereumAddress.fromHex(_signer.getAddress(index: index ?? 0));
-
-    // Get the predicted address of the light account
-    final address = await _lightAccountfactory
-        .getAddress((owner: signer, salt: salt.value));
-
-    // Encode the call data for the `createAccount` function
-    // This function is used to create the light account with the given signer address and salt
     final initCalldata = _lightAccountfactory.self
         .function('createAccount')
         .encodeCall([signer, salt.value]);
 
-    // Generate the initialization code by combining the account factory address and the encoded call data
     final initCode = _getInitCode(initCalldata);
-
-    // Create the SmartWallet instance for the light account
-    return _createAccount(_chain, address, initCode);
+    return _createAccount(address, initCode);
   }
 
   @override
+  Future<SmartWallet> createSafe7579Account(
+    Uint256 salt,
+    EthereumAddress launchpad, {
+    SafeSingletonAddress? singleton,
+    Iterable<ModuleInitType>? validators,
+    Iterable<ModuleInitType>? executors,
+    Iterable<ModuleInitType>? fallbacks,
+    Iterable<ModuleInitType>? hooks,
+    Iterable<EthereumAddress>? attesters,
+    int? attestersThreshold,
+  }) async {
+    final signer = EthereumAddress.fromHex(_signer.getAddress());
+    final module = Safe4337ModuleAddress.fromVersion(
+      _chain.entrypoint.version,
+      isSafe7579: true,
+    );
+
+    singleton =
+        _chain.chainId == 1
+            ? SafeSingletonAddress.l1
+            : singleton ?? SafeSingletonAddress.l2;
+
+    final initializer = _Safe7579Initializer(
+      owners: [signer],
+      threshold: 1,
+      module: module,
+      singleton: singleton,
+      launchpad: launchpad,
+      validators: validators,
+      executors: executors,
+      fallbacks: fallbacks,
+      hooks: hooks,
+      attesters: attesters,
+      attestersThreshold: attestersThreshold,
+      setupTo: Addresses.zeroAddress,
+      setupData: Uint8List(0),
+    );
+
+    return _createSafeAccount(salt, initializer, initializer.launchpad);
+  }
+
+  @override
+  Future<SmartWallet> createSafe7579AccountWithPasskey(
+    PassKeyPair keyPair,
+    Uint256 salt,
+    EthereumAddress launchpad, {
+    EthereumAddress? p256Verifier,
+    SafeSingletonAddress? singleton,
+    Iterable<ModuleInitType>? validators,
+    Iterable<ModuleInitType>? executors,
+    Iterable<ModuleInitType>? fallbacks,
+    Iterable<ModuleInitType>? hooks,
+    Iterable<EthereumAddress>? attesters,
+    int? attestersThreshold,
+  }) async {
+    final module = Safe4337ModuleAddress.fromVersion(
+      _chain.entrypoint.version,
+      isSafe7579: true,
+    );
+    final verifier = p256Verifier ?? Addresses.p256VerifierAddress;
+
+    singleton =
+        _chain.chainId == 1
+            ? SafeSingletonAddress.l1
+            : singleton ?? SafeSingletonAddress.l2;
+
+    encodeWebAuthnConfigure() {
+      return Contract.encodeFunctionCall(
+        "configure",
+        Addresses.sharedSignerAddress,
+        ContractAbis.get("enableWebauthn"),
+        [
+          [
+            keyPair.authData.publicKey.$1.value,
+            keyPair.authData.publicKey.$2.value,
+            hexToInt(verifier.hexNo0x.padLeft(44, '0')),
+          ],
+        ],
+      );
+    }
+
+    final initializer = _Safe7579Initializer(
+      owners: [Addresses.sharedSignerAddress],
+      threshold: 1,
+      module: module,
+      singleton: singleton,
+      launchpad: launchpad,
+      validators: validators,
+      executors: executors,
+      fallbacks: fallbacks,
+      hooks: hooks,
+      attesters: attesters,
+      attestersThreshold: attestersThreshold,
+      setupTo: Addresses.sharedSignerAddress,
+      setupData: encodeWebAuthnConfigure(),
+    );
+
+    return _createSafeAccount(salt, initializer, initializer.launchpad);
+  }
+
+  @override
+  Future<SmartWallet> createSafeAccount(
+    Uint256 salt, [
+    SafeSingletonAddress? singleton,
+  ]) {
+    final signer = EthereumAddress.fromHex(_signer.getAddress());
+    final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
+
+    singleton =
+        _chain.chainId == 1
+            ? SafeSingletonAddress.l1
+            : singleton ?? SafeSingletonAddress.l2;
+
+    final initializer = _SafeInitializer(
+      owners: [signer],
+      threshold: 1,
+      module: module,
+      singleton: singleton,
+    );
+
+    return _createSafeAccount(salt, initializer, singleton.address);
+  }
+
+  @override
+  Future<SmartWallet> createSafeAccountWithPasskey(
+    PassKeyPair keyPair,
+    Uint256 salt, {
+    EthereumAddress? p256Verifier,
+    SafeSingletonAddress? singleton,
+  }) {
+    final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
+    final verifier = p256Verifier ?? Addresses.p256VerifierAddress;
+    final safe = _getSafe();
+
+    encodeWebAuthnConfigure() {
+      return Contract.encodeFunctionCall(
+        "configure",
+        Addresses.sharedSignerAddress,
+        ContractAbis.get("enableWebauthn"),
+        [
+          [
+            keyPair.authData.publicKey.$1.value,
+            keyPair.authData.publicKey.$2.value,
+            hexToInt(verifier.hexNo0x.padLeft(44, '0')),
+          ],
+        ],
+      );
+    }
+
+    encodeWebauthnSetup(Uint8List Function() encodeModuleSetup) {
+      return safe.$2!.getSafeMultisendCallData(
+        [module.setup, Addresses.sharedSignerAddress],
+        null,
+        [encodeModuleSetup(), encodeWebAuthnConfigure()],
+        [intToBytes(BigInt.one), intToBytes(BigInt.one)],
+      );
+    }
+
+    singleton =
+        _chain.chainId == 1
+            ? SafeSingletonAddress.l1
+            : singleton ?? SafeSingletonAddress.l2;
+
+    final initializer = _SafeInitializer(
+      owners: [Addresses.sharedSignerAddress],
+      threshold: 1,
+      module: module,
+      singleton: singleton,
+      encodeWebauthnSetup: encodeWebauthnSetup,
+    );
+
+    return _createSafeAccount(salt, initializer, singleton.address);
+  }
+
+  @override
+  @Deprecated("Use default account standards")
   Future<SmartWallet> createVendorAccount(
     EthereumAddress address,
     Uint8List initCode,
   ) async {
-    return _createAccount(_chain, address, initCode);
-  }
-
-  Future<SmartWallet> _createSafeAccount(
-      Uint256 salt, EthereumAddress signer, Safe4337ModuleAddress module,
-      [Uint8List Function(Uint8List Function())? setup,
-      SafeSingletonAddress? singleton]) async {
-    singleton = _chain.chainId == 1
-        ? SafeSingletonAddress.l1
-        : singleton ?? SafeSingletonAddress.l2;
-
-    // Get the initializer data for the Safe account
-    final initializer =
-        _safeProxyFactory.getInitializer([signer], 1, module, setup);
-
-    // Get the proxy creation code for the Safe account
-    final creation = await _safeProxyFactory.proxyCreationCode();
-
-    // Predict the address of the Safe account
-    final address = _safeProxyFactory.getPredictedSafe(
-        initializer, salt, creation, singleton.address);
-
-    // Encode the call data for the `createProxyWithNonce` function
-    // This function is used to create the Safe account with the given initializer data and salt
-    final initCallData = _safeProxyFactory.self
-        .function("createProxyWithNonce")
-        .encodeCall([singleton.address, initializer, salt.value]);
-
-    // Generate the initialization code by combining the account factory address and the encoded call data
-    final initCode = _getInitCode(initCallData);
-
-    // Create the SmartWallet instance for the Safe account
-    return _createAccount(_chain, address, initCode)
-      ..addPlugin<_SafePlugin>('safe', _safePlugin);
+    return _createAccount(address, initCode);
   }
 
   /// Creates a new [SmartWallet] instance with the provided chain, address, and initialization code.
@@ -160,21 +260,46 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   ///
   /// Returns a [SmartWallet] instance representing the created account.
   SmartWallet _createAccount(
-    Chain chain,
     EthereumAddress address,
-    Uint8List initCalldata,
-  ) {
-    final wallet = SmartWallet(chain, address, initCalldata)
-      ..addPlugin<MSI>('signer', _signer)
-      ..addPlugin<BundlerProviderBase>('bundler', _bundler)
-      ..addPlugin<JsonRPCProviderBase>('jsonRpc', _jsonRpc)
-      ..addPlugin<Contract>('contract', _contract);
-
-    if (chain.paymasterUrl != null) {
-      wallet.addPlugin<PaymasterBase>('paymaster', Paymaster(chain));
-    }
-
+    Uint8List initCode, [
+    _SafeInitializer? initializer,
+  ]) {
+    final safe = _getSafe(initializer);
+    final SmartWalletState state = SmartWalletState(
+      chain: _chain,
+      address: address,
+      signer: _signer,
+      initCode: initCode,
+      jsonRpc: _jsonRpc,
+      bundler: _bundler,
+      paymaster: _paymaster,
+      safe: safe.$1,
+    );
+    final wallet = SmartWallet(state);
     return wallet;
+  }
+
+  Future<SmartWallet> _createSafeAccount(
+    Uint256 salt,
+    _SafeInitializer initializer,
+    EthereumAddress singleton,
+  ) async {
+    final initializationData = initializer.getInitializer();
+    final creation = await _safeProxyFactory.proxyCreationCode();
+
+    final address = _safeProxyFactory.getPredictedSafe(
+      initializationData,
+      salt,
+      creation,
+      singleton,
+    );
+
+    final initCallData = _safeProxyFactory.self
+        .function("createProxyWithNonce")
+        .encodeCall([singleton, initializationData, salt.value]);
+
+    final initCode = _getInitCode(initCallData);
+    return _createAccount(address, initCode, initializer);
   }
 
   /// Returns the initialization code for the account by concatenating the account factory address with the provided initialization call data.
@@ -188,5 +313,27 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     List<int> extended = _chain.accountFactory!.addressBytes.toList();
     extended.addAll(initCalldata);
     return Uint8List.fromList(extended);
+  }
+
+  (_Safe?, _SafeModule?) _getSafe([_SafeInitializer? initializer]) {
+    final isSafe7579 = initializer is _Safe7579Initializer;
+    _SafeModule safeModule = _SafeModule(
+      address:
+          Safe4337ModuleAddress.fromVersion(
+            _chain.entrypoint.version,
+            isSafe7579: isSafe7579,
+          ).address,
+      chainId: _chain.chainId,
+      client: _safeProxyFactory.client,
+    );
+    if (initializer == null) return (null, safeModule);
+    return (
+      _Safe(
+        isSafe7579: isSafe7579,
+        module: safeModule,
+        initializer: initializer,
+      ),
+      safeModule,
+    );
   }
 }

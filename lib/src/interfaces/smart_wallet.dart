@@ -6,14 +6,17 @@ part of 'interfaces.dart';
 /// a Smart Wallet implementation should have. This allows for flexibility in
 /// creating different implementations of Smart Wallets while adhering to a
 /// common interface.
-abstract class SmartWalletBase {
+abstract class SmartWalletBase extends TransactionBuilder {
   /// The Ethereum address of the Smart Wallet.
-  EthereumAddress? get address;
+  EthereumAddress get address;
 
   /// Returns the balance of the Smart Wallet.
   ///
   /// The balance is retrieved by interacting with the 'contract' plugin.
   Future<EtherAmount> get balance;
+
+  /// Returns the current chain information of the account
+  Chain get chain;
 
   /// Retrieves the dummy signature required for gas estimation from the Smart Wallet.
   String get dummySignature;
@@ -35,6 +38,10 @@ abstract class SmartWalletBase {
   ///
   /// The nonce is retrieved by calling the `_getNonce` method.
   Future<Uint256> get nonce;
+
+  /// Returns the internal state of the wallet
+  @protected
+  SmartWalletState get state;
 
   /// Returns the hexadecimal representation of the Smart Wallet address in EIP-55 format.
   String? get toHex;
@@ -79,6 +86,14 @@ abstract class SmartWalletBase {
   @Deprecated("Not recommended to modify the initcode")
   void dangerouslySetInitCode(Uint8List code);
 
+  /// Returns the nonce for the Smart Wallet address.
+  ///
+  /// If the wallet is not deployed, returns 0.
+  /// Otherwise, retrieves the nonce by calling the 'getNonce' function on the entrypoint.
+  ///
+  /// If an error occurs during the nonce retrieval process, a [NonceError] exception is thrown.
+  Future<Uint256> getNonce([Uint256? key]);
+
   /// Prepares a user operation by updating it with the latest nonce and gas prices,
   ///
   /// [op] is the user operation to prepare.
@@ -86,8 +101,58 @@ abstract class SmartWalletBase {
   /// latest nonce and gas prices. Defaults to `true`.
   ///
   /// Returns a [Future] that resolves to the prepared [UserOperation] object.
-  Future<UserOperation> prepareUserOperation(UserOperation op,
-      {bool update = true});
+  Future<UserOperation> prepareUserOperation(UserOperation op);
+
+  /// Asynchronously sends a signed user operation to the bundler for execution.
+  ///
+  /// Parameters:
+  ///   - `op`: The signed [UserOperation] to be sent for execution.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with a [UserOperationResponse] containing information about the executed operation.
+  ///
+  /// Example:
+  /// ```dart
+  /// var response = await sendSignedUserOperation(mySignedUserOperation);
+  /// ```
+  Future<UserOperationResponse> sendSignedUserOperation(UserOperation op);
+
+  /// Asynchronously sends a user operation after signing it and obtaining the required signatures.
+  ///
+  /// Parameters:
+  ///   - `op`: The [UserOperation] to be signed and sent.
+  ///   - `id`: Optional identifier (credential Id) when using a passkey signer Defaults to `null`.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with a [UserOperationResponse] containing information about the executed operation.
+  ///
+  /// Example:
+  /// ```dart
+  /// // when using passkey signer, the credentialId idenfies the credential that is associated with the account.
+  /// var response = await sendUserOperation(myUserOperation, id: 'credentialId'); // index is effectively ignored even if provided
+  /// ```
+  Future<UserOperationResponse> sendUserOperation(
+    UserOperation op, {
+    Uint256? nonceKey,
+  });
+
+  /// Asynchronously signs a user operation with the required signatures.
+  ///
+  /// Parameters:
+  ///   - `userOp`: The [UserOperation] to be signed.
+  ///   - `update`: Optional parameter indicating whether to update the user operation before signing. Defaults to `true`.
+  ///   - `index`: Optional index parameter for selecting a signer. Defaults to `null`.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with the signed [UserOperation].
+  ///
+  /// Example:
+  /// ```dart
+  /// // when using HD wallet, index can be used to specify which privatekey to use
+  /// var signedOperation = await signUserOperation(myUserOperation, index: 0); // signer 0
+  /// var signedOperation = await signUserOperation(myUserOperation, index: 1); // signer 1
+  /// ```
+  Future<UserOperation> signUserOperation(UserOperation op, {int? index});
 
   /// Sponsors a user operation by intercepting it with the paymaster plugin, if present.
   ///
@@ -95,12 +160,81 @@ abstract class SmartWalletBase {
   ///
   /// Returns a [Future] that resolves to the sponsored [UserOperation] object.
   Future<UserOperation> sponsorUserOperation(UserOperation op);
+}
 
+interface class SmartWalletState {
+  final Chain chain;
+
+  final EthereumAddress address;
+
+  final MSI signer;
+
+  final Uint8List initCode;
+
+  final RPCBase jsonRpc;
+
+  final RPCBase bundler;
+
+  final RPCBase? paymaster;
+
+  final Safe? safe;
+
+  /// Optional gas overrides for user operations.
+  ///
+  /// This can be used to override default gas parameters like maxFeePerGas,
+  /// maxPriorityFeePerGas, and callGasLimit when creating user operations.
+  GasOverrides? gasOverrides;
+
+  /// The address of the Paymaster contract.
+  ///
+  /// This is an optional parameter and can be left null if the paymaster address
+  /// is not known or needed.
+  EthereumAddress? paymasterAddress;
+
+  /// The context data for the Paymaster.
+  ///
+  /// This is an optional parameter and can be used to provide additional context
+  /// information to the Paymaster when sponsoring user operations.
+  Map<String, String>? paymasterContext;
+
+  SmartWalletState({
+    required this.chain,
+    required this.address,
+    required this.signer,
+    required this.initCode,
+    required this.jsonRpc,
+    required this.bundler,
+    this.paymaster,
+    this.safe,
+    this.gasOverrides,
+    this.paymasterAddress,
+    this.paymasterContext,
+  });
+
+  SmartWalletState copyWith({MSI? signer}) {
+    return SmartWalletState(
+      signer: signer ?? this.signer,
+      chain: chain,
+      address: address,
+      initCode: initCode,
+      jsonRpc: jsonRpc,
+      bundler: bundler,
+      paymaster: paymaster,
+      safe: safe,
+      gasOverrides: gasOverrides,
+      paymasterAddress: paymasterAddress,
+      paymasterContext: paymasterContext,
+    );
+  }
+}
+
+abstract class TransactionBuilder {
   /// Asynchronously transfers native Token (ETH) to the specified recipient with the given amount.
   ///
   /// Parameters:
   ///   - `recipient`: The [EthereumAddress] of the transaction recipient.
   ///   - `amount`: The [EtherAmount] representing the amount to be sent in the transaction.
+  ///   - `nonceKey`: Optional [Uint256] representing the nonce key for the transaction. Defaults to the nonce from bundler.
   ///
   /// Returns:
   ///   A [Future] that completes with a [UserOperationResponse] containing information about the transaction.
@@ -116,8 +250,9 @@ abstract class SmartWalletBase {
   /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> send(
     EthereumAddress recipient,
-    EtherAmount amount,
-  );
+    EtherAmount amount, {
+    Uint256? nonceKey,
+  });
 
   /// Asynchronously sends a batched Ethereum transaction to multiple recipients with the given calls and optional amounts.
   ///
@@ -125,6 +260,7 @@ abstract class SmartWalletBase {
   ///   - `recipients`: A list of [EthereumAddress] representing the recipients of the batched transaction.
   ///   - `calls`: A list of [Uint8List] representing the calldata for each transaction in the batch.
   ///   - `amounts`: Optional list of [EtherAmount] representing the amounts for each transaction. Defaults to `null`.
+  ///   - `nonceKey`: Optional [Uint256] representing the nonce key for the batched transaction. Defaults to the nonce from bundler.
   ///
   /// Returns:
   ///   A [Future] that completes with a [UserOperationResponse] containing information about the batched transaction.
@@ -149,21 +285,8 @@ abstract class SmartWalletBase {
     List<EthereumAddress> recipients,
     List<Uint8List> calls, {
     List<EtherAmount>? amounts,
+    Uint256? nonceKey,
   });
-
-  /// Asynchronously sends a signed user operation to the bundler for execution.
-  ///
-  /// Parameters:
-  ///   - `op`: The signed [UserOperation] to be sent for execution.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with a [UserOperationResponse] containing information about the executed operation.
-  ///
-  /// Example:
-  /// ```dart
-  /// var response = await sendSignedUserOperation(mySignedUserOperation);
-  /// ```
-  Future<UserOperationResponse> sendSignedUserOperation(UserOperation op);
 
   /// Asynchronously sends an Ethereum transaction to the specified address with the provided encoded function data and optional amount.
   ///
@@ -171,6 +294,7 @@ abstract class SmartWalletBase {
   ///   - `to`: The [EthereumAddress] of the transaction recipient.
   ///   - `encodedFunctionData`: The [Uint8List] containing the encoded function data for the transaction.
   ///   - `amount`: Optional [EtherAmount] representing the amount to be sent in the transaction. Defaults to `null`.
+  ///   - `nonceKey`: Optional [Uint256] representing the nonce key for the transaction. Defaults to the nonce from bundler.
   ///
   /// Returns:
   ///   A [Future] that completes with a [UserOperationResponse] containing information about the transaction.
@@ -189,39 +313,6 @@ abstract class SmartWalletBase {
     EthereumAddress to,
     Uint8List encodedFunctionData, {
     EtherAmount? amount,
+    Uint256? nonceKey,
   });
-
-  /// Asynchronously sends a user operation after signing it and obtaining the required signatures.
-  ///
-  /// Parameters:
-  ///   - `op`: The [UserOperation] to be signed and sent.
-  ///   - `id`: Optional identifier (credential Id) when using a passkey signer Defaults to `null`.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with a [UserOperationResponse] containing information about the executed operation.
-  ///
-  /// Example:
-  /// ```dart
-  /// // when using passkey signer, the credentialId idenfies the credential that is associated with the account.
-  /// var response = await sendUserOperation(myUserOperation, id: 'credentialId'); // index is effectively ignored even if provided
-  /// ```
-  Future<UserOperationResponse> sendUserOperation(UserOperation op);
-
-  /// Asynchronously signs a user operation with the required signatures.
-  ///
-  /// Parameters:
-  ///   - `userOp`: The [UserOperation] to be signed.
-  ///   - `update`: Optional parameter indicating whether to update the user operation before signing. Defaults to `true`.
-  ///   - `index`: Optional index parameter for selecting a signer. Defaults to `null`.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with the signed [UserOperation].
-  ///
-  /// Example:
-  /// ```dart
-  /// // when using HD wallet, index can be used to specify which privatekey to use
-  /// var signedOperation = await signUserOperation(myUserOperation, index: 0); // signer 0
-  /// var signedOperation = await signUserOperation(myUserOperation, index: 1); // signer 1
-  /// ```
-  Future<UserOperation> signUserOperation(UserOperation op, {int? index});
 }

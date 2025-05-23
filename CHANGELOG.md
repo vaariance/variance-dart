@@ -1,3 +1,14 @@
+## 0.2.0
+
+* add support for safe7579 Accounts and safe7579Passkeys Acccounts.
+* migrate from plugin pattern to composition with mixins.
+* remove intrinsically provided `jsonRpcUrl`s from `Chain` configurations. jsonRpcUrls are no longer optional.
+* replace legacy gas multiplier logic with transform functions.
+* `getNonce` now allow for nonce key. All nonce queries must be made to the entrypoint now.
+* introduce global state management with `SmartWalletState`.
+* create a new `TransactionBuilder` interface with core transaction methods.
+* update `prepareUserOperation` method; op updates are no longer optional.
+
 ## 0.1.9
 
 * Fix user-operation modififications post paymaster sponsorship
