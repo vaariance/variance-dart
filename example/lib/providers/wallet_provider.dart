@@ -204,7 +204,7 @@ class WalletProvider extends ChangeNotifier {
               attestersThreshold: 1,
               validators: List.from([
                 ModuleInit(WebauthnValidator.getAddress(),
-                    WebauthnValidator.parseInitData(BigInt.one, keypair))
+                    WebauthnValidator.parseInitData(BigInt.one, {keypair}))
               ]));
           _keyPair = keypair;
           break;

@@ -333,7 +333,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
         module: safeModule,
         initializer: initializer,
       ),
-      null,
+      safeModule,
     );
   }
 }

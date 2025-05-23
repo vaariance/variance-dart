@@ -39,7 +39,7 @@ class ModuleProvider extends ChangeNotifier {
     socialRecovery = SocialRecovery(_wallet, threshold, owners);
     ownableExecutor = OwnableExecutor(_wallet, _guardian1.address);
     if (keyPair != null) {
-      webauthnValidator = WebauthnValidator(_wallet, BigInt.one, keyPair);
+      webauthnValidator = WebauthnValidator(_wallet, BigInt.one, {keyPair});
     }
   }
 
@@ -115,12 +115,14 @@ class ModuleProvider extends ChangeNotifier {
 
     try {
       log('Installing: ${module.name}');
-      final tx = await module.install();
+      final tx = await _wallet.installModule(
+          module.type, module.address, module.getInitData());
+      final receipt = await tx.wait();
       log('Installed: ${module.name}');
 
       await reloadModules();
 
-      return (true, tx, null);
+      return (true, receipt, null);
     } catch (e) {
       String errorMessage = parseUserOperationError(e);
 
@@ -139,12 +141,14 @@ class ModuleProvider extends ChangeNotifier {
 
     try {
       log('Uninstalling: ${module.name}');
-      final tx = await module.uninstall();
+      final tx = await _wallet.uninstallModule(
+          module.type, module.address, await module.getDeInitData());
+      final receipt = await tx.wait();
       log('Uninstalled: ${module.name}');
 
       await reloadModules();
 
-      return (true, tx, null);
+      return (true, receipt, null);
     } catch (e) {
       String errorMessage = parseUserOperationError(e);
       return (false, null, ModuleInstallationException(errorMessage, e));

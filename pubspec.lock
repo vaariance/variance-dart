@@ -707,9 +707,10 @@ packages:
   web3_signers:
     dependency: "direct main"
     description:
-      path: "../web3-signers"
-      relative: true
-    source: path
+      name: web3_signers
+      sha256: b56641a728639ef650ce146089f31cb9188c6d41f2be70848563c3de22eeddba
+      url: "https://pub.dev"
+    source: hosted
     version: "0.2.0"
   web3dart:
     dependency: "direct main"

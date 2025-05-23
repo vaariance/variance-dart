@@ -20,8 +20,7 @@ dependencies:
     sdk: flutter
   web3dart: ^2.7.3
   http: ^1.4.0
-  web3_signers: 
-    path: ../web3-signers
+  web3_signers: ^0.2.0
   eip1559: ^0.6.2
 
 dev_dependencies:
