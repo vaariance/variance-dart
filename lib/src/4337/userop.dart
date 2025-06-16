@@ -3,7 +3,7 @@ part of '../../variance_dart.dart';
 /// A class that implements the user operation struct defined in EIP4337.
 class UserOperation implements UserOperationBase {
   @override
-  final EthereumAddress sender;
+  final Address sender;
 
   @override
   final BigInt nonce;
@@ -54,7 +54,7 @@ class UserOperation implements UserOperationBase {
 
   factory UserOperation.fromMap(Map<String, String> map) {
     return UserOperation(
-      sender: EthereumAddress.fromHex(map['sender'] as String),
+      sender: Address.fromHex(map['sender'] as String),
       nonce: BigInt.parse(map['nonce'] as String),
       initCode: hexToBytes(map['initCode'] as String),
       callData: hexToBytes(map['callData'] as String),
@@ -93,7 +93,7 @@ class UserOperation implements UserOperationBase {
   /// ```
   factory UserOperation.partial({
     required Uint8List callData,
-    EthereumAddress? sender,
+    Address? sender,
     BigInt? nonce,
     Uint8List? initCode,
     BigInt? callGasLimit,
@@ -116,7 +116,7 @@ class UserOperation implements UserOperationBase {
   );
 
   UserOperation copyWith({
-    EthereumAddress? sender,
+    Address? sender,
     BigInt? nonce,
     Uint8List? initCode,
     Uint8List? callData,
@@ -212,7 +212,7 @@ class UserOperation implements UserOperationBase {
   @override
   Map<String, String> packUserOperation() {
     Map<String, String> op = {
-      'sender': sender.hexEip55,
+      'sender': sender.eip55With0x,
       'nonce': '0x${nonce.toRadixString(16)}',
       'callData': hexlify(callData),
       'callGasLimit': '0x${callGasLimit.toRadixString(16)}',
@@ -249,7 +249,7 @@ class UserOperation implements UserOperationBase {
   Map<String, String> toMap([double version = 0.6]) {
     if (version == 0.7) return packUserOperation();
     return {
-      'sender': sender.hexEip55,
+      'sender': sender.eip55With0x,
       'nonce': '0x${nonce.toRadixString(16)}',
       'initCode': hexlify(initCode),
       'callData': hexlify(callData),

@@ -146,4 +146,20 @@ extension StringExtension on String? {
 
     return true;
   }
+
+  /// Executes the given [fn] with the non-null string value as its argument and returns the result.
+  /// If the string is null, returns null without executing [fn].
+  ///
+  /// Example:
+  /// ```dart
+  /// String? name = 'John';
+  /// int? length = name.let((it) => it.length); // Returns 4
+  ///
+  /// String? nullName = null;
+  /// int? nullLength = nullName.let((it) => it.length); // Returns null
+  /// ```
+  T? let<T>(T Function(String) fn) {
+    if (this == null) return null;
+    return fn(this!);
+  }
 }

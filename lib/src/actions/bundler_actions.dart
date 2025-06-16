@@ -13,7 +13,7 @@ mixin _BundlerActions on SmartWalletBase implements BundlerProviderBase {
       'eth_estimateUserOperationGas',
       [
         userOp,
-        entrypoint.address.hex,
+        entrypoint.address.with0x,
         // ? not sure if this should be global or only applied to pimlico only
         {
           '${userOp['sender']}': {"balance": "0x56BC75E2D63100000"},
@@ -48,7 +48,7 @@ mixin _BundlerActions on SmartWalletBase implements BundlerProviderBase {
   ) async {
     final opHash = await state.bundler.send<String>('eth_sendUserOperation', [
       userOp,
-      entrypoint.address.hex,
+      entrypoint.address.with0x,
     ]);
     return UserOperationResponse(opHash, getUserOpReceipt);
   }

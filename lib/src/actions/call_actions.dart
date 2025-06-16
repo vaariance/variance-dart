@@ -14,8 +14,8 @@ mixin _CallActions on SmartWalletBase {
   /// Encodes a function call to execute a batch of operations in a smart wallet.
   ///
   /// Parameters:
-  ///   - `recipients`: A list of [EthereumAddress] instances representing the recipients for each operation.
-  ///   - `amounts`: Optional list of [EtherAmount] instances representing the amounts to transfer for each operation.
+  ///   - `recipients`: A list of [Address] instances representing the recipients for each operation.
+  ///   - `amountsInWei`: Optional list of [BigInt] instances representing the amounts to transfer for each operation.
   ///   - `innerCalls`: Optional list of [Uint8List] instances containing inner call data for each operation.
   ///
   /// Returns:
@@ -25,10 +25,10 @@ mixin _CallActions on SmartWalletBase {
   /// ```dart
   /// var encodedCall = executeBatch(
   ///   recipients: [
-  ///     EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
-  ///     EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///     Address.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///     Address.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
   ///   ],
-  ///   amounts: [EtherAmount.zero(), EtherAmount.inWei(BigInt.from(1000000000000000000))],
+  ///   amounts: [BigInt.zero, BigInt.from(1000000000000000000)],
   ///   innerCalls: [
   ///     Uint8List.fromList([...]),
   ///     Uint8List(0),
@@ -37,19 +37,21 @@ mixin _CallActions on SmartWalletBase {
   /// ```
   /// This method uses the 'executeBatch' function ABI to encode the smart wallet batch operation.
   Uint8List getExecuteBatchCalldata({
-    required List<EthereumAddress> recipients,
-    List<EtherAmount>? amounts,
+    required List<Address> recipients,
+    List<BigInt>? amountsInWei,
     List<Uint8List>? innerCalls,
   }) {
     List params = [
       recipients,
-      amounts?.map<BigInt>((e) => e.getInWei).toList() ??
-          recipients.map<BigInt>((e) => BigInt.zero).toList(),
+      amountsInWei ?? recipients.map<BigInt>((e) => BigInt.zero).toList(),
       innerCalls ?? Uint8List(0),
     ];
 
     if (innerCalls == null || innerCalls.isEmpty) {
-      require(amounts != null && amounts.isNotEmpty, "malformed batch request");
+      require(
+        amountsInWei != null && amountsInWei.isNotEmpty,
+        "malformed batch request",
+      );
     }
 
     String method = 'executeBatch';
@@ -58,10 +60,10 @@ mixin _CallActions on SmartWalletBase {
       method = 'executeUserOpWithErrorString';
       params = [
         Addresses.safeMultiSendaddress,
-        EtherAmount.zero().getInWei,
+        BigInt.zero,
         state.safe?.module.getSafeMultisendCallData(
           recipients,
-          amounts,
+          amountsInWei,
           innerCalls,
         ),
         BigInt.one,
@@ -79,8 +81,8 @@ mixin _CallActions on SmartWalletBase {
   /// Encodes a function call to execute a user operation in a smart wallet.
   ///
   /// Parameters:
-  ///   - `to`: The [EthereumAddress] of the target recipient for the operation.
-  ///   - `amount`: The [EtherAmount] representing the amount to transfer, if applicable.
+  ///   - `to`: The [Address] of the target recipient for the operation.
+  ///   - `amountInWei`: The [BigInt] representing the amount to transfer, if applicable.
   ///   - `innerCallData`: The [Uint8List] containing inner call data, if applicable.
   ///
   /// Returns:
@@ -89,20 +91,20 @@ mixin _CallActions on SmartWalletBase {
   /// Example:
   /// ```dart
   /// var encodedCall = execute(
-  ///   to: EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
-  ///   amount: EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  ///   to: Address.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   amountInWei: BigInt.from(1000000000000000000),
   ///   innerCallData: Uint8List(0),
   /// ); // transfer to 0x1234567890abcdef1234567890abcdef12345678 with 1000000000000000000 wei
   /// ```
   /// This method uses the 'execute' function ABI to encode the smart wallet operation.
   Uint8List getExecuteCalldata({
-    required EthereumAddress to,
-    EtherAmount? amount,
+    required Address to,
+    BigInt? amountInWei,
     Uint8List? innerCallData,
   }) {
     final params = [
       to,
-      amount?.getInWei ?? EtherAmount.zero().getInWei,
+      amountInWei ?? BigInt.zero,
       innerCallData ?? Uint8List(0),
     ];
 
@@ -124,8 +126,8 @@ mixin _CallActions on SmartWalletBase {
   /// Generates a user operation for approving the transfer of an ERC-721 token.
   ///
   /// Parameters:
-  ///   - `contractAddress`: The [EthereumAddress] of the ERC-721 token contract.
-  ///   - `spender`: The [EthereumAddress] of the address to grant approval.
+  ///   - `contractAddress`: The [Address] of the ERC-721 token contract.
+  ///   - `spender`: The [Address] of the address to grant approval.
   ///   - `tokenId`: The [BigInt] representing the ID of the token to approve.
   ///
   /// Returns:
@@ -134,15 +136,15 @@ mixin _CallActions on SmartWalletBase {
   /// Example:
   /// ```dart
   /// var userOperation = nftApproveUserOperation(
-  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
-  ///   EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///   Address.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   Address.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
   ///   BigInt.from(123),
   /// );
   /// ```
   /// This method combines the 'execute' function and 'encodeERC721ApproveCall' to create a user operation.
   UserOperation getNftApproveUserOperation(
-    EthereumAddress contractAddress,
-    EthereumAddress spender,
+    Address contractAddress,
+    Address spender,
     BigInt tokenId,
   ) {
     final innerCallData = getExecuteCalldata(
@@ -159,8 +161,8 @@ mixin _CallActions on SmartWalletBase {
   /// Generates a user operation for transferring an ERC-721 token.
   ///
   /// Parameters:
-  ///   - `contractAddress`: The [EthereumAddress] of the ERC-721 token contract.
-  ///   - `recipient`: The [EthereumAddress] of the recipient to receive the token.
+  ///   - `contractAddress`: The [Address] of the ERC-721 token contract.
+  ///   - `recipient`: The [Address] of the recipient to receive the token.
   ///   - `tokenId`: The [BigInt] representing the ID of the token to transfer.
   ///
   /// Returns:
@@ -169,15 +171,15 @@ mixin _CallActions on SmartWalletBase {
   /// Example:
   /// ```dart
   /// var userOperation = nftTransferUserOperation(
-  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
-  ///   EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///   Address.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   Address.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
   ///   BigInt.from(123),
   /// );
   /// ```
   /// This method combines the 'execute' function and 'encodeERC721SafeTransferCall' to create a user operation.
   UserOperation getNftTransferUserOperation(
-    EthereumAddress contractAddress,
-    EthereumAddress recipient,
+    Address contractAddress,
+    Address recipient,
     BigInt tokenId,
   ) {
     final innerCallData = getExecuteCalldata(
@@ -195,9 +197,9 @@ mixin _CallActions on SmartWalletBase {
   /// Generates a user operation for approving the transfer of ERC-20 tokens.
   ///
   /// Parameters:
-  ///   - `contractAddress`: The [EthereumAddress] of the ERC-20 token contract.
-  ///   - `spender`: The [EthereumAddress] of the address to grant approval.
-  ///   - `amount`: The [EtherAmount] representing the amount to approve.
+  ///   - `contractAddress`: The [Address] of the ERC-20 token contract.
+  ///   - `spender`: The [Address] of the address to grant approval.
+  ///   - `amountInWei`: The [BigInt] representing the amount to approve.
   ///
   /// Returns:
   ///   A [UserOperation] instance for the ERC-20 token approval operation.
@@ -205,23 +207,23 @@ mixin _CallActions on SmartWalletBase {
   /// Example:
   /// ```dart
   /// var userOperation = tokenApproveUserOperation(
-  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
-  ///   EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
-  ///   EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  ///   Address.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   Address.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///   BigInt.from(1000000000000000000),
   /// );
   /// ```
   /// This method combines the 'execute' function and 'encodeERC20ApproveCall' to create a user operation.
   UserOperation getTokenApproveUserOperation(
-    EthereumAddress contractAddress,
-    EthereumAddress spender,
-    EtherAmount amount,
+    Address contractAddress,
+    Address spender,
+    BigInt amountInWei,
   ) {
     final callData = getExecuteCalldata(
       to: contractAddress,
       innerCallData: Contract.encodeERC20ApproveCall(
         contractAddress,
         spender,
-        amount,
+        amountInWei,
       ),
     );
     return UserOperation.partial(callData: callData);
@@ -230,9 +232,9 @@ mixin _CallActions on SmartWalletBase {
   /// Generates a user operation for transferring ERC-20 tokens.
   ///
   /// Parameters:
-  ///   - `contractAddress`: The [EthereumAddress] of the ERC-20 token contract.
-  ///   - `recipient`: The [EthereumAddress] of the recipient to receive the tokens.
-  ///   - `amount`: The [EtherAmount] representing the amount of tokens to transfer.
+  ///   - `contractAddress`: The [Address] of the ERC-20 token contract.
+  ///   - `recipient`: The [Address] of the recipient to receive the tokens.
+  ///   - `amountInWei`: The [BigInt] representing the amount of tokens to transfer.
   ///
   /// Returns:
   ///   A [UserOperation] instance for the ERC-20 token transfer operation.
@@ -240,23 +242,23 @@ mixin _CallActions on SmartWalletBase {
   /// Example:
   /// ```dart
   /// var userOperation = tokenTransferUserOperation(
-  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
-  ///   EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
-  ///   EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  ///   Address.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   Address.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///   BigInt.from(1000000000000000000),
   /// );
   /// ```
   /// This method combines the 'execute' function and 'encodeERC20TransferCall' to create a user operation.
   UserOperation getTokenTransferUserOperation(
-    EthereumAddress contractAddress,
-    EthereumAddress recipient,
-    EtherAmount amount,
+    Address contractAddress,
+    Address recipient,
+    BigInt amountInWei,
   ) {
     final callData = getExecuteCalldata(
       to: contractAddress,
       innerCallData: Contract.encodeERC20TransferCall(
         contractAddress,
         recipient,
-        amount,
+        amountInWei,
       ),
     );
     return UserOperation.partial(callData: callData);
@@ -264,11 +266,11 @@ mixin _CallActions on SmartWalletBase {
 
   @override
   Future<List<dynamic>> readContract(
-    EthereumAddress contractAddress,
+    Address contractAddress,
     ContractAbi abi,
     String methodName, {
     List<dynamic>? params,
-    EthereumAddress? sender,
+    Address? sender,
   }) {
     final function = Contract.getContractFunction(
       methodName,
@@ -276,13 +278,13 @@ mixin _CallActions on SmartWalletBase {
       abi,
     );
     final calldata = {
-      'to': contractAddress.hex,
+      'to': contractAddress.with0x,
       'data': bytesToHex(
         function.encodeCall(params ?? []),
         include0x: true,
         padToEvenLength: true,
       ),
-      if (sender != null) 'from': sender.hex,
+      if (sender != null) 'from': sender.with0x,
     };
     return state.jsonRpc
         .send<String>('eth_call', [calldata, BlockNum.current().toBlockParam()])
@@ -291,14 +293,14 @@ mixin _CallActions on SmartWalletBase {
 
   Future<Uint8List> getUserOperationHash(
     UserOperation op,
-    BlockInformation blockInfo,
+    BlockInfo blockInfo,
   ) async {
     return state.safe != null
         ? state.safe?.module.getSafeOperationHash(op, blockInfo)
         : op.hash(chain);
   }
 
-  Future<String Function(BlockInformation)> Function(
+  Future<String Function(BlockInfo)> Function(
     Future<T> Function(T, {int? index}),
     int? index,
   )
@@ -309,7 +311,7 @@ mixin _CallActions on SmartWalletBase {
       final hash = await getHash();
       final signature = await sign(hash);
       final signatureHex = hexlify(signature);
-      return (BlockInformation blockInfo) =>
+      return (BlockInfo blockInfo) =>
           state.safe != null
               ? state.safe?.module.getSafeSignature(signatureHex, blockInfo)
                   as String

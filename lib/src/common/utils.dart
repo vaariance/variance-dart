@@ -50,12 +50,12 @@ List<BigInt> unpackUints(String hex) {
 ///
 /// Returns encoded initialization data as a Uint8List.
 Uint8List encode7579LaunchpadInitdata({
-  required EthereumAddress launchpad,
+  required Address launchpad,
   required Safe4337ModuleAddress module,
   Iterable<ModuleInit>? executors,
   Iterable<ModuleInit>? fallbacks,
   Iterable<ModuleInit>? hooks,
-  Iterable<EthereumAddress>? attesters,
+  Iterable<Address>? attesters,
   int? attestersThreshold,
 }) {
   return Contract.encodeFunctionCall(
@@ -87,8 +87,8 @@ Uint8List encode7579LaunchpadInitdata({
 /// Returns the keccak256 hash of the encoded parameters.
 Uint8List get7579InitHash({
   required Uint8List launchpadInitData,
-  required EthereumAddress launchpad,
-  required Iterable<EthereumAddress> owners,
+  required Address launchpad,
+  required Iterable<Address> owners,
   required int threshold,
   required Safe4337ModuleAddress module,
   required SafeSingletonAddress singleton,
@@ -127,9 +127,9 @@ Uint8List get7579InitHash({
 ///
 /// Returns encoded calldata as a Uint8List.
 Uint8List encode7579InitCalldata({
-  required EthereumAddress launchpad,
+  required Address launchpad,
   required Uint8List initHash,
-  required EthereumAddress setupTo,
+  required Address setupTo,
   required Uint8List setupData,
 }) {
   return Contract.encodeFunctionCall(
@@ -172,7 +172,7 @@ Uint8List encodeExecutionMode(ExecutionMode executionMode) {
 Uint8List encode7579Call(
   ExecutionMode mode,
   List<Uint8List> calldata,
-  EthereumAddress contractAddress,
+  Address contractAddress,
 ) {
   return Contract.encodeFunctionCall(
     'execute',
@@ -200,7 +200,7 @@ Uint8List encode7579BatchCall(List<Uint8List> calldatas) {
       calldatas
           .map(
             (calldata) => [
-              EthereumAddress(calldata.sublist(0, 20)), // address 20 bytes
+              Address(calldata.sublist(0, 20)), // address 20 bytes
               bytesToInt(calldata.sublist(20, 52)), // uint256 32 bytes
               calldata.sublist(52), // rest
             ],
@@ -222,7 +222,7 @@ Uint8List encode7579BatchCall(List<Uint8List> calldatas) {
 Uint8List _encodePostSetupInitCalldata(
   _Safe7579Initializer initializer,
   List<Uint8List> calldata,
-  EthereumAddress contractAddress,
+  Address contractAddress,
   CallType type,
 ) {
   return Contract.encodeFunctionCall(

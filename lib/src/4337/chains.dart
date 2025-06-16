@@ -12,7 +12,7 @@ class Chain {
   final EntryPointAddress entrypoint;
 
   /// The address of the AccountFactory contract on this chain.
-  EthereumAddress? accountFactory;
+  Address? accountFactory;
 
   /// The URL of the JSON-RPC endpoint for this chain.
   String? jsonRpcUrl;
@@ -48,7 +48,7 @@ class Chain {
   ///   chainId: 1,
   ///   explorer: 'https://etherscan.io',
   ///   entrypoint: EntryPointAddress('0x...'),
-  ///   accountFactory: EthereumAddress('0x...'),
+  ///   accountFactory: Address('0x...'),
   ///   jsonRpcUrl: 'https://mainnet.infura.io/v3/...',
   ///   bundlerUrl: 'https://bundler.example.com',
   ///   paymasterUrl: 'https://paymaster.example.com',

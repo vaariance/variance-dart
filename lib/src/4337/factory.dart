@@ -47,7 +47,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
 
   @override
   Future<SmartWallet> createAlchemyLightAccount(Uint256 salt) async {
-    final signer = EthereumAddress.fromHex(_signer.getAddress());
+    final signer = Address.fromHex(_signer.getAddress());
 
     final address = await _lightAccountfactory.getAddress((
       owner: signer,
@@ -64,7 +64,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
 
   @override
   Future<SmartWallet> recoverSafeAccount(
-    EthereumAddress account, {
+    Address account, {
     bool isSafe7579 = false,
   }) async {
     final safe = _Safe(
@@ -83,16 +83,16 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   @override
   Future<SmartWallet> createSafe7579Account(
     Uint256 salt,
-    EthereumAddress launchpad, {
+    Address launchpad, {
     SafeSingletonAddress? singleton,
     Iterable<ModuleInitType>? validators,
     Iterable<ModuleInitType>? executors,
     Iterable<ModuleInitType>? fallbacks,
     Iterable<ModuleInitType>? hooks,
-    Iterable<EthereumAddress>? attesters,
+    Iterable<Address>? attesters,
     int? attestersThreshold,
   }) async {
-    final signer = EthereumAddress.fromHex(_signer.getAddress());
+    final signer = Address.fromHex(_signer.getAddress());
     final module = Safe4337ModuleAddress.fromVersion(
       _chain.entrypoint.version,
       isSafe7579: true,
@@ -126,14 +126,14 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   Future<SmartWallet> createSafe7579AccountWithPasskey(
     PassKeyPair keyPair,
     Uint256 salt,
-    EthereumAddress launchpad, {
-    EthereumAddress? p256Verifier,
+    Address launchpad, {
+    Address? p256Verifier,
     SafeSingletonAddress? singleton,
     Iterable<ModuleInitType>? validators,
     Iterable<ModuleInitType>? executors,
     Iterable<ModuleInitType>? fallbacks,
     Iterable<ModuleInitType>? hooks,
-    Iterable<EthereumAddress>? attesters,
+    Iterable<Address>? attesters,
     int? attestersThreshold,
   }) async {
     final module = Safe4337ModuleAddress.fromVersion(
@@ -156,7 +156,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
           [
             keyPair.authData.publicKey.$1.value,
             keyPair.authData.publicKey.$2.value,
-            hexToInt(verifier.hexNo0x.padLeft(44, '0')),
+            hexToInt(verifier.without0x.padLeft(44, '0')),
           ],
         ],
       );
@@ -186,7 +186,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     Uint256 salt, [
     SafeSingletonAddress? singleton,
   ]) {
-    final signer = EthereumAddress.fromHex(_signer.getAddress());
+    final signer = Address.fromHex(_signer.getAddress());
     final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
 
     singleton =
@@ -208,7 +208,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   Future<SmartWallet> createSafeAccountWithPasskey(
     PassKeyPair keyPair,
     Uint256 salt, {
-    EthereumAddress? p256Verifier,
+    Address? p256Verifier,
     SafeSingletonAddress? singleton,
   }) {
     final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
@@ -224,7 +224,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
           [
             keyPair.authData.publicKey.$1.value,
             keyPair.authData.publicKey.$2.value,
-            hexToInt(verifier.hexNo0x.padLeft(44, '0')),
+            hexToInt(verifier.without0x.padLeft(44, '0')),
           ],
         ],
       );
@@ -269,7 +269,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   ///
   /// Returns a [SmartWallet] instance representing the created account.
   SmartWallet _createAccount(
-    EthereumAddress address,
+    Address address,
     Uint8List initCode, [
     _Safe? safe,
   ]) {
@@ -290,7 +290,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   Future<SmartWallet> _createSafeAccount(
     Uint256 salt,
     _SafeInitializer initializer,
-    EthereumAddress singleton,
+    Address singleton,
   ) async {
     final initializationData = initializer.getInitializer();
     final creation = await _safeProxyFactory.proxyCreationCode();
@@ -324,7 +324,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   ///
   /// Returns a [Uint8List] containing the initialization code.
   Uint8List _getInitCode(Uint8List initCalldata) {
-    List<int> extended = _chain.accountFactory!.addressBytes.toList();
+    List<int> extended = _chain.accountFactory!.value.toList();
     extended.addAll(initCalldata);
     return Uint8List.fromList(extended);
   }

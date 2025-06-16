@@ -3,28 +3,28 @@ part of '../../variance_dart.dart';
 abstract interface class _Safe7579Interface {
   Future<UserOperationResponse> installModule(
     ModuleType type,
-    EthereumAddress moduleAddress,
+    Address moduleAddress,
     Uint8List initData,
   );
   Future<UserOperationResponse> installModules(
     List<ModuleType> types,
-    List<EthereumAddress> moduleAddresses,
+    List<Address> moduleAddresses,
     List<Uint8List> initDatas,
   );
   Future<UserOperationResponse> uninstallModule(
     ModuleType type,
-    EthereumAddress moduleAddress,
+    Address moduleAddress,
     Uint8List initData,
   );
   Future<UserOperationResponse> uninstallModules(
     List<ModuleType> types,
-    List<EthereumAddress> moduleAddresses,
+    List<Address> moduleAddresses,
     List<Uint8List> initDatas,
   );
   Future<bool?> supportsModule(ModuleType type);
   Future<bool?> isModuleInstalled(
     ModuleType type,
-    EthereumAddress moduleAddress, [
+    Address moduleAddress, [
     Uint8List? context,
   ]);
   Future<bool?> supportsExecutionMode(ExecutionMode mode);
@@ -63,7 +63,7 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
 
   Future<UserOperationResponse> _uninstallModules(
     List<ModuleType> types,
-    List<EthereumAddress> moduleAddresses,
+    List<Address> moduleAddresses,
     List<Uint8List> initDatas,
   ) {
     final encodedCalldatas =
@@ -91,7 +91,7 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
 
   Future<UserOperationResponse> _uninstallModule(
     ModuleType type,
-    EthereumAddress moduleAddress,
+    Address moduleAddress,
     Uint8List deInitData,
   ) async {
     final encodedCalldata = Contract.encodeFunctionCall(
@@ -105,7 +105,7 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
 
   Future<UserOperationResponse> _installModules(
     List<ModuleType> types,
-    List<EthereumAddress> moduleAddresses,
+    List<Address> moduleAddresses,
     List<Uint8List> initDatas,
   ) {
     final encodedCalldatas =
@@ -133,7 +133,7 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
 
   Future<UserOperationResponse> _installModule(
     ModuleType type,
-    EthereumAddress moduleAddress,
+    Address moduleAddress,
     Uint8List initData,
   ) {
     final encodedCalldata = Contract.encodeFunctionCall(
@@ -170,7 +170,7 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
 
   Future<bool?> _isModuleInstalled(
     ModuleType type,
-    EthereumAddress moduleAddress, [
+    Address moduleAddress, [
     Uint8List? context,
   ]) async {
     final result = await readContract(
@@ -194,16 +194,12 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
   }
 
   Future<Uint8List> get7579ExecuteCalldata({
-    required EthereumAddress to,
-    EtherAmount? amount,
+    required Address to,
+    BigInt? amountInWei,
     Uint8List? innerCallData,
   }) async {
-    final calldata = to.addressBytes
-        .concat(
-          intToBytes(
-            amount?.getInWei ?? EtherAmount.zero().getInWei,
-          ).padLeftTo32Bytes(),
-        )
+    final calldata = to.value
+        .concat(intToBytes(amountInWei ?? BigInt.zero).padLeftTo32Bytes())
         .concat(innerCallData ?? Uint8List(0));
     final isNotInitial = await isDeployed;
     return isNotInitial
@@ -219,8 +215,8 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
   }
 
   Future<Uint8List> get7579ExecuteBatchCalldata({
-    required List<EthereumAddress> recipients,
-    List<EtherAmount>? amounts,
+    required List<Address> recipients,
+    List<BigInt>? amountsInWei,
     List<Uint8List>? innerCalls,
   }) async {
     final calls =
@@ -228,11 +224,10 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
             .asMap()
             .entries
             .map(
-              (entry) => entry.value.addressBytes
+              (entry) => entry.value.value
                   .concat(
                     intToBytes(
-                      amounts?[entry.key].getInWei ??
-                          EtherAmount.zero().getInWei,
+                      amountsInWei?[entry.key] ?? BigInt.zero,
                     ).padLeftTo32Bytes(),
                   )
                   .concat(innerCalls?[entry.key] ?? Uint8List(0)),

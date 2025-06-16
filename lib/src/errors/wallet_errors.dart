@@ -49,7 +49,7 @@ class InvalidBundlerUrl extends Error {
 }
 
 class InvalidFactoryAddress extends Error {
-  final EthereumAddress? address;
+  final Address? address;
   final String message = 'Invalid account factory address!';
 
   InvalidFactoryAddress(this.address);
@@ -98,14 +98,14 @@ class InvalidPaymasterUrl extends Error {
 
 class NonceError extends Error {
   final String message;
-  final EthereumAddress? address;
+  final Address? address;
 
   NonceError(this.message, this.address);
 
   @override
   String toString() {
     return '''
-        Error fetching user account nonce for address  ${address?.hex}! 
+        Error fetching user account nonce for address  ${address?.with0x}! 
         --------------------------------------------------
         Failed with error: $message  
       ''';
@@ -147,14 +147,14 @@ class SendError extends Error {
 
 class FetchBalanceError extends Error {
   final String message;
-  final EthereumAddress? address;
+  final Address? address;
 
   FetchBalanceError(this.message, this.address);
 
   @override
   String toString() {
     return '''
-        Error fetching user account balance for address  ${address?.hex}! 
+        Error fetching user account balance for address  ${address?.with0x}! 
         --------------------------------------------------
         Failed with error: $message  
       ''';

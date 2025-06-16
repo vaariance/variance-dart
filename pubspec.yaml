@@ -18,13 +18,12 @@ platforms:
 dependencies:
   flutter:
     sdk: flutter
-  web3dart: ^2.7.3
+  web3dart: ^3.0.1
   http: ^1.4.0
-  web3_signers: ^0.2.0
+  web3_signers: ^0.2.1
   eip1559: ^0.6.2
 
 dev_dependencies:
-  web3dart_builders: ^0.1.2
   build_runner: ^2.4.11
   flutter_lints: ^4.0.0
   mockito: ^5.4.2

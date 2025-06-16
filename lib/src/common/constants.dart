@@ -1,6 +1,11 @@
 part of '../../variance_dart.dart';
 
-final EthereumAddress SENTINEL_ADDRESS = EthereumAddress.fromHex(
+typedef Dict = Map<String, dynamic>;
+typedef Percent = double;
+typedef GasTransformFn = BigInt Function(BigInt?)?;
+typedef BlockInfo = ({DateTime timestamp, BigInt? baseFeePerGas});
+
+final Address SENTINEL_ADDRESS = Address.fromHex(
   "0x0000000000000000000000000000000000000001",
 );
 
@@ -30,9 +35,9 @@ enum SafeHookType {
   const SafeHookType({required this.value});
 }
 
-typedef ModuleInitType = ModuleInit<EthereumAddress, Uint8List>;
+typedef ModuleInitType = ModuleInit<Address, Uint8List>;
 
-class ModuleInit<T1 extends EthereumAddress, T2 extends Uint8List> {
+class ModuleInit<T1 extends Address, T2 extends Uint8List> {
   final T1 module;
   final T2 initData;
 

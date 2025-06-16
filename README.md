@@ -59,7 +59,7 @@ Paymaster Configuration:
 - Additional paymaster settings can be configured after wallet creation:
 
 ```dart
-wallet.paymasterAddress = EthereumAddress.fromHex("0x");
+wallet.paymasterAddress = Address.fromHex("0x");
 wallet.paymasterContext = {'key': 'value'};
 ```
 
@@ -96,7 +96,7 @@ final signer = EOAWallet.createWallet(WordLength.word_12, prefix);
 final smartWalletFactory = SmartWalletFactory(chain, signer);
 
 final Smartwallet wallet = await smartWalletFactory.createAlchemyLightAccount(salt);
-print("light account wallet address: ${wallet.address.hex}");
+print("light account wallet address: ${wallet.address.with0x}");
 ```
 
 ### To create a [Safe](https://safe.global) Smart Account
@@ -107,7 +107,7 @@ final signer = EOAWallet.createWallet();
 final smartWalletFactory = SmartWalletFactory(chain, signer);
 
 final Smartwallet wallet = await smartWalletFactory.createSafeAccount(salt);
-print("safe wallet address: ${wallet.address.hex}");
+print("safe wallet address: ${wallet.address.with0x}");
 ```
 
 > For all safe accounts including modular accounts, the `safeSingleton` address can be customized during account creation. If not specified, it defaults to `SafeSingletonAddress.l1` for mainnet or `SafeSingletonAddress.l2` for L2 chains.
@@ -128,7 +128,7 @@ final keypair = await signer.register(name, displayName); // email can be used i
 
 final Smartwallet wallet = await smartWalletFactory.createSafeAccountWithPasskey(
            keypair, salt);
-print("p256 wallet address: ${wallet.address.hex}");
+print("p256 wallet address: ${wallet.address.with0x}");
 ```
 
 > The `PassKeyPair` object, obtained during registration with your `PasskeySigner`, is required for this operation.
@@ -143,16 +143,16 @@ print("p256 wallet address: ${wallet.address.hex}");
 ```dart
 final salt = Uint256.zero;
 final launchpad =
-        EthereumAddress.fromHex("0x7579011aB74c46090561ea277Ba79D510c6C00ff");
+        Address.fromHex("0x7579011aB74c46090561ea277Ba79D510c6C00ff");
     final attester =
-        EthereumAddress.fromHex("0x000000333034E9f539ce08819E12c1b8Cb29084d");
+        Address.fromHex("0x000000333034E9f539ce08819E12c1b8Cb29084d");
 final signer = EOAWallet.createWallet();
 
 final smartWalletFactory = SmartWalletFactory(chain, signer);
 
 final Smartwallet wallet = await smartWalletFactory.createSafe7579Account(salt, launchpad,
               attesters: [attester], attestersThreshold: 1);
-print("safe wallet address: ${wallet.address.hex}");
+print("safe wallet address: ${wallet.address.with0x}");
 ```
 
 > For all Modular Accounts, Additional modules (`validator`, `hooks`, `executors`, or `fallback`) can be initialized during account creation. For Passkey-enabled accounts, the `WebAuthnValidator` module must be included during initialization.
@@ -177,9 +177,9 @@ final smartWalletFactory = SmartWalletFactory(chain, signer);
 
 final keypair = await signer.register(name, displayName); 
 final launchpad =
-        EthereumAddress.fromHex("0x7579011aB74c46090561ea277Ba79D510c6C00ff");
+        Address.fromHex("0x7579011aB74c46090561ea277Ba79D510c6C00ff");
     final attester =
-        EthereumAddress.fromHex("0x000000333034E9f539ce08819E12c1b8Cb29084d");
+        Address.fromHex("0x000000333034E9f539ce08819E12c1b8Cb29084d");
 final signer = EOAWallet.createWallet();
 
 final smartWalletFactory = SmartWalletFactory(chain, signer);
@@ -196,7 +196,7 @@ Smartwallet wallet = await smartWalletFactory.createSafe7579AccountWithPasskey(
 final validator = WebauthnValidator(wallet, BigInt.one, {keyPair});
 // replace the wallet to allow for validator to trigger at least for initial transaction
 wallet = validator.txService;
-print("safe wallet address: ${wallet.address.hex}");
+print("safe wallet address: ${wallet.address.with0x}");
 ```
 
 > To set up multi-signature functionality (threshold > 1), specify the threshold in the `ModuleInit` object. Note that all required `keypairs` must be available to sign user operations when using multiple signatures.
@@ -214,7 +214,7 @@ When working with Safe 7579 accounts and WebAuthn validation:
 
 ```dart
 // retrieve the balance of a smart wallet
-final EtherAmount balance = await wallet.balance;
+final BigInt balance = await wallet.balance;
 print("account balance: ${balance.getInWei}");
 
 // retrive the account nonce
@@ -234,9 +234,9 @@ print("account init code: $initCode");
 // perform a simple transaction (send ether to another account)
 // account must be prefunded with native token. paymaster is not yet implemented
 await wallet.send(
-  EthereumAddress.fromHex(
+  Address.fromHex(
       "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"), // receive address
-  EtherAmount.fromInt(EtherUnit.ether, 0.7142), // 0.7142 ether
+      BigInt.from(0.7142*10^18), // 0.7142 ether
 );
 ```
 
@@ -305,7 +305,7 @@ await account.installModule(
   );
 
 // mint an nft using a passkey signature
-final nft = EthereumAddress.fromHex("0x"); // add nft contract address
+final nft = Address.fromHex("0x"); // add nft contract address
 final mintAbi = ContractAbis.get("ERC721_SafeMint");
 final mintCall = Contract.encodeFunctionCall("safeMint", nft, mintAbi);
 // this transaction must be sent directly from the `validator.txService` instead.

@@ -8,7 +8,7 @@ abstract class Safe {
 
 abstract class Safe7579Initializer implements _SafeInitializer {
   /// Optional list of attester addresses that can validate transactions.
-  Iterable<EthereumAddress>? get attesters;
+  Iterable<Address>? get attesters;
 
   /// Optional threshold for the number of attesters required to validate a transaction.
   int? get attestersThreshold;
@@ -23,13 +23,13 @@ abstract class Safe7579Initializer implements _SafeInitializer {
   Iterable<ModuleInit>? get hooks;
 
   /// The address of the launchpad contract that will be used for initialization.
-  EthereumAddress get launchpad;
+  Address get launchpad;
 
   /// The data to be passed to the setup contract for initialization.
   Uint8List get setupData;
 
   /// The address of the setup contract that will be used for preValidation setup.
-  EthereumAddress get setupTo;
+  Address get setupTo;
 
   /// Optional list of validator module configurations to be initialized with the Safe.
   Iterable<ModuleInit>? get validators;
@@ -58,7 +58,7 @@ class _Safe implements Safe {
 class _Safe7579Initializer extends _SafeInitializer
     implements Safe7579Initializer {
   @override
-  final EthereumAddress launchpad;
+  final Address launchpad;
   @override
   final Iterable<ModuleInit>? validators;
   @override
@@ -68,11 +68,11 @@ class _Safe7579Initializer extends _SafeInitializer
   @override
   final Iterable<ModuleInit>? hooks;
   @override
-  final Iterable<EthereumAddress>? attesters;
+  final Iterable<Address>? attesters;
   @override
   final int? attestersThreshold;
   @override
-  final EthereumAddress setupTo;
+  final Address setupTo;
   @override
   final Uint8List setupData;
 
@@ -127,7 +127,7 @@ class _Safe7579Initializer extends _SafeInitializer
 }
 
 class _SafeInitializer {
-  final Iterable<EthereumAddress> owners;
+  final Iterable<Address> owners;
 
   final int threshold;
 
@@ -205,8 +205,8 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
   _SafeModule({required super.address, super.chainId, required super.client});
 
   Uint8List getSafeMultisendCallData(
-    List<EthereumAddress> recipients,
-    List<EtherAmount>? amounts,
+    List<Address> recipients,
+    List<BigInt>? amountsInWei,
     List<Uint8List>? innerCalls, [
     List<Uint8List>? operations,
   ]) {
@@ -214,10 +214,10 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
 
     for (int i = 0; i < recipients.length; i++) {
       Uint8List operation = operations?[i] ?? intToBytes(BigInt.zero);
-      Uint8List to = recipients[i].addressBytes;
+      Uint8List to = recipients[i].value;
       Uint8List value =
-          amounts != null
-              ? padTo32Bytes(amounts[i].getInWei)
+          amountsInWei != null
+              ? padTo32Bytes(amountsInWei[i])
               : padTo32Bytes(BigInt.zero);
       Uint8List dataLength =
           innerCalls != null
@@ -248,7 +248,7 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
   /// Returns a Future that resolves to the hash of the user operation as a Uint8List.
   Future<Uint8List> getSafeOperationHash(
     UserOperation op,
-    BlockInformation blockInfo,
+    BlockInfo blockInfo,
   ) async {
     if (self.address == Safe4337ModuleAddress.v07_7579.address) {
       final operationData = await getSafeOp((
@@ -308,7 +308,7 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
   /// > Hence varinace_sdk does not generate long-time spaning signatures.
   ///
   /// Returns a HexString representing the encoded signature with a validity period.
-  String getSafeSignature(String signature, BlockInformation blockInfo) {
+  String getSafeSignature(String signature, BlockInfo blockInfo) {
     final timestamp = blockInfo.timestamp.millisecondsSinceEpoch ~/ 1000;
     String validAfter = (timestamp - 3600).toRadixString(16).padLeft(12, '0');
     String validUntil = (timestamp + 3600).toRadixString(16).padLeft(12, '0');

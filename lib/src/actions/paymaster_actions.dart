@@ -34,7 +34,7 @@ class PaymasterResponse {
         map['paymasterAndData'] != null
             ? hexToBytes(map['paymasterAndData'])
             : Uint8List.fromList([
-              ...EthereumAddress.fromHex(map['paymaster']).addressBytes,
+              ...Address.fromHex(map['paymaster']).value,
               ...packUints(
                 BigInt.parse(map['paymasterVerificationGasLimit']),
                 BigInt.parse(map['paymasterPostOpGasLimit']),
@@ -57,8 +57,7 @@ class PaymasterResponse {
 /// for interacting with paymasters to sponsor user operations.
 mixin _PaymasterActions on SmartWalletBase implements PaymasterBase {
   @override
-  set paymasterAddress(EthereumAddress? address) =>
-      state.paymasterAddress = address;
+  set paymasterAddress(Address? address) => state.paymasterAddress = address;
 
   @override
   set paymasterContext(Map<String, String>? context) =>
@@ -71,7 +70,7 @@ mixin _PaymasterActions on SmartWalletBase implements PaymasterBase {
     }
     if (state.paymasterAddress != null) {
       op.paymasterAndData = Uint8List.fromList([
-        ...state.paymasterAddress!.addressBytes,
+        ...state.paymasterAddress!.value,
         ...op.paymasterAndData.sublist(20),
       ]);
     }
@@ -106,7 +105,7 @@ mixin _PaymasterActions on SmartWalletBase implements PaymasterBase {
     EntryPointAddress entrypoint,
     Map<String, String>? context,
   ) async {
-    final request = [userOp, entrypoint.address.hex];
+    final request = [userOp, entrypoint.address.with0x];
     if (context != null) {
       request.add(context);
     }

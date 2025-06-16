@@ -20,8 +20,8 @@ part of '../../variance_dart.dart';
 /// final balance = await wallet.balance;
 ///
 /// // Send a transaction
-/// final recipient = EthereumAddress.fromHex('0x...');
-/// final amount = EtherAmount.fromUnitAndValue(EtherUnit.ether, 1);
+/// final recipient = Address.fromHex('0x...');
+/// final amount = BigInt.from(1e18);
 /// final response = await wallet.send(recipient, amount);
 /// ```
 class SmartWallet extends SmartWalletBase
@@ -37,10 +37,10 @@ class SmartWallet extends SmartWalletBase
   SmartWallet(this._state);
 
   @override
-  EthereumAddress get address => _state.address;
+  Address get address => _state.address;
 
   @override
-  Future<EtherAmount> get balance => _getBalance();
+  Future<BigInt> get balance => _getBalance();
 
   @override
   Chain get chain => _state.chain;
@@ -65,12 +65,12 @@ class SmartWallet extends SmartWalletBase
 
   @override
   Future<UserOperationResponse> send(
-    EthereumAddress recipient,
-    EtherAmount amount, {
-    EthereumAddress? token,
+    Address recipient,
+    BigInt amountInWei, {
+    Address? token,
     Uint256? nonceKey,
   }) async {
-    final cd = await _getTransferCalldata(recipient, amount, token);
+    final cd = await _getTransferCalldata(recipient, amountInWei, token);
     return sendUserOperation(
       buildUserOperation(callData: cd),
       nonceKey: nonceKey,
@@ -79,14 +79,14 @@ class SmartWallet extends SmartWalletBase
 
   @override
   Future<UserOperationResponse> sendTransaction(
-    EthereumAddress to,
+    Address to,
     Uint8List encodedFunctionData, {
-    EtherAmount? amount,
+    BigInt? amountInWei,
     Uint256? nonceKey,
   }) async {
     final cd = await _getExecuteBatchCalldata(
       targets: [to],
-      values: amount != null ? [amount] : null,
+      values: amountInWei != null ? [amountInWei] : null,
       calls: [encodedFunctionData],
     );
     return sendUserOperation(
@@ -97,14 +97,14 @@ class SmartWallet extends SmartWalletBase
 
   @override
   Future<UserOperationResponse> sendBatchedTransaction(
-    List<EthereumAddress> recipients,
+    List<Address> recipients,
     List<Uint8List> calls, {
-    List<EtherAmount>? amounts,
+    List<BigInt>? amountsInWei,
     Uint256? nonceKey,
   }) async {
     final cd = await _getExecuteBatchCalldata(
       targets: recipients,
-      values: amounts,
+      values: amountsInWei,
       calls: calls,
     );
     return sendUserOperation(
@@ -142,7 +142,7 @@ class SmartWallet extends SmartWalletBase
     Uint256? nonceKey,
     String? signature,
   }) async {
-    getSig(BlockInformation blockInfo) {
+    getSig(BlockInfo blockInfo) {
       if (signature != null) return signature;
 
       final defaultSignature = _state.signer.getDummySignature();
@@ -212,7 +212,7 @@ class SmartWallet extends SmartWalletBase
   @protected
   Future<String> generateSignature(
     UserOperation op,
-    BlockInformation blockInfo,
+    BlockInfo blockInfo,
     int? index,
   ) async {
     getHashFn() => getUserOperationHash(op, blockInfo);
@@ -224,7 +224,7 @@ class SmartWallet extends SmartWalletBase
   /// Returns the balance for the Smart Wallet address.
   ///
   /// If an error occurs during the balance retrieval process, a [FetchBalanceError] exception is thrown.
-  Future<EtherAmount> _getBalance() {
+  Future<BigInt> _getBalance() {
     return balanceOf(
       _state.address,
     ).catchError((e) => throw FetchBalanceError(e.toString(), _state.address));
@@ -260,20 +260,20 @@ class SmartWallet extends SmartWalletBase
   ///
   /// Returns a [Future<Uint8List>] containing the encoded calldata for execution.
   Future<Uint8List> _getExecuteBatchCalldata({
-    required List<EthereumAddress> targets,
+    required List<Address> targets,
     required List<Uint8List> calls,
-    List<EtherAmount>? values,
+    List<BigInt>? values,
   }) async {
     final isSafe7579 = _state.safe?.isSafe7579 ?? false;
     return isSafe7579
         ? get7579ExecuteBatchCalldata(
           recipients: targets,
-          amounts: values,
+          amountsInWei: values,
           innerCalls: calls,
         )
         : getExecuteBatchCalldata(
           recipients: targets,
-          amounts: values,
+          amountsInWei: values,
           innerCalls: calls,
         );
   }
@@ -292,26 +292,26 @@ class SmartWallet extends SmartWalletBase
   ///
   /// Parameters:
   /// - [recipient]: The address receiving the transfer
-  /// - [amount]: The amount of ETH/tokens to transfer
+  /// - [amountInWei]: The amount of ETH/tokens to transfer
   /// - [token]: Optional ERC20 token address. If null, transfers ETH
   ///
   /// Returns a [Future<Uint8List>] containing the encoded transfer calldata.
   Future<Uint8List> _getTransferCalldata(
-    EthereumAddress recipient,
-    EtherAmount amount,
-    EthereumAddress? token,
+    Address recipient,
+    BigInt amountInWei,
+    Address? token,
   ) {
     if (token == null) {
       return _getExecuteBatchCalldata(
         targets: [recipient],
-        values: [amount],
+        values: [amountInWei],
         calls: [Uint8List(0)],
       );
     }
     final transferData = Contract.encodeERC20TransferCall(
       token,
       recipient,
-      amount,
+      amountInWei,
     );
     return _getExecuteBatchCalldata(
       targets: [token],

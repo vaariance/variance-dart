@@ -8,7 +8,7 @@ abstract class SmartWalletFactoryBase {
   ///
   /// Returns a [SmartWallet] instance representing the recovered Safe account.
   Future<SmartWallet> recoverSafeAccount(
-    EthereumAddress account, {
+    Address account, {
     bool isSafe7579 = false,
   });
 
@@ -27,13 +27,13 @@ abstract class SmartWalletFactoryBase {
   /// the created Safe7579 account.
   Future<SmartWallet> createSafe7579Account(
     Uint256 salt,
-    EthereumAddress launchpad, {
+    Address launchpad, {
     SafeSingletonAddress? singleton,
     Iterable<ModuleInitType>? validators,
     Iterable<ModuleInitType>? executors,
     Iterable<ModuleInitType>? fallbacks,
     Iterable<ModuleInitType>? hooks,
-    Iterable<EthereumAddress>? attesters,
+    Iterable<Address>? attesters,
     int? attestersThreshold,
   });
 
@@ -56,14 +56,14 @@ abstract class SmartWalletFactoryBase {
   Future<SmartWallet> createSafe7579AccountWithPasskey(
     PassKeyPair keyPair,
     Uint256 salt,
-    EthereumAddress launchpad, {
-    EthereumAddress? p256Verifier,
+    Address launchpad, {
+    Address? p256Verifier,
     SafeSingletonAddress? singleton,
     Iterable<ModuleInitType>? validators,
     Iterable<ModuleInitType>? executors,
     Iterable<ModuleInitType>? fallbacks,
     Iterable<ModuleInitType>? hooks,
-    Iterable<EthereumAddress>? attesters,
+    Iterable<Address>? attesters,
     int? attestersThreshold,
   });
 
@@ -80,7 +80,7 @@ abstract class SmartWalletFactoryBase {
   Future<SmartWallet> createSafeAccountWithPasskey(
     PassKeyPair keyPair,
     Uint256 salt, {
-    EthereumAddress? p256Verifier,
+    Address? p256Verifier,
     SafeSingletonAddress? singleton,
   });
 

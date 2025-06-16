@@ -8,12 +8,12 @@ part of 'interfaces.dart';
 /// common interface.
 abstract class SmartWalletBase extends TransactionService {
   @override
-  EthereumAddress get address;
+  Address get address;
 
   /// Returns the balance of the Smart Wallet.
   ///
   /// The balance is retrieved by interacting with the 'contract' plugin.
-  Future<EtherAmount> get balance;
+  Future<BigInt> get balance;
 
   /// Returns the current chain information of the account
   Chain get chain;
@@ -139,7 +139,7 @@ abstract class SmartWalletBase extends TransactionService {
   ///
   /// Parameters:
   ///   - `op`: The [UserOperation] to generate a signature for.
-  ///   - `blockInfo`: The [BlockInformation] containing current block details needed for signing.
+  ///   - `blockInfo`: The [BlockInfo] containing current block details needed for signing.
   ///   - `index`: Optional index parameter for selecting a specific signer. Defaults to `null`.
   ///
   /// Returns:
@@ -154,7 +154,7 @@ abstract class SmartWalletBase extends TransactionService {
   /// ```
   Future<String> generateSignature(
     UserOperation op,
-    BlockInformation blockInfo,
+    BlockInfo blockInfo,
     int? index,
   );
 }
@@ -162,7 +162,7 @@ abstract class SmartWalletBase extends TransactionService {
 interface class SmartWalletState {
   final Chain chain;
 
-  final EthereumAddress address;
+  final Address address;
 
   final MSI signer;
 
@@ -186,7 +186,7 @@ interface class SmartWalletState {
   ///
   /// This is an optional parameter and can be left null if the paymaster address
   /// is not known or needed.
-  EthereumAddress? paymasterAddress;
+  Address? paymasterAddress;
 
   /// The context data for the Paymaster.
   ///
@@ -227,16 +227,16 @@ interface class SmartWalletState {
 
 abstract class TransactionService {
   /// The Ethereum address of the Smart Wallet.
-  EthereumAddress get address;
+  Address get address;
 
   /// Asynchronously calls a function on a smart contract with the provided parameters.
   ///
   /// Parameters:
-  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
+  ///   - `contractAddress`: The [Address] of the smart contract.
   ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
   ///   - `methodName`: The name of the method to call on the smart contract.
   ///   - `params`: Optional parameters for the function call.
-  ///   - `sender`: The [EthereumAddress] of the sender, if applicable.
+  ///   - `sender`: The [Address] of the sender, if applicable.
   ///
   /// Returns:
   ///   A [Future] that completes with a list of dynamic values representing the result of the function call.
@@ -244,28 +244,28 @@ abstract class TransactionService {
   /// Example:
   /// ```dart
   /// var result = await read(
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   Address.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
   ///   myErc20ContractAbi,
   ///   'balanceOf',
-  ///   params: [ EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432')],
+  ///   params: [ Address.fromHex('0x9876543210abcdef9876543210abcdef98765432')],
   /// );
   /// ```
   /// This method uses the an Ethereum jsonRPC to `staticcall` a function on the specified smart contract.
   /// **Note:** This method does not support contract calls with state changes.
   Future<List<dynamic>> readContract(
-    EthereumAddress contractAddress,
+    Address contractAddress,
     ContractAbi abi,
     String methodName, {
     List<dynamic>? params,
-    EthereumAddress? sender,
+    Address? sender,
   });
 
   /// Asynchronously transfers native Token (ETH) or an ERC20 Token to the specified recipient with the given amount.
   ///
   /// Parameters:
-  ///   - `recipient`: The [EthereumAddress] of the transaction recipient.
-  ///   - `amount`: The [EtherAmount] representing the amount to be sent in the transaction.
-  ///   - `token`: Optional [EthereumAddress] for an `ERC20` token contract.
+  ///   - `recipient`: The [Address] of the transaction recipient.
+  ///   - `amountInWei`: The [BigInt] representing the amount to be sent in the transaction.
+  ///   - `token`: Optional [Address] for an `ERC20` token contract.
   ///   - `nonceKey`: Optional [Uint256] representing the nonce key for the transaction. Defaults to the nonce from bundler.
   ///
   /// Returns:
@@ -274,25 +274,25 @@ abstract class TransactionService {
   /// Example:
   /// ```dart
   /// var response = await send(
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
-  ///   EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  ///   Address.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   BigInt.from(1000000000000000000),
   /// );
   /// ```
   /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
   /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> send(
-    EthereumAddress recipient,
-    EtherAmount amount, {
-    EthereumAddress? token,
+    Address recipient,
+    BigInt amountInWei, {
+    Address? token,
     Uint256? nonceKey,
   });
 
   /// Asynchronously sends an Ethereum transaction to the specified address with the provided encoded function data and optional amount.
   ///
   /// Parameters:
-  ///   - `to`: The [EthereumAddress] of the transaction recipient.
+  ///   - `to`: The [Address] of the transaction recipient.
   ///   - `encodedFunctionData`: The [Uint8List] containing the encoded function data for the transaction.
-  ///   - `amount`: Optional [EtherAmount] representing the amount to be sent in the transaction. Defaults to `null`.
+  ///   - `amountInWei`: Optional [BigInt] representing the amount to be sent in the transaction. Defaults to `null`.
   ///   - `nonceKey`: Optional [Uint256] representing the nonce key for the transaction. Defaults to the nonce from bundler.
   ///
   /// Returns:
@@ -301,26 +301,26 @@ abstract class TransactionService {
   /// Example:
   /// ```dart
   /// var response = await sendTransaction(
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   Address.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
   ///   Uint8List(0),
-  ///   amount: EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  ///   amountInWei: BigInt.from(1000000000000000000),
   /// ); // tranfers ether to 0x9876543210abcdef9876543210abcdef98765432
   /// ```
   /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
   /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> sendTransaction(
-    EthereumAddress to,
+    Address to,
     Uint8List encodedFunctionData, {
-    EtherAmount? amount,
+    BigInt? amountInWei,
     Uint256? nonceKey,
   });
 
   /// Asynchronously sends a batched Ethereum transaction to multiple recipients with the given calls and optional amounts.
   ///
   /// Parameters:
-  ///   - `recipients`: A list of [EthereumAddress] representing the recipients of the batched transaction.
+  ///   - `recipients`: A list of [Address] representing the recipients of the batched transaction.
   ///   - `calls`: A list of [Uint8List] representing the calldata for each transaction in the batch.
-  ///   - `amounts`: Optional list of [EtherAmount] representing the amounts for each transaction. Defaults to `null`.
+  ///   - `amountsInWei`: Optional list of [BigInt] representing the amounts for each transaction. Defaults to `null`.
   ///   - `nonceKey`: Optional [Uint256] representing the nonce key for the batched transaction. Defaults to the nonce from bundler.
   ///
   /// Returns:
@@ -330,22 +330,22 @@ abstract class TransactionService {
   /// ```dart
   /// var response = await sendBatchedTransaction(
   ///   [
-  ///     EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
-  ///     EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///     Address.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///     Address.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
   ///   ],
   ///   [
   ///     Contract.execute(_walletAddress, to: recipient1, amount: amount1),
   ///     Contract.execute(_walletAddress, to: recipient2, amount: amount2),
   ///   ],
-  ///   amounts: [EtherAmount.inWei(BigInt.from(1000000000000000000)), EtherAmount.inWei(BigInt.from(500000000000000000))],
+  ///   amounts: [BigInt.from(1000000000000000000), BigInt.from(500000000000000000)],
   /// );
   /// ```
   /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
   /// using [sendUserOperation], returning the response.
   Future<UserOperationResponse> sendBatchedTransaction(
-    List<EthereumAddress> recipients,
+    List<Address> recipients,
     List<Uint8List> calls, {
-    List<EtherAmount>? amounts,
+    List<BigInt>? amountsInWei,
     Uint256? nonceKey,
   });
 }

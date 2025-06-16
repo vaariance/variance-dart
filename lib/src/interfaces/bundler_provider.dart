@@ -29,7 +29,7 @@ abstract class BundlerProviderBase {
   /// ```dart
   /// var gasEstimation = await estimateUserOperationGas(
   ///   myUserOp, // Dict
-  ///   EthereumAddress.fromHex('0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'),
+  ///   Address.fromHex('0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'),
   /// );
   /// ```
   /// This method uses the bundled RPC to estimate the gas cost for the provided user operation data.
@@ -81,7 +81,7 @@ abstract class BundlerProviderBase {
   /// ```dart
   /// var response = await sendUserOperation(
   ///   myUserOp, // Dict
-  ///   EthereumAddress.fromHex('0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'),
+  ///   Address.fromHex('0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'),
   /// );
   /// ```
   /// This method uses the bundled RPC to send the specified user operation for execution and returns the response.

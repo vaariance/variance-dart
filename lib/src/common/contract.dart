@@ -4,9 +4,9 @@ class Contract {
   /// Encodes an ERC-20 token approval function call.
   ///
   /// Parameters:
-  ///   - `address`: The [EthereumAddress] of the ERC-20 token contract.
-  ///   - `spender`: The [EthereumAddress] of the spender to approve.
-  ///   - `amount`: The [EtherAmount] representing the amount to approve in the token's base unit.
+  ///   - `address`: The [Address] of the ERC-20 token contract.
+  ///   - `spender`: The [Address] of the spender to approve.
+  ///   - `amountInWei`: The [BigInt] representing the amount to approve in the token's base unit.
   ///
   /// Returns:
   ///   A [Uint8List] containing the ABI-encoded data for the 'approve' function call.
@@ -14,31 +14,31 @@ class Contract {
   /// Example:
   /// ```dart
   /// var encodedCall = encodeERC20ApproveCall(
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
-  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
-  ///   EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  ///   Address.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   Address.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   BigInt.from(1000000000000000000),
   /// );
   /// ```
   /// This method uses the ERC-20 contract ABI to return a `calldata` for 'approve' function call.
   static Uint8List encodeERC20ApproveCall(
-    EthereumAddress address,
-    EthereumAddress spender,
-    EtherAmount amount,
+    Address address,
+    Address spender,
+    BigInt amountInWei,
   ) {
     return encodeFunctionCall(
       'approve',
       address,
       ContractAbis.get('ERC20_Approve'),
-      [spender, amount.getInWei],
+      [spender, amountInWei],
     );
   }
 
   /// Encodes an ERC-20 token transfer function call.
   ///
   /// Parameters:
-  ///   - `address`: The [EthereumAddress] of the ERC-20 token contract.
-  ///   - `recipient`: The [EthereumAddress] of the recipient to receive the tokens.
-  ///   - `amount`: The [EtherAmount] representing the amount of tokens to transfer in the token's base unit.
+  ///   - `address`: The [Address] of the ERC-20 token contract.
+  ///   - `recipient`: The [Address] of the recipient to receive the tokens.
+  ///   - `amountInWei`: The [BigInt] representing the amount of tokens to transfer in the token's base unit.
   ///
   /// Returns:
   ///   A [Uint8List] containing the ABI-encoded data for the 'transfer' function call.
@@ -46,30 +46,30 @@ class Contract {
   /// Example:
   /// ```dart
   /// var encodedCall = encodeERC20TransferCall(
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
-  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
-  ///   EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  ///   Address.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   Address.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   BigInt.from(1000000000000000000),
   /// );
   /// ```
   /// This method uses the ERC-20 contract ABI to return a `calldata` for'transfer' function call.
   static Uint8List encodeERC20TransferCall(
-    EthereumAddress address,
-    EthereumAddress recipient,
-    EtherAmount amount,
+    Address address,
+    Address recipient,
+    BigInt amountInWei,
   ) {
     return encodeFunctionCall(
       'transfer',
       address,
       ContractAbis.get('ERC20_Transfer'),
-      [recipient, amount.getInWei],
+      [recipient, amountInWei],
     );
   }
 
   /// Encodes an ERC-721 token approval function call.
   ///
   /// Parameters:
-  ///   - `contractAddress`: The [EthereumAddress] of the ERC-721 token contract.
-  ///   - `to`: The [EthereumAddress] of the address to grant approval.
+  ///   - `contractAddress`: The [Address] of the ERC-721 token contract.
+  ///   - `to`: The [Address] of the address to grant approval.
   ///   - `tokenId`: The [BigInt] representing the ID of the token to approve.
   ///
   /// Returns:
@@ -78,31 +78,31 @@ class Contract {
   /// Example:
   /// ```dart
   /// var encodedCall = encodeERC721ApproveCall(
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
-  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   Address.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   Address.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
   ///   BigInt.from(123),
   /// );
   /// ```
   /// This method uses the ERC-721 contract ABI to return a `calldata` for 'approve' function call.
   static Uint8List encodeERC721ApproveCall(
-    EthereumAddress contractAddress,
-    EthereumAddress to,
+    Address contractAddress,
+    Address to,
     BigInt tokenId,
   ) {
     return encodeFunctionCall(
       "approve",
       contractAddress,
       ContractAbis.get("ERC721_Approve"),
-      [to.hex, tokenId],
+      [to.with0x, tokenId],
     );
   }
 
   /// Encodes an ERC-721 token safe transfer function call.
   ///
   /// Parameters:
-  ///   - `contractAddress`: The [EthereumAddress] of the ERC-721 token contract.
-  ///   - `from`: The [EthereumAddress] of the current owner of the token.
-  ///   - `to`: The [EthereumAddress] of the recipient to receive the token.
+  ///   - `contractAddress`: The [Address] of the ERC-721 token contract.
+  ///   - `from`: The [Address] of the current owner of the token.
+  ///   - `to`: The [Address] of the recipient to receive the token.
   ///   - `tokenId`: The [BigInt] representing the ID of the token to transfer.
   ///
   /// Returns:
@@ -111,24 +111,24 @@ class Contract {
   /// Example:
   /// ```dart
   /// var encodedCall = encodeERC721SafeTransferCall(
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
-  ///   EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
-  ///   EthereumAddress.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
+  ///   Address.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   Address.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
+  ///   Address.fromHex('0xabcdef1234567890abcdef1234567890abcdef12'),
   ///   BigInt.from(123),
   /// );
   /// ```
   /// This method uses the ERC-721 contract ABI  to return a `calldata` for 'safeTransferFrom' function call.
   static Uint8List encodeERC721SafeTransferFromCall(
-    EthereumAddress contractAddress,
-    EthereumAddress from,
-    EthereumAddress to,
+    Address contractAddress,
+    Address from,
+    Address to,
     BigInt tokenId,
   ) {
     return encodeFunctionCall(
       "safeTransferFrom",
       contractAddress,
       ContractAbis.get("ERC721_SafeTransferFrom"),
-      [from.hex, to.hex, tokenId],
+      [from.with0x, to.with0x, tokenId],
     );
   }
 
@@ -136,7 +136,7 @@ class Contract {
   ///
   /// Parameters:
   ///   - `methodName`: The name of the method to call.
-  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
+  ///   - `contractAddress`: The [Address] of the smart contract.
   ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
   ///   - `params`: The list of dynamic parameters for the function call.
   ///
@@ -147,15 +147,15 @@ class Contract {
   /// ```dart
   /// var encodedCall = encodeFunctionCall(
   ///   'transfer',
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   Address.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
   ///   ContractAbis.get('ERC20'),
-  ///   [EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'), BigInt.from(100)],
+  ///   [Address.fromHex('0x1234567890abcdef1234567890abcdef12345678'), BigInt.from(100)],
   /// );
   /// ```
   /// This method uses the specified ABI to encode the function call for the smart contract.
   static Uint8List encodeFunctionCall(
     String methodName,
-    EthereumAddress contractAddress,
+    Address contractAddress,
     ContractAbi abi,
     List<dynamic> params,
   ) {
@@ -167,7 +167,7 @@ class Contract {
   ///
   /// Parameters:
   ///   - `methodName`: The name of the method to retrieve.
-  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
+  ///   - `contractAddress`: The [Address] of the smart contract.
   ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
   ///
   /// Returns:
@@ -177,14 +177,14 @@ class Contract {
   /// ```dart
   /// var function = getContractFunction(
   ///   'transfer',
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   Address.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
   ///   ContractAbis.get('ERC20'),
   /// );
   /// ```
   /// This method uses the 'function' method of the DeployedContract instance.
   static ContractFunction getContractFunction(
     String methodName,
-    EthereumAddress contractAddress,
+    Address contractAddress,
     ContractAbi abi,
   ) {
     final instance = DeployedContract(abi, contractAddress);

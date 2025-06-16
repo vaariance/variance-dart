@@ -6,51 +6,61 @@ part of '../../variance_dart.dart';
 /// information, and retrieving gas prices.
 mixin _JsonRPCActions on SmartWalletBase implements JsonRPCProviderBase {
   @override
-  Future<EtherAmount> balanceOf(
-    EthereumAddress? address, {
+  Future<BigInt> balanceOf(
+    Address? address, {
     BlockNum atBlock = const BlockNum.current(),
   }) {
     if (address == null) {
-      return Future.value(EtherAmount.zero());
+      return Future.value(BigInt.zero);
     }
     return state.jsonRpc
-        .send<String>('eth_getBalance', [address.hex, atBlock.toBlockParam()])
-        .then(BigInt.parse)
-        .then((value) => EtherAmount.fromBigInt(EtherUnit.wei, value));
+        .send<String>('eth_getBalance', [
+          address.with0x,
+          atBlock.toBlockParam(),
+        ])
+        .then(BigInt.parse);
   }
 
   @override
   Future<bool> deployed(
-    EthereumAddress? address, {
+    Address? address, {
     BlockNum atBlock = const BlockNum.current(),
   }) {
     if (address == null) {
       return Future.value(false);
     }
     final isDeployed = state.jsonRpc
-        .send<String>('eth_getCode', [address.hex, atBlock.toBlockParam()])
+        .send<String>('eth_getCode', [address.with0x, atBlock.toBlockParam()])
         .then(hexToBytes)
         .then((value) => value.isNotEmpty);
     return isDeployed;
   }
 
   @override
-  Future<BigInt> estimateGas(EthereumAddress to, String calldata) {
+  Future<BigInt> estimateGas(Address to, String calldata) {
     return state.jsonRpc
         .send<String>('eth_estimateGas', [
-          {'to': to.hex, 'data': calldata},
+          {'to': to.with0x, 'data': calldata},
         ])
         .then(hexToInt);
   }
 
   @override
-  Future<BlockInformation> getBlockInformation({
+  Future<BlockInfo> getBlockInformation({
     String blockNumber = 'latest',
     bool isContainFullObj = true,
   }) {
     return state.jsonRpc
         .send<Dict>('eth_getBlockByNumber', [blockNumber, isContainFullObj])
-        .then((json) => BlockInformation.fromJson(json));
+        .then(
+          (json) => (
+            baseFeePerGas: (json['baseFeePerGas'] as String?)?.let(hexToInt),
+            timestamp: DateTime.fromMillisecondsSinceEpoch(
+              hexToDartInt(json['timestamp']) * 1000,
+              isUtc: true,
+            ),
+          ),
+        );
   }
 
   @override

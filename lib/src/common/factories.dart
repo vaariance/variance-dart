@@ -41,16 +41,16 @@ class _SafeProxyFactory extends SafeProxyFactory
   /// [creationCode] is the creation code for deploying the Safe contract.
   /// [singleton] is the address of the Safe singleton.
   ///
-  /// Returns the predicted [EthereumAddress] of the Safe contract.
+  /// Returns the predicted [Address] of the Safe contract.
 
-  EthereumAddress getPredictedSafe(
+  Address getPredictedSafe(
     Uint8List initializer,
     Uint256 salt,
     Uint8List creationCode,
-    EthereumAddress singleton,
+    Address singleton,
   ) {
     final deploymentData = creationCode.concat(
-      singleton.addressBytes.padLeftTo32Bytes(),
+      singleton.value.padLeftTo32Bytes(),
     );
 
     // toHex pads to 64 then tobytes ensures its always 32 bytes salt
@@ -60,12 +60,12 @@ class _SafeProxyFactory extends SafeProxyFactory
 
     final hash = keccak256(
       Uint8List.fromList([0xff])
-          .concat(self.address.addressBytes)
+          .concat(self.address.value)
           .concat(create2Salt)
           .concat(keccak256(deploymentData)),
     );
 
-    return EthereumAddress(Uint8List.fromList(hash.skip(12).take(20).toList()));
+    return Address(Uint8List.fromList(hash.skip(12).take(20).toList()));
   }
 
   /// Returns the proxy creation code without making a network request

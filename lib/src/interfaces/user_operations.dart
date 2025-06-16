@@ -6,7 +6,7 @@ part of 'interfaces.dart';
 /// updating, and hashing user operations.
 abstract class UserOperationBase {
   /// Address of the smart wallet.
-  EthereumAddress get sender;
+  Address get sender;
 
   /// Nonce of the Smart Account.
   BigInt get nonce;

@@ -9,7 +9,7 @@ abstract class PaymasterBase {
   /// Sets the address of the Paymaster.
   ///
   /// [address] is the address of the Paymaster.
-  set paymasterAddress(EthereumAddress? address);
+  set paymasterAddress(Address? address);
 
   /// Intercepts a [UserOperation] and sponsors it with the Paymaster.
   ///
