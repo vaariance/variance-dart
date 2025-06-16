@@ -46,7 +46,7 @@ class _Safe implements Safe {
   @override
   final _SafeModule module;
   @override
-  final _SafeInitializer initializer;
+  final _SafeInitializer? initializer;
 
   _Safe({
     required this.isSafe7579,
@@ -170,7 +170,7 @@ class _SafeInitializer {
 
     if (encodeWebauthnSetup != null) {
       setup["to"] = Addresses.safeMultiSendaddress;
-      setup["data"] = encodeWebauthnSetup!(encodeModuleSetup);
+      setup["data"] = encodeWebauthnSetup?.call(encodeModuleSetup);
     } else {
       setup["to"] = module.setup;
       setup["data"] = encodeModuleSetup();
@@ -223,8 +223,7 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
           innerCalls != null
               ? padTo32Bytes(BigInt.from(innerCalls[i].length))
               : padTo32Bytes(BigInt.zero);
-      Uint8List data =
-          innerCalls != null ? innerCalls[i] : Uint8List.fromList([]);
+      Uint8List data = innerCalls != null ? innerCalls[i] : Uint8List(0);
       packedCallData = packedCallData
           .concat(operation)
           .concat(to)

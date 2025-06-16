@@ -6,8 +6,8 @@ part of 'interfaces.dart';
 /// a Smart Wallet implementation should have. This allows for flexibility in
 /// creating different implementations of Smart Wallets while adhering to a
 /// common interface.
-abstract class SmartWalletBase extends TransactionBuilder {
-  /// The Ethereum address of the Smart Wallet.
+abstract class SmartWalletBase extends TransactionService {
+  @override
   EthereumAddress get address;
 
   /// Returns the balance of the Smart Wallet.
@@ -19,6 +19,7 @@ abstract class SmartWalletBase extends TransactionBuilder {
   Chain get chain;
 
   /// Retrieves the dummy signature required for gas estimation from the Smart Wallet.
+  @protected
   String get dummySignature;
 
   /// Returns the initialization code for deploying the Smart Wallet contract.
@@ -34,17 +35,9 @@ abstract class SmartWalletBase extends TransactionBuilder {
   /// The deployment status is checked by interacting with the 'contract' plugin.
   Future<bool> get isDeployed;
 
-  /// Returns the nonce for the Smart Wallet from the entrypoint.
-  ///
-  /// The nonce is retrieved by calling the `_getNonce` method.
-  Future<Uint256> get nonce;
-
   /// Returns the internal state of the wallet
   @protected
   SmartWalletState get state;
-
-  /// Returns the hexadecimal representation of the Smart Wallet address in EIP-55 format.
-  String? get toHex;
 
   /// Builds a [UserOperation] instance with the specified parameters.
   ///
@@ -67,25 +60,6 @@ abstract class SmartWalletBase extends TransactionBuilder {
     BigInt? customNonce,
   });
 
-  /// Sets the initialization code for deploying the Smart Wallet contract.
-  ///
-  /// This method is marked as `@Deprecated` and should not be used in production code.
-  /// It is recommended to set the initialization code during the construction of the [SmartWallet] instance.
-  ///
-  /// **Warning:**
-  /// This method allows setting the initialization calldata directly, which may lead to unexpected behavior
-  /// if used improperly. It is intended for advanced use cases where the caller is aware of the potential risks.
-  ///
-  /// Parameters:
-  ///   - `code`: The initialization calldata as a [Uint8List].
-  ///
-  /// Example:
-  /// ```dart
-  /// dangerouslySetInitCallData(Uint8List.fromList([0x01, 0x02, 0x03]));
-  /// ```
-  @Deprecated("Not recommended to modify the initcode")
-  void dangerouslySetInitCode(Uint8List code);
-
   /// Returns the nonce for the Smart Wallet address.
   ///
   /// If the wallet is not deployed, returns 0.
@@ -96,8 +70,8 @@ abstract class SmartWalletBase extends TransactionBuilder {
 
   /// Prepares a user operation by updating it with the latest nonce and gas prices,
   ///
-  /// [op] is the user operation to prepare.
-  /// [update] is a flag indicating whether to update the user operation with the
+  /// - [op] is the user operation to prepare.
+  /// - [update] is a flag indicating whether to update the user operation with the
   /// latest nonce and gas prices. Defaults to `true`.
   ///
   /// Returns a [Future] that resolves to the prepared [UserOperation] object.
@@ -160,6 +134,29 @@ abstract class SmartWalletBase extends TransactionBuilder {
   ///
   /// Returns a [Future] that resolves to the sponsored [UserOperation] object.
   Future<UserOperation> sponsorUserOperation(UserOperation op);
+
+  /// Generates a signature for the given user operation using the specified block information.
+  ///
+  /// Parameters:
+  ///   - `op`: The [UserOperation] to generate a signature for.
+  ///   - `blockInfo`: The [BlockInformation] containing current block details needed for signing.
+  ///   - `index`: Optional index parameter for selecting a specific signer. Defaults to `null`.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with the generated signature as a [String].
+  ///
+  /// Example:
+  /// ```dart
+  /// var signature = await generateSignature(
+  ///   userOperation,
+  ///   blockInfo,
+  /// );
+  /// ```
+  Future<String> generateSignature(
+    UserOperation op,
+    BlockInformation blockInfo,
+    int? index,
+  );
 }
 
 interface class SmartWalletState {
@@ -228,12 +225,47 @@ interface class SmartWalletState {
   }
 }
 
-abstract class TransactionBuilder {
-  /// Asynchronously transfers native Token (ETH) to the specified recipient with the given amount.
+abstract class TransactionService {
+  /// The Ethereum address of the Smart Wallet.
+  EthereumAddress get address;
+
+  /// Asynchronously calls a function on a smart contract with the provided parameters.
+  ///
+  /// Parameters:
+  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
+  ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
+  ///   - `methodName`: The name of the method to call on the smart contract.
+  ///   - `params`: Optional parameters for the function call.
+  ///   - `sender`: The [EthereumAddress] of the sender, if applicable.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with a list of dynamic values representing the result of the function call.
+  ///
+  /// Example:
+  /// ```dart
+  /// var result = await read(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   myErc20ContractAbi,
+  ///   'balanceOf',
+  ///   params: [ EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432')],
+  /// );
+  /// ```
+  /// This method uses the an Ethereum jsonRPC to `staticcall` a function on the specified smart contract.
+  /// **Note:** This method does not support contract calls with state changes.
+  Future<List<dynamic>> readContract(
+    EthereumAddress contractAddress,
+    ContractAbi abi,
+    String methodName, {
+    List<dynamic>? params,
+    EthereumAddress? sender,
+  });
+
+  /// Asynchronously transfers native Token (ETH) or an ERC20 Token to the specified recipient with the given amount.
   ///
   /// Parameters:
   ///   - `recipient`: The [EthereumAddress] of the transaction recipient.
   ///   - `amount`: The [EtherAmount] representing the amount to be sent in the transaction.
+  ///   - `token`: Optional [EthereumAddress] for an `ERC20` token contract.
   ///   - `nonceKey`: Optional [Uint256] representing the nonce key for the transaction. Defaults to the nonce from bundler.
   ///
   /// Returns:
@@ -251,6 +283,35 @@ abstract class TransactionBuilder {
   Future<UserOperationResponse> send(
     EthereumAddress recipient,
     EtherAmount amount, {
+    EthereumAddress? token,
+    Uint256? nonceKey,
+  });
+
+  /// Asynchronously sends an Ethereum transaction to the specified address with the provided encoded function data and optional amount.
+  ///
+  /// Parameters:
+  ///   - `to`: The [EthereumAddress] of the transaction recipient.
+  ///   - `encodedFunctionData`: The [Uint8List] containing the encoded function data for the transaction.
+  ///   - `amount`: Optional [EtherAmount] representing the amount to be sent in the transaction. Defaults to `null`.
+  ///   - `nonceKey`: Optional [Uint256] representing the nonce key for the transaction. Defaults to the nonce from bundler.
+  ///
+  /// Returns:
+  ///   A [Future] that completes with a [UserOperationResponse] containing information about the transaction.
+  ///
+  /// Example:
+  /// ```dart
+  /// var response = await sendTransaction(
+  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
+  ///   Uint8List(0),
+  ///   amount: EtherAmount.inWei(BigInt.from(1000000000000000000)),
+  /// ); // tranfers ether to 0x9876543210abcdef9876543210abcdef98765432
+  /// ```
+  /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
+  /// using [sendUserOperation], returning the response.
+  Future<UserOperationResponse> sendTransaction(
+    EthereumAddress to,
+    Uint8List encodedFunctionData, {
+    EtherAmount? amount,
     Uint256? nonceKey,
   });
 
@@ -285,34 +346,6 @@ abstract class TransactionBuilder {
     List<EthereumAddress> recipients,
     List<Uint8List> calls, {
     List<EtherAmount>? amounts,
-    Uint256? nonceKey,
-  });
-
-  /// Asynchronously sends an Ethereum transaction to the specified address with the provided encoded function data and optional amount.
-  ///
-  /// Parameters:
-  ///   - `to`: The [EthereumAddress] of the transaction recipient.
-  ///   - `encodedFunctionData`: The [Uint8List] containing the encoded function data for the transaction.
-  ///   - `amount`: Optional [EtherAmount] representing the amount to be sent in the transaction. Defaults to `null`.
-  ///   - `nonceKey`: Optional [Uint256] representing the nonce key for the transaction. Defaults to the nonce from bundler.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with a [UserOperationResponse] containing information about the transaction.
-  ///
-  /// Example:
-  /// ```dart
-  /// var response = await sendTransaction(
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
-  ///   Uint8List.fromList([]),
-  ///   amount: EtherAmount.inWei(BigInt.from(1000000000000000000)),
-  /// ); // tranfers ether to 0x9876543210abcdef9876543210abcdef98765432
-  /// ```
-  /// This method internally builds a [UserOperation] using the provided parameters and sends the user operation
-  /// using [sendUserOperation], returning the response.
-  Future<UserOperationResponse> sendTransaction(
-    EthereumAddress to,
-    Uint8List encodedFunctionData, {
-    EtherAmount? amount,
     Uint256? nonceKey,
   });
 }

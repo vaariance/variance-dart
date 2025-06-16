@@ -63,6 +63,24 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   }
 
   @override
+  Future<SmartWallet> recoverSafeAccount(
+    EthereumAddress account, {
+    bool isSafe7579 = false,
+  }) async {
+    final safe = _Safe(
+      isSafe7579: isSafe7579,
+      module: _getSafeModule(isSafe7579),
+      initializer: null, // ignored: as it is only used for initData
+    );
+    final aaWallet = _createAccount(account, Uint8List(0), safe);
+    require(
+      await aaWallet.isDeployed,
+      "Smart Wallet has not been deployed, please create account",
+    );
+    return aaWallet;
+  }
+
+  @override
   Future<SmartWallet> createSafe7579Account(
     Uint256 salt,
     EthereumAddress launchpad, {
@@ -195,7 +213,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   }) {
     final module = Safe4337ModuleAddress.fromVersion(_chain.entrypoint.version);
     final verifier = p256Verifier ?? Addresses.p256VerifierAddress;
-    final safe = _getSafe();
+    final safe = _getSafeModule();
 
     encodeWebAuthnConfigure() {
       return Contract.encodeFunctionCall(
@@ -213,7 +231,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     }
 
     encodeWebauthnSetup(Uint8List Function() encodeModuleSetup) {
-      return safe.$2!.getSafeMultisendCallData(
+      return safe.getSafeMultisendCallData(
         [module.setup, Addresses.sharedSignerAddress],
         null,
         [encodeModuleSetup(), encodeWebAuthnConfigure()],
@@ -237,15 +255,6 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     return _createSafeAccount(salt, initializer, singleton.address);
   }
 
-  @override
-  @Deprecated("Use default account standards")
-  Future<SmartWallet> createVendorAccount(
-    EthereumAddress address,
-    Uint8List initCode,
-  ) async {
-    return _createAccount(address, initCode);
-  }
-
   /// Creates a new [SmartWallet] instance with the provided chain, address, and initialization code.
   ///
   /// [chain] is the Ethereum chain configuration.
@@ -262,9 +271,8 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   SmartWallet _createAccount(
     EthereumAddress address,
     Uint8List initCode, [
-    _SafeInitializer? initializer,
+    _Safe? safe,
   ]) {
-    final safe = _getSafe(initializer);
     final SmartWalletState state = SmartWalletState(
       chain: _chain,
       address: address,
@@ -273,7 +281,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       jsonRpc: _jsonRpc,
       bundler: _bundler,
       paymaster: _paymaster,
-      safe: safe.$1,
+      safe: safe,
     );
     final wallet = SmartWallet(state);
     return wallet;
@@ -299,7 +307,13 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
         .encodeCall([singleton, initializationData, salt.value]);
 
     final initCode = _getInitCode(initCallData);
-    return _createAccount(address, initCode, initializer);
+    final isSafe7579 = initializer is _Safe7579Initializer;
+    final safe = _Safe(
+      isSafe7579: isSafe7579,
+      module: _getSafeModule(isSafe7579),
+      initializer: initializer,
+    );
+    return _createAccount(address, initCode, safe);
   }
 
   /// Returns the initialization code for the account by concatenating the account factory address with the provided initialization call data.
@@ -315,9 +329,18 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     return Uint8List.fromList(extended);
   }
 
-  (_Safe?, _SafeModule?) _getSafe([_SafeInitializer? initializer]) {
-    final isSafe7579 = initializer is _Safe7579Initializer;
-    _SafeModule safeModule = _SafeModule(
+  /// Creates and returns a [_SafeModule] instance configured for the current chain and entrypoint.
+  ///
+  /// [isSafe7579] determines whether to use the Safe7579 module address format.
+  /// When true, uses the Safe7579 compatible module address.
+  /// When false (default), uses the standard Safe module address.
+  ///
+  /// Returns a [_SafeModule] instance initialized with:
+  /// - The appropriate module address based on entrypoint version and Safe type
+  /// - The current chain ID
+  /// - The Safe proxy factory's RPC client
+  _SafeModule _getSafeModule([bool isSafe7579 = false]) {
+    return _SafeModule(
       address:
           Safe4337ModuleAddress.fromVersion(
             _chain.entrypoint.version,
@@ -325,15 +348,6 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
           ).address,
       chainId: _chain.chainId,
       client: _safeProxyFactory.client,
-    );
-    if (initializer == null) return (null, safeModule);
-    return (
-      _Safe(
-        isSafe7579: isSafe7579,
-        module: safeModule,
-        initializer: initializer,
-      ),
-      safeModule,
     );
   }
 }

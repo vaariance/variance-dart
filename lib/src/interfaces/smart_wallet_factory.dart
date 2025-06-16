@@ -1,6 +1,30 @@
 part of 'interfaces.dart';
 
 abstract class SmartWalletFactoryBase {
+  /// Recovers an existing Safe account at the specified address. This only works if the account is deployed.
+  ///
+  /// - [account] The Ethereum address of the Safe account to recover
+  /// - [isSafe7579] Whether the account is a Safe7579 account (defaults to false)
+  ///
+  /// Returns a [SmartWallet] instance representing the recovered Safe account.
+  Future<SmartWallet> recoverSafeAccount(
+    EthereumAddress account, {
+    bool isSafe7579 = false,
+  });
+
+  /// Creates a new Safe7579 account with the provided parameters.
+  ///
+  /// - [salt] A unique value used to generate the account address
+  /// - [launchpad] The launchpad contract address used for account deployment
+  /// - [singleton] Optional Safe singleton contract address
+  /// - [validators] Optional list of validator modules to initialize
+  /// - [executors] Optional list of executor modules to initialize
+  /// - [fallbacks] Optional list of fallback modules to initialize
+  /// - [hooks] Optional list of hook modules to initialize
+  /// - [attesters] Optional list of attester addresses
+  /// - [attestersThreshold] Optional threshold for required attestations
+  /// Returns a [Future] that resolves to a [SmartWallet] instance representing
+  /// the created Safe7579 account.
   Future<SmartWallet> createSafe7579Account(
     Uint256 salt,
     EthereumAddress launchpad, {
@@ -13,6 +37,22 @@ abstract class SmartWalletFactoryBase {
     int? attestersThreshold,
   });
 
+  /// Creates a new Safe7579 account using a passkey for authentication.
+  ///
+  /// - [keyPair] The passkey pair used for account authentication
+  /// - [salt] A unique value used to generate the account address
+  /// - [launchpad] The launchpad contract address used for account deployment
+  /// - [p256Verifier] Optional P256 verification contract address
+  /// - [singleton] Optional Safe singleton contract address
+  /// - [validators] Optional list of validator modules to initialize
+  /// - [executors] Optional list of executor modules to initialize
+  /// - [fallbacks] Optional list of fallback modules to initialize
+  /// - [hooks] Optional list of hook modules to initialize
+  /// - [attesters] Optional list of attester addresses
+  /// - [attestersThreshold] Optional threshold for required attestations
+  ///
+  /// Returns a [Future] that resolves to a [SmartWallet] instance representing
+  /// the created Safe7579 account.
   Future<SmartWallet> createSafe7579AccountWithPasskey(
     PassKeyPair keyPair,
     Uint256 salt,
@@ -29,8 +69,8 @@ abstract class SmartWalletFactoryBase {
 
   /// Creates a new P256 account using the provided key pair and salt.
   ///
-  /// [PassKeyPair] is the key pair used to create the account.
-  /// [salt] is the salt value used in the account creation process.
+  /// - [PassKeyPair] is the key pair used to create the account.
+  /// - [salt] is the salt value used in the account creation process.
   ///
   /// Returns a [Future] that resolves to a [SmartWallet] instance representing
   /// the created account.
@@ -46,7 +86,7 @@ abstract class SmartWalletFactoryBase {
 
   /// Creates a new Safe account with the provided salt and optional owners and threshold.
   ///
-  /// [salt] is the salt value used in the account creation process.
+  /// - [salt] is the salt value used in the account creation process.
   ///
   /// Returns a [Future] that resolves to a [SmartWallet] instance representing
   /// the created Safe account.
@@ -63,16 +103,4 @@ abstract class SmartWalletFactoryBase {
   /// Returns a [Future] that resolves to a [SmartWallet] instance representing
   /// the created light account.
   Future<SmartWallet> createAlchemyLightAccount(Uint256 salt);
-
-  /// Creates a new vendor account with the provided address and initialization code.
-  ///
-  /// [address] is the Ethereum address of the vendor account.
-  /// [initCode] is the initialization code for the vendor account.
-  ///
-  /// Returns a [SmartWallet] instance representing the created vendor account.
-  @Deprecated("Use default account standards")
-  Future<SmartWallet> createVendorAccount(
-    EthereumAddress address,
-    Uint8List initCode,
-  );
 }

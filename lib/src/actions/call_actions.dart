@@ -31,7 +31,7 @@ mixin _CallActions on SmartWalletBase {
   ///   amounts: [EtherAmount.zero(), EtherAmount.inWei(BigInt.from(1000000000000000000))],
   ///   innerCalls: [
   ///     Uint8List.fromList([...]),
-  ///     Uint8List.fromList([]),
+  ///     Uint8List(0),
   ///   ],
   /// ); // first call contains call to 0x1234567890abcdef1234567890abcdef12345678 with 0 wei, second call contains call to 0xabcdef1234567890abcdef1234567890abcdef12 with 1000000000000000000 wei
   /// ```
@@ -45,7 +45,7 @@ mixin _CallActions on SmartWalletBase {
       recipients,
       amounts?.map<BigInt>((e) => e.getInWei).toList() ??
           recipients.map<BigInt>((e) => BigInt.zero).toList(),
-      innerCalls ?? Uint8List.fromList([]),
+      innerCalls ?? Uint8List(0),
     ];
 
     if (innerCalls == null || innerCalls.isEmpty) {
@@ -59,7 +59,7 @@ mixin _CallActions on SmartWalletBase {
       params = [
         Addresses.safeMultiSendaddress,
         EtherAmount.zero().getInWei,
-        state.safe!.module.getSafeMultisendCallData(
+        state.safe?.module.getSafeMultisendCallData(
           recipients,
           amounts,
           innerCalls,
@@ -91,7 +91,7 @@ mixin _CallActions on SmartWalletBase {
   /// var encodedCall = execute(
   ///   to: EthereumAddress.fromHex('0x1234567890abcdef1234567890abcdef12345678'),
   ///   amount: EtherAmount.inWei(BigInt.from(1000000000000000000)),
-  ///   innerCallData: Uint8List.fromList([]),
+  ///   innerCallData: Uint8List(0),
   /// ); // transfer to 0x1234567890abcdef1234567890abcdef12345678 with 1000000000000000000 wei
   /// ```
   /// This method uses the 'execute' function ABI to encode the smart wallet operation.
@@ -103,7 +103,7 @@ mixin _CallActions on SmartWalletBase {
     final params = [
       to,
       amount?.getInWei ?? EtherAmount.zero().getInWei,
-      innerCallData ?? Uint8List.fromList([]),
+      innerCallData ?? Uint8List(0),
     ];
 
     String method = 'execute';
@@ -262,12 +262,39 @@ mixin _CallActions on SmartWalletBase {
     return UserOperation.partial(callData: callData);
   }
 
+  @override
+  Future<List<dynamic>> readContract(
+    EthereumAddress contractAddress,
+    ContractAbi abi,
+    String methodName, {
+    List<dynamic>? params,
+    EthereumAddress? sender,
+  }) {
+    final function = Contract.getContractFunction(
+      methodName,
+      contractAddress,
+      abi,
+    );
+    final calldata = {
+      'to': contractAddress.hex,
+      'data': bytesToHex(
+        function.encodeCall(params ?? []),
+        include0x: true,
+        padToEvenLength: true,
+      ),
+      if (sender != null) 'from': sender.hex,
+    };
+    return state.jsonRpc
+        .send<String>('eth_call', [calldata, BlockNum.current().toBlockParam()])
+        .then((value) => function.decodeReturnValues(value));
+  }
+
   Future<Uint8List> getUserOperationHash(
     UserOperation op,
     BlockInformation blockInfo,
   ) async {
     return state.safe != null
-        ? state.safe!.module.getSafeOperationHash(op, blockInfo)
+        ? state.safe?.module.getSafeOperationHash(op, blockInfo)
         : op.hash(chain);
   }
 
@@ -284,7 +311,7 @@ mixin _CallActions on SmartWalletBase {
       final signatureHex = hexlify(signature);
       return (BlockInformation blockInfo) =>
           state.safe != null
-              ? state.safe!.module.getSafeSignature(signatureHex, blockInfo)
+              ? state.safe?.module.getSafeSignature(signatureHex, blockInfo)
                   as String
               : signatureHex;
     };

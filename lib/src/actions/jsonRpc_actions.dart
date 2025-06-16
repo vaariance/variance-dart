@@ -83,31 +83,4 @@ mixin _JsonRPCActions on SmartWalletBase implements JsonRPCProviderBase {
       );
     }
   }
-
-  @override
-  Future<List<dynamic>> readContract(
-    EthereumAddress contractAddress,
-    ContractAbi abi,
-    String methodName, {
-    List<dynamic>? params,
-    EthereumAddress? sender,
-  }) {
-    final function = Contract.getContractFunction(
-      methodName,
-      contractAddress,
-      abi,
-    );
-    final calldata = {
-      'to': contractAddress.hex,
-      'data': bytesToHex(
-        function.encodeCall(params ?? []),
-        include0x: true,
-        padToEvenLength: true,
-      ),
-      if (sender != null) 'from': sender.hex,
-    };
-    return state.jsonRpc
-        .send<String>('eth_call', [calldata, BlockNum.current().toBlockParam()])
-        .then((value) => function.decodeReturnValues(value));
-  }
 }

@@ -46,7 +46,7 @@ class SmartWallet extends SmartWalletBase
   Chain get chain => _state.chain;
 
   @override
-  @Deprecated("Get the dummy signature directly from the signer")
+  @protected
   String get dummySignature => _state.signer.getDummySignature();
 
   @override
@@ -59,28 +59,18 @@ class SmartWallet extends SmartWalletBase
   @override
   Future<bool> get isDeployed => deployed(_state.address);
 
-  @override
-  @Deprecated("Does not allow getting nonce with key, use `getNonce` instead")
-  Future<Uint256> get nonce => getNonce();
-
   @protected
   @override
   SmartWalletState get state => _state;
 
   @override
-  @Deprecated("get `hex` from wallet [address]. e.g walletInstance.address.hex")
-  String? get toHex => _state.address.hexEip55;
-
-  @override
   Future<UserOperationResponse> send(
     EthereumAddress recipient,
     EtherAmount amount, {
+    EthereumAddress? token,
     Uint256? nonceKey,
   }) async {
-    final cd =
-        _state.safe?.isSafe7579 ?? false
-            ? await get7579ExecuteCalldata(to: recipient, amount: amount)
-            : getExecuteCalldata(to: recipient, amount: amount);
+    final cd = await _getTransferCalldata(recipient, amount, token);
     return sendUserOperation(
       buildUserOperation(callData: cd),
       nonceKey: nonceKey,
@@ -94,18 +84,11 @@ class SmartWallet extends SmartWalletBase
     EtherAmount? amount,
     Uint256? nonceKey,
   }) async {
-    final cd =
-        _state.safe?.isSafe7579 ?? false
-            ? await get7579ExecuteCalldata(
-              to: to,
-              amount: amount,
-              innerCallData: encodedFunctionData,
-            )
-            : getExecuteCalldata(
-              to: to,
-              amount: amount,
-              innerCallData: encodedFunctionData,
-            );
+    final cd = await _getExecuteBatchCalldata(
+      targets: [to],
+      values: amount != null ? [amount] : null,
+      calls: [encodedFunctionData],
+    );
     return sendUserOperation(
       buildUserOperation(callData: cd),
       nonceKey: nonceKey,
@@ -119,18 +102,11 @@ class SmartWallet extends SmartWalletBase
     List<EtherAmount>? amounts,
     Uint256? nonceKey,
   }) async {
-    final cd =
-        _state.safe?.isSafe7579 ?? false
-            ? await get7579ExecuteBatchCalldata(
-              recipients: recipients,
-              amounts: amounts,
-              innerCalls: calls,
-            )
-            : getExecuteBatchCalldata(
-              recipients: recipients,
-              amounts: amounts,
-              innerCalls: calls,
-            );
+    final cd = await _getExecuteBatchCalldata(
+      targets: recipients,
+      values: amounts,
+      calls: calls,
+    );
     return sendUserOperation(
       buildUserOperation(callData: cd),
       nonceKey: nonceKey,
@@ -167,9 +143,16 @@ class SmartWallet extends SmartWalletBase
     String? signature,
   }) async {
     getSig(BlockInformation blockInfo) {
-      final dummySignature = _state.signer.getDummySignature();
-      if (_state.safe?.isSafe7579 ?? false) {
-        return _state.safe?.module.getSafeSignature(dummySignature, blockInfo);
+      if (signature != null) return signature;
+
+      final defaultSignature = _state.signer.getDummySignature();
+      final isNotModified = dummySignature == defaultSignature;
+
+      if (isNotModified && _state.safe != null) {
+        return _state.safe?.module.getSafeSignature(
+          defaultSignature,
+          blockInfo,
+        );
       }
       return dummySignature;
     }
@@ -186,7 +169,7 @@ class SmartWallet extends SmartWalletBase
     op = op.copyWith(
       nonce: nonce,
       initCode: responses[3] ? Uint8List(0) : null,
-      signature: signature ?? getSig(responses[2]),
+      signature: getSig(responses[2]),
     );
 
     op = await _updateUserOperationGas(op, responses[1]);
@@ -225,6 +208,7 @@ class SmartWallet extends SmartWalletBase
         .catchError((e) => throw NonceError(e.toString(), _state.address));
   }
 
+  @override
   @protected
   Future<String> generateSignature(
     UserOperation op,
@@ -262,5 +246,77 @@ class SmartWallet extends SmartWalletBase
         )
         .then((opGas) => op.updateOpGas(opGas, fee))
         .catchError((e) => throw GasEstimationError(e.toString(), op));
+  }
+
+  /// Gets the calldata for executing a transaction through the smart wallet.
+  /// All transactions are batch executed through the smart wallet.
+  /// This method generates the appropriate calldata based on whether the wallet
+  /// is using Safe 7579 standard or not.
+  ///
+  /// Parameters:
+  /// - [targets]: a list of target addresses for the transaction
+  /// - [values]: Optional list of ETH amounts to send with the transaction
+  /// - [calls]: Optional list of encoded function data to execute
+  ///
+  /// Returns a [Future<Uint8List>] containing the encoded calldata for execution.
+  Future<Uint8List> _getExecuteBatchCalldata({
+    required List<EthereumAddress> targets,
+    required List<Uint8List> calls,
+    List<EtherAmount>? values,
+  }) async {
+    final isSafe7579 = _state.safe?.isSafe7579 ?? false;
+    return isSafe7579
+        ? get7579ExecuteBatchCalldata(
+          recipients: targets,
+          amounts: values,
+          innerCalls: calls,
+        )
+        : getExecuteBatchCalldata(
+          recipients: targets,
+          amounts: values,
+          innerCalls: calls,
+        );
+  }
+
+  /// Gets the calldata for transferring ETH or ERC20 tokens through the smart wallet.
+  ///
+  /// For ETH transfers:
+  /// - Creates a batch transaction with the recipient address
+  /// - Includes the ETH amount in values
+  /// - Uses empty calldata
+  ///
+  /// For ERC20 transfers:
+  /// - Creates a batch transaction targeting the token contract
+  /// - Encodes the transfer function call with recipient and amount
+  /// - No ETH value is included
+  ///
+  /// Parameters:
+  /// - [recipient]: The address receiving the transfer
+  /// - [amount]: The amount of ETH/tokens to transfer
+  /// - [token]: Optional ERC20 token address. If null, transfers ETH
+  ///
+  /// Returns a [Future<Uint8List>] containing the encoded transfer calldata.
+  Future<Uint8List> _getTransferCalldata(
+    EthereumAddress recipient,
+    EtherAmount amount,
+    EthereumAddress? token,
+  ) {
+    if (token == null) {
+      return _getExecuteBatchCalldata(
+        targets: [recipient],
+        values: [amount],
+        calls: [Uint8List(0)],
+      );
+    }
+    final transferData = Contract.encodeERC20TransferCall(
+      token,
+      recipient,
+      amount,
+    );
+    return _getExecuteBatchCalldata(
+      targets: [token],
+      values: null,
+      calls: [transferData],
+    );
   }
 }

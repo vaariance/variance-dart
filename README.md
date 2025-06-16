@@ -47,12 +47,10 @@ final Chain chain = Chain(
             entrypoint: EntryPointAddress.v07);
 ```
 
-When creating Safe Accounts, specify `Addresses.safeProxyFactoryAddress` as the account factory address.
+When creating Safe/Modular Accounts, specify `Addresses.safeProxyFactoryAddress` as the account factory address.
+When creating LightAccounts, specify `Addresses.lightAccountFactoryAddress` as the account factory address.
 
-The SDK supports multiple networks including:
-
-- Mainnets: Ethereum, Polygon, Optimism, Base, Arbitrum, Linea, Fuse, and Scroll
-- Testnets: Sepolia and Base Testnet
+The SDK supports all EVM compatible networks.
 
 Paymaster Configuration:
 
@@ -85,7 +83,7 @@ Before creating a smart wallet instance, initialize a SmartWalletFactory using y
 final SmartWalletFactory smartWalletFactory = SmartWalletFactory(chain, signer);
 ```
 
-#### To Create an Alchemy Light Account
+### To Create an Alchemy Light Account
 
 When using an [Alchemy Light Account](https://accountkit.alchemy.com/smart-contracts/light-account), you must configure your signer with a signature prefix. Add a `Uint8` prefix value when initializing your web3_signer - this prefix will be automatically included in all signatures generated for your smart wallet.
 Example:
@@ -101,7 +99,7 @@ final Smartwallet wallet = await smartWalletFactory.createAlchemyLightAccount(sa
 print("light account wallet address: ${wallet.address.hex}");
 ```
 
-#### To create a [Safe](https://safe.global) Smart Account
+### To create a [Safe](https://safe.global) Smart Account
 
 ```dart
 final salt = Uint256.zero;
@@ -112,9 +110,9 @@ final Smartwallet wallet = await smartWalletFactory.createSafeAccount(salt);
 print("safe wallet address: ${wallet.address.hex}");
 ```
 
-> The `safeSingleton` address can be customized during account creation. If not specified, it defaults to `SafeSingletonAddress.l1` for mainnet or `SafeSingletonAddress.l2` for L2 chains.
+> For all safe accounts including modular accounts, the `safeSingleton` address can be customized during account creation. If not specified, it defaults to `SafeSingletonAddress.l1` for mainnet or `SafeSingletonAddress.l2` for L2 chains.
 
-#### To create a [Safe](https://safe.global) Smart Account with Passkey
+### To create a [Safe](https://safe.global) Smart Account with Passkey
 
 ```dart
 final salt = Uint256.zero;
@@ -134,13 +132,13 @@ print("p256 wallet address: ${wallet.address.hex}");
 ```
 
 > The `PassKeyPair` object, obtained during registration with your `PasskeySigner`, is required for this operation.
-> You can serialize and persist the keypair for later use in your application.
-> Additional modules (`validator`, `hooks`, `executors`, or `fallback`) can be initialized during account creation. For Passkey-enabled accounts, the `WebAuthnValidator` module must be included during initialization.
-> The `safeSingleton` address can be customized during account creation. If not specified, it defaults to `SafeSingletonAddress.l1` for mainnet or `SafeSingletonAddress.l2` for L2 chains.
+> It is recommended serialize and persist the keypair for later use in your application.
 
-#### To create a [Modular Safe](https://docs.safe.global/advanced/erc-7579/7579-safe) Smart Account
+### To create a [Modular Safe](https://docs.safe.global/advanced/erc-7579/7579-safe) Smart Account
 
- > please refer to [ERC7579](https://erc7579.com/) for more information.
+ For more details about the technical specifications and implementation, visit [ERC7579](https://erc7579.com/) and [Rhinestone](https://rhinestone.dev).
+
+ To access all available modules, install the `variance_modules` package by running: `flutter pub add variance_modules`
 
 ```dart
 final salt = Uint256.zero;
@@ -157,16 +155,11 @@ final Smartwallet wallet = await smartWalletFactory.createSafe7579Account(salt, 
 print("safe wallet address: ${wallet.address.hex}");
 ```
 
-> Additional modules (`validator`, `hooks`, `executors`, or `fallback`) can be initialized during account creation. For Passkey-enabled accounts, the `WebAuthnValidator` module must be included during initialization.
-> The `safeSingleton` address can be customized during account creation. If not specified, it defaults to `SafeSingletonAddress.l1` for mainnet or `SafeSingletonAddress.l2` for L2 chains.
+> For all Modular Accounts, Additional modules (`validator`, `hooks`, `executors`, or `fallback`) can be initialized during account creation. For Passkey-enabled accounts, the `WebAuthnValidator` module must be included during initialization.
 
-#### To create a [Modular Safe](https://docs.safe.global/advanced/erc-7579/7579-safe) Smart Account with Passkey
-
-For more details about the technical specifications and implementation, visit [ERC7579](https://erc7579.com/) and [Rhinestone](https://rhinestone.dev).
+### To create a [Modular Safe](https://docs.safe.global/advanced/erc-7579/7579-safe) Smart Account with Passkey
 
 Note that you must initialize the `WebAuthnValidator` module when creating the safe account.
-
-To access all available modules, install the `variance_modules` package by running:
 
 ```dart
 import 'package:variance_modules/modules.dart';
@@ -202,12 +195,10 @@ Smartwallet wallet = await smartWalletFactory.createSafe7579AccountWithPasskey(
 
 final validator = WebauthnValidator(wallet, BigInt.one, {keyPair});
 // replace the wallet to allow for validator to trigger at least for initial transaction
-wallet = validator.wallet;
+wallet = validator.txService;
 print("safe wallet address: ${wallet.address.hex}");
 ```
 
-> Additional modules (`validator`, `hooks`, `executors`, or `fallback`) can be initialized during account creation. For Passkey-enabled accounts, the `WebAuthnValidator` module must be included during initialization.
-> The `safeSingleton` address can be customized during account creation. If not specified, it defaults to `SafeSingletonAddress.l1` for mainnet or `SafeSingletonAddress.l2` for L2 chains.
 > To set up multi-signature functionality (threshold > 1), specify the threshold in the `ModuleInit` object. Note that all required `keypairs` must be available to sign user operations when using multiple signatures.
 
 !!! CAVEATS
@@ -215,7 +206,7 @@ print("safe wallet address: ${wallet.address.hex}");
 When working with Safe 7579 accounts and WebAuthn validation:
 
 1. You must initialize the `WebAuthnValidator` module during account creation
-2. For the first transaction, use the validator's extended wallet instance instead of the base wallet. This is required because:
+2. For the first transaction, use the validator's txService instead of the base wallet. This is required because:
    - Safe 7579 accounts need an initial transaction to complete setup
    - The [Shared Signer](https://github.com/safe-global/safe-modules/tree/main/modules/passkey/contracts/4337) cannot be used until after this setup
 
@@ -317,9 +308,9 @@ await account.installModule(
 final nft = EthereumAddress.fromHex("0x"); // add nft contract address
 final mintAbi = ContractAbis.get("ERC721_SafeMint");
 final mintCall = Contract.encodeFunctionCall("safeMint", nft, mintAbi);
-// this transaction must be sent directly from the `validator.wallet` instead.
+// this transaction must be sent directly from the `validator.txService` instead.
 // validators are responsible for validating userOperations and managing signature generation internally
-final tx = await validator.wallet.sendTransaction(nft, mintCall);
+final tx = await validator.txService.sendTransaction(nft, mintCall);
 final receipt = await tx.wait();
 ```
 

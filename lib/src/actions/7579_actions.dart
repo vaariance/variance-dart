@@ -204,14 +204,14 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
             amount?.getInWei ?? EtherAmount.zero().getInWei,
           ).padLeftTo32Bytes(),
         )
-        .concat(innerCallData ?? Uint8List.fromList([]));
+        .concat(innerCallData ?? Uint8List(0));
     final isNotInitial = await isDeployed;
     return isNotInitial
         ? encode7579Call(ExecutionMode(type: CallType.call), [
           calldata,
         ], address)
         : _encodePostSetupInitCalldata(
-          state.safe!.initializer,
+          state.safe?.initializer,
           [calldata],
           address,
           CallType.call,
@@ -235,7 +235,7 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
                           EtherAmount.zero().getInWei,
                     ).padLeftTo32Bytes(),
                   )
-                  .concat(innerCalls?[entry.key] ?? Uint8List.fromList([])),
+                  .concat(innerCalls?[entry.key] ?? Uint8List(0)),
             )
             .toList();
     final bool isNotInitial = await isDeployed;
@@ -246,7 +246,7 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
           address,
         )
         : _encodePostSetupInitCalldata(
-          state.safe!.initializer,
+          state.safe?.initializer,
           calls,
           address,
           CallType.batchcall,

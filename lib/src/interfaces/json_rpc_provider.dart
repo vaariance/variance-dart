@@ -59,37 +59,6 @@ abstract class JsonRPCProviderBase {
     BlockNum atBlock = const BlockNum.current(),
   });
 
-  /// Asynchronously calls a function on a smart contract with the provided parameters.
-  ///
-  /// Parameters:
-  ///   - `contractAddress`: The [EthereumAddress] of the smart contract.
-  ///   - `abi`: The [ContractAbi] representing the smart contract's ABI.
-  ///   - `methodName`: The name of the method to call on the smart contract.
-  ///   - `params`: Optional parameters for the function call.
-  ///   - `sender`: The [EthereumAddress] of the sender, if applicable.
-  ///
-  /// Returns:
-  ///   A [Future] that completes with a list of dynamic values representing the result of the function call.
-  ///
-  /// Example:
-  /// ```dart
-  /// var result = await read(
-  ///   EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432'),
-  ///   myErc20ContractAbi,
-  ///   'balanceOf',
-  ///   params: [ EthereumAddress.fromHex('0x9876543210abcdef9876543210abcdef98765432')],
-  /// );
-  /// ```
-  /// This method uses the an Ethereum jsonRPC to `staticcall` a function on the specified smart contract.
-  /// **Note:** This method does not support contract calls with state changes.
-  Future<List<dynamic>> readContract(
-    EthereumAddress contractAddress,
-    ContractAbi abi,
-    String methodName, {
-    List<dynamic>? params,
-    EthereumAddress? sender,
-  });
-
   /// Asynchronously estimates the gas cost for a transaction to the specified address with the given calldata.
   ///
   /// Parameters:

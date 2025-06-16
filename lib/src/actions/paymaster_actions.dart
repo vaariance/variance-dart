@@ -1,10 +1,10 @@
 part of '../../variance_dart.dart';
 
 class PaymasterResponse {
-  final Uint8List paymasterAndData;
-  final BigInt preVerificationGas;
-  final BigInt verificationGasLimit;
-  final BigInt callGasLimit;
+  final Uint8List? paymasterAndData;
+  final BigInt? preVerificationGas;
+  final BigInt? verificationGasLimit;
+  final BigInt? callGasLimit;
 
   PaymasterResponse({
     required this.paymasterAndData,
@@ -13,7 +13,15 @@ class PaymasterResponse {
     required this.callGasLimit,
   });
 
-  factory PaymasterResponse.fromMap(Dict map) {
+  factory PaymasterResponse.fromMap(Dict? map) {
+    if (map == null) {
+      return PaymasterResponse(
+        paymasterAndData: null,
+        preVerificationGas: null,
+        verificationGasLimit: null,
+        callGasLimit: null,
+      );
+    }
     final List<BigInt> accountGasLimits =
         map['accountGasLimits'] != null
             ? unpackUints(map['accountGasLimits'])
@@ -102,7 +110,7 @@ mixin _PaymasterActions on SmartWalletBase implements PaymasterBase {
     if (context != null) {
       request.add(context);
     }
-    final response = await state.paymaster!.send<Dict>(
+    final response = await state.paymaster?.send<Dict>(
       'pm_sponsorUserOperation',
       request,
     );
