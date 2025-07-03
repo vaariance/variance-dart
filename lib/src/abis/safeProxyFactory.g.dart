@@ -5,7 +5,8 @@
 // ignore_for_file: unused_local_variable, unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:web3dart/web3dart.dart' as _i1;
-import 'dart:typed_data' as _i2;
+import 'package:web3_signers/web3_signers.dart' as _i2;
+import 'dart:typed_data' as _i3;
 
 final _contractAbi = _i1.ContractAbi.fromJson(
   '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"contract SafeProxy","name":"proxy","type":"address"},{"indexed":false,"internalType":"address","name":"singleton","type":"address"}],"name":"ProxyCreation","type":"event"},{"inputs":[{"internalType":"address","name":"_singleton","type":"address"},{"internalType":"bytes","name":"initializer","type":"bytes"},{"internalType":"uint256","name":"saltNonce","type":"uint256"}],"name":"createChainSpecificProxyWithNonce","outputs":[{"internalType":"contract SafeProxy","name":"proxy","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_singleton","type":"address"},{"internalType":"bytes","name":"initializer","type":"bytes"},{"internalType":"uint256","name":"saltNonce","type":"uint256"},{"internalType":"contract IProxyCreationCallback","name":"callback","type":"address"}],"name":"createProxyWithCallback","outputs":[{"internalType":"contract SafeProxy","name":"proxy","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_singleton","type":"address"},{"internalType":"bytes","name":"initializer","type":"bytes"},{"internalType":"uint256","name":"saltNonce","type":"uint256"}],"name":"createProxyWithNonce","outputs":[{"internalType":"contract SafeProxy","name":"proxy","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getChainId","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"proxyCreationCode","outputs":[{"internalType":"bytes","name":"","type":"bytes"}],"stateMutability":"pure","type":"function"}]',
@@ -14,7 +15,7 @@ final _contractAbi = _i1.ContractAbi.fromJson(
 
 class SafeProxyFactory extends _i1.GeneratedContract {
   SafeProxyFactory({
-    required _i1.EthereumAddress address,
+    required _i2.Address address,
     required _i1.Web3Client client,
     int? chainId,
   }) : super(
@@ -31,8 +32,8 @@ class SafeProxyFactory extends _i1.GeneratedContract {
   /// set by the contract.
   Future<String> createChainSpecificProxyWithNonce(
     ({
-      _i1.EthereumAddress singleton,
-      _i2.Uint8List initializer,
+      _i2.Address singleton,
+      _i3.Uint8List initializer,
       BigInt saltNonce
     }) args, {
     required _i1.Credentials credentials,
@@ -58,10 +59,10 @@ class SafeProxyFactory extends _i1.GeneratedContract {
   /// set by the contract.
   Future<String> createProxyWithCallback(
     ({
-      _i1.EthereumAddress singleton,
-      _i2.Uint8List initializer,
+      _i2.Address singleton,
+      _i3.Uint8List initializer,
       BigInt saltNonce,
-      _i1.EthereumAddress callback
+      _i2.Address callback
     }) args, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
@@ -87,8 +88,8 @@ class SafeProxyFactory extends _i1.GeneratedContract {
   /// set by the contract.
   Future<String> createProxyWithNonce(
     ({
-      _i1.EthereumAddress singleton,
-      _i2.Uint8List initializer,
+      _i2.Address singleton,
+      _i3.Uint8List initializer,
       BigInt saltNonce
     }) args, {
     required _i1.Credentials credentials,
@@ -127,7 +128,7 @@ class SafeProxyFactory extends _i1.GeneratedContract {
   /// The optional [atBlock] parameter can be used to view historical data. When
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
-  Future<_i2.Uint8List> proxyCreationCode({_i1.BlockNum? atBlock}) async {
+  Future<_i3.Uint8List> proxyCreationCode({_i1.BlockNum? atBlock}) async {
     final function = self.abi.functions[4];
     assert(checkSignature(function, '53e5d935'));
     final params = [];
@@ -136,7 +137,7 @@ class SafeProxyFactory extends _i1.GeneratedContract {
       params,
       atBlock,
     );
-    return (response[0] as _i2.Uint8List);
+    return (response[0] as _i3.Uint8List);
   }
 
   /// Returns a live stream of all ProxyCreation events emitted by this contract.
@@ -168,12 +169,12 @@ class ProxyCreation {
   ProxyCreation(
     List<dynamic> response,
     this.event,
-  )   : proxy = (response[0] as _i1.EthereumAddress),
-        singleton = (response[1] as _i1.EthereumAddress);
+  )   : proxy = (response[0] as _i2.Address),
+        singleton = (response[1] as _i2.Address);
 
-  final _i1.EthereumAddress proxy;
+  final _i2.Address proxy;
 
-  final _i1.EthereumAddress singleton;
+  final _i2.Address singleton;
 
   final _i1.FilterEvent event;
 }

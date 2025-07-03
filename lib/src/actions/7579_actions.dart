@@ -71,7 +71,7 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
             .asMap()
             .entries
             .map(
-              (entry) => Contract.encodeFunctionCall(
+              (entry) => ContractUtils.encodeFunctionCall(
                 "uninstallModule",
                 address,
                 Safe7579Abis.get("uninstallModule"),
@@ -94,7 +94,7 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
     Address moduleAddress,
     Uint8List deInitData,
   ) async {
-    final encodedCalldata = Contract.encodeFunctionCall(
+    final encodedCalldata = ContractUtils.encodeFunctionCall(
       "uninstallModule",
       address,
       Safe7579Abis.get("uninstallModule"),
@@ -113,7 +113,7 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
             .asMap()
             .entries
             .map(
-              (entry) => Contract.encodeFunctionCall(
+              (entry) => ContractUtils.encodeFunctionCall(
                 "installModule",
                 address,
                 Safe7579Abis.get("installModule"),
@@ -136,7 +136,7 @@ mixin _Safe7579Actions on SmartWalletBase, JsonRPCProviderBase
     Address moduleAddress,
     Uint8List initData,
   ) {
-    final encodedCalldata = Contract.encodeFunctionCall(
+    final encodedCalldata = ContractUtils.encodeFunctionCall(
       "installModule",
       address,
       Safe7579Abis.get("installModule"),

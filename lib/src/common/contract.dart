@@ -1,6 +1,6 @@
 part of '../../variance_dart.dart';
 
-class Contract {
+class ContractUtils {
   /// Encodes an ERC-20 token approval function call.
   ///
   /// Parameters:

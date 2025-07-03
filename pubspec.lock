@@ -741,6 +741,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
+  web3dart_builders:
+    dependency: "direct dev"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: cf9d5bd55edd397f664367b2881e43bcf7e875b7
+      url: "https://github.com/vaariance/web3dart_builders.git"
+    source: git
+    version: "0.1.2"
   web_socket:
     dependency: transitive
     description:

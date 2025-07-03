@@ -148,7 +148,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
             : singleton ?? SafeSingletonAddress.l2;
 
     encodeWebAuthnConfigure() {
-      return Contract.encodeFunctionCall(
+      return ContractUtils.encodeFunctionCall(
         "configure",
         Addresses.sharedSignerAddress,
         ContractAbis.get("enableWebauthn"),
@@ -216,7 +216,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
     final safe = _getSafeModule();
 
     encodeWebAuthnConfigure() {
-      return Contract.encodeFunctionCall(
+      return ContractUtils.encodeFunctionCall(
         "configure",
         Addresses.sharedSignerAddress,
         ContractAbis.get("enableWebauthn"),
@@ -265,7 +265,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
   /// - [MSI] signer plugin
   /// - [BundlerProviderBase] bundler plugin
   /// - [JsonRPCProviderBase] JSON-RPC provider plugin
-  /// - [Contract] contract plugin
+  /// - [ContractUtils] contract plugin
   ///
   /// Returns a [SmartWallet] instance representing the created account.
   SmartWallet _createAccount(

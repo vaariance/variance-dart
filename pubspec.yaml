@@ -27,6 +27,9 @@ dev_dependencies:
   build_runner: ^2.4.11
   flutter_lints: ^4.0.0
   mockito: ^5.4.2
+  web3dart_builders: 
+    git:
+      url: https://github.com/vaariance/web3dart_builders.git
 
 topics:
   - wallets

@@ -70,7 +70,7 @@ mixin _CallActions on SmartWalletBase {
       ];
     }
 
-    return Contract.encodeFunctionCall(
+    return ContractUtils.encodeFunctionCall(
       method,
       address,
       ContractAbis.get(method),
@@ -115,7 +115,7 @@ mixin _CallActions on SmartWalletBase {
       params.add(BigInt.zero);
     }
 
-    return Contract.encodeFunctionCall(
+    return ContractUtils.encodeFunctionCall(
       method,
       address,
       ContractAbis.get(method),
@@ -149,7 +149,7 @@ mixin _CallActions on SmartWalletBase {
   ) {
     final innerCallData = getExecuteCalldata(
       to: contractAddress,
-      innerCallData: Contract.encodeERC721ApproveCall(
+      innerCallData: ContractUtils.encodeERC721ApproveCall(
         contractAddress,
         spender,
         tokenId,
@@ -184,7 +184,7 @@ mixin _CallActions on SmartWalletBase {
   ) {
     final innerCallData = getExecuteCalldata(
       to: contractAddress,
-      innerCallData: Contract.encodeERC721SafeTransferFromCall(
+      innerCallData: ContractUtils.encodeERC721SafeTransferFromCall(
         contractAddress,
         address,
         recipient,
@@ -220,7 +220,7 @@ mixin _CallActions on SmartWalletBase {
   ) {
     final callData = getExecuteCalldata(
       to: contractAddress,
-      innerCallData: Contract.encodeERC20ApproveCall(
+      innerCallData: ContractUtils.encodeERC20ApproveCall(
         contractAddress,
         spender,
         amountInWei,
@@ -255,7 +255,7 @@ mixin _CallActions on SmartWalletBase {
   ) {
     final callData = getExecuteCalldata(
       to: contractAddress,
-      innerCallData: Contract.encodeERC20TransferCall(
+      innerCallData: ContractUtils.encodeERC20TransferCall(
         contractAddress,
         recipient,
         amountInWei,
@@ -272,7 +272,7 @@ mixin _CallActions on SmartWalletBase {
     List<dynamic>? params,
     Address? sender,
   }) {
-    final function = Contract.getContractFunction(
+    final function = ContractUtils.getContractFunction(
       methodName,
       contractAddress,
       abi,

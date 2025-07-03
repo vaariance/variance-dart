@@ -117,11 +117,13 @@ class SmartWallet extends SmartWalletBase
   Future<UserOperationResponse> sendUserOperation(
     UserOperation op, {
     Uint256? nonceKey,
-  }) => prepareUserOperation(op, nonceKey: nonceKey)
-      .then(overrideGas)
-      .then(sponsorUserOperation)
-      .then(signUserOperation)
-      .then(sendSignedUserOperation);
+  }) {
+    return prepareUserOperation(op, nonceKey: nonceKey)
+        .then(overrideGas)
+        .then(sponsorUserOperation)
+        .then(signUserOperation)
+        .then(sendSignedUserOperation);
+  }
 
   @override
   UserOperation buildUserOperation({
@@ -140,11 +142,8 @@ class SmartWallet extends SmartWalletBase
   Future<UserOperation> prepareUserOperation(
     UserOperation op, {
     Uint256? nonceKey,
-    String? signature,
   }) async {
     getSig(BlockInfo blockInfo) {
-      if (signature != null) return signature;
-
       final defaultSignature = _state.signer.getDummySignature();
       final isNotModified = dummySignature == defaultSignature;
 
@@ -308,7 +307,7 @@ class SmartWallet extends SmartWalletBase
         calls: [Uint8List(0)],
       );
     }
-    final transferData = Contract.encodeERC20TransferCall(
+    final transferData = ContractUtils.encodeERC20TransferCall(
       token,
       recipient,
       amountInWei,

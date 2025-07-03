@@ -194,8 +194,7 @@ Smartwallet wallet = await smartWalletFactory.createSafe7579AccountWithPasskey(
               ]));
 
 final validator = WebauthnValidator(wallet, BigInt.one, {keyPair});
-// replace the wallet to allow for validator to trigger at least for initial transaction
-wallet = validator.txService;
+final tx = await validator.proxyTransaction(...) // required for first transaction.
 print("safe wallet address: ${wallet.address.with0x}");
 ```
 
@@ -206,9 +205,10 @@ print("safe wallet address: ${wallet.address.with0x}");
 When working with Safe 7579 accounts and WebAuthn validation:
 
 1. You must initialize the `WebAuthnValidator` module during account creation
-2. For the first transaction, use the validator's txService instead of the base wallet. This is required because:
+2. For the first transaction, use the validator's proxy method instead of the base wallet. This is required because:
    - Safe 7579 accounts need an initial transaction to complete setup
    - The [Shared Signer](https://github.com/safe-global/safe-modules/tree/main/modules/passkey/contracts/4337) cannot be used until after this setup
+3. Additionally you can default to using the validator to proxy transactions. Only drawback is you have to do a lot more manual stuffs.
 
 ### Interacting with the Smart Wallet
 
@@ -306,11 +306,12 @@ await account.installModule(
 
 // mint an nft using a passkey signature
 final nft = Address.fromHex("0x"); // add nft contract address
-final mintAbi = ContractAbis.get("ERC721_SafeMint");
-final mintCall = Contract.encodeFunctionCall("safeMint", nft, mintAbi);
-// this transaction must be sent directly from the `validator.txService` instead.
+final mintAbi = ContractAbis.get("ERC721_SafeMint"); // exposed for convenience
+final mintCall = ContractUtils.encodeFunctionCall("safeMint", nft, mintAbi);
+// this transaction must be sent directly from the `validator` instead.
 // validators are responsible for validating userOperations and managing signature generation internally
-final tx = await validator.txService.sendTransaction(nft, mintCall);
+// this will ask the validator to generate the transaction in the format the onchain validator can validate.
+final tx = await validator.proxyTransaction(nft, mintCall);
 final receipt = await tx.wait();
 ```
 

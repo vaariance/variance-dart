@@ -150,7 +150,7 @@ class _SafeInitializer {
   /// Returns a [Uint8List] containing the encoded initializer data.
   Uint8List getInitializer() {
     encodeModuleSetup() {
-      return Contract.encodeFunctionCall(
+      return ContractUtils.encodeFunctionCall(
         "enableModules",
         module.setup,
         ContractAbis.get("enableModules"),
@@ -176,7 +176,7 @@ class _SafeInitializer {
       setup["data"] = encodeModuleSetup();
     }
 
-    return Contract.encodeFunctionCall(
+    return ContractUtils.encodeFunctionCall(
       "setup",
       singleton.address,
       ContractAbis.get("setup"),
@@ -232,7 +232,7 @@ class _SafeModule extends Safe4337Module implements Safe4337ModuleBase {
           .concat(data);
     }
 
-    return Contract.encodeFunctionCall(
+    return ContractUtils.encodeFunctionCall(
       "multiSend",
       Addresses.safeMultiSendaddress,
       ContractAbis.get("multiSend"),

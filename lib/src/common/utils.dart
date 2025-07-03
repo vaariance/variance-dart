@@ -58,7 +58,7 @@ Uint8List encode7579LaunchpadInitdata({
   Iterable<Address>? attesters,
   int? attestersThreshold,
 }) {
-  return Contract.encodeFunctionCall(
+  return ContractUtils.encodeFunctionCall(
     "initSafe7579",
     launchpad,
     Safe7579Abis.get("initSafe7579"),
@@ -132,7 +132,7 @@ Uint8List encode7579InitCalldata({
   required Address setupTo,
   required Uint8List setupData,
 }) {
-  return Contract.encodeFunctionCall(
+  return ContractUtils.encodeFunctionCall(
     "preValidationSetup",
     launchpad,
     Safe7579Abis.get("preValidationSetup"),
@@ -174,7 +174,7 @@ Uint8List encode7579Call(
   List<Uint8List> calldata,
   Address contractAddress,
 ) {
-  return Contract.encodeFunctionCall(
+  return ContractUtils.encodeFunctionCall(
     'execute',
     contractAddress,
     Safe7579Abis.get('execute7579'),
@@ -225,7 +225,7 @@ Uint8List _encodePostSetupInitCalldata(
   Address contractAddress,
   CallType type,
 ) {
-  return Contract.encodeFunctionCall(
+  return ContractUtils.encodeFunctionCall(
     "setupSafe",
     initializer.launchpad,
     Safe7579Abis.get("setup7579Safe"),
