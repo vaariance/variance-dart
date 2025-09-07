@@ -4,9 +4,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:variance_modules/modules.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:variance_dart/variance_dart.dart';
-import 'package:web3dart/web3dart.dart';
-
 import '../models/wallet_creation_result.dart';
+import 'package:wallet/wallet.dart';
 
 enum WalletCreationState {
   idle,
@@ -51,16 +50,20 @@ class WalletProvider extends ChangeNotifier {
 
   // Common parameters
   final salt = Uint256.zero;
-  static var rpc = dotenv.env['BUNDLER_URL']!;
 
   // Constructor
   WalletProvider()
       : _chain = Chain(
-            bundlerUrl: rpc,
-            paymasterUrl: rpc,
+            bundlerConfig: RPCEndpointConfig.withClientId(
+              url: 'https://4202.bundler.thirdweb.com/v2',
+              clientId: 'e457338e365023985cd01a7667aa9654',
+            ),
+            paymasterConfig: RPCEndpointConfig.fromUrl(
+                'https://4202.bundler.thirdweb.com/v2'),
             testnet: true,
             chainId: 84532,
-            jsonRpcUrl: "https://sepolia.base.org",
+            jsonRpcConfig:
+                RPCEndpointConfig.fromUrl('https://sepolia.base.org'),
             accountFactory: Addresses.safeProxyFactoryAddress,
             explorer: "https://base-sepolia.blockscout.com/",
             entrypoint: EntryPointAddress.v07);
@@ -139,12 +142,12 @@ class WalletProvider extends ChangeNotifier {
           break;
       }
       overrideGas();
-      log("Wallet created: ${_wallet?.address.hex}");
+      log("Wallet created: ${_wallet?.address.with0x}");
       _setSuccess();
       return WalletCreationResult(
         success: true,
         wallet: _wallet,
-        address: _wallet?.address.hex ?? '',
+        address: _wallet?.address.with0x ?? '',
       );
     } catch (e) {
       _setError(e.toString());
@@ -165,12 +168,12 @@ class WalletProvider extends ChangeNotifier {
 
     try {
       _wallet = await factory.createAlchemyLightAccount(salt);
-      log("Wallet created: ${_wallet?.address.hex}");
+      log("Wallet created: ${_wallet?.address.with0x}");
       _setSuccess();
       return WalletCreationResult(
         success: true,
         wallet: _wallet,
-        address: _wallet?.address.hex ?? '',
+        address: _wallet?.address.with0x ?? '',
       );
     } catch (e) {
       _setError(e.toString());
@@ -215,12 +218,12 @@ class WalletProvider extends ChangeNotifier {
       }
       _isModular = true;
       overrideGas();
-      log("Wallet created: ${_wallet?.address.hex}");
+      log("Wallet created: ${_wallet?.address}");
       _setSuccess();
       return WalletCreationResult(
         success: true,
         wallet: _wallet,
-        address: _wallet?.address.hex ?? '',
+        address: _wallet?.address.eip55With0x ?? '',
       );
     } catch (e) {
       _setError(e.toString());
@@ -232,18 +235,13 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  Future<(bool, String)> simulateMint([TransactionBuilder? builder]) async {
+  Future<(bool, String)> simulateMint() async {
     final mintAbi = ContractAbis.get("ERC721_SafeMint");
-    final mintCall = Contract.encodeFunctionCall(
+    final mintCall = ContractUtils.encodeFunctionCall(
         "safeMint", nft, mintAbi, [_wallet?.address]);
 
     try {
-      UserOperationResponse? tx;
-      if (builder != null) {
-        tx = await builder.sendTransaction(nft, mintCall);
-      } else {
-        tx = await _wallet?.sendTransaction(nft, mintCall);
-      }
+      final tx = await _wallet?.sendTransaction(nft, mintCall);
 
       final receipt = await tx?.wait();
       final txHash = receipt?.txReceipt.transactionHash;
@@ -259,23 +257,18 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  Future<(bool, String)> simulateTransfer([TransactionBuilder? builder]) async {
+  Future<(bool, String)> simulateTransfer() async {
     final mintAbi = ContractAbis.get("ERC20_Mint");
     final amount = EtherAmount.fromInt(EtherUnit.ether, 20);
 
-    final mintCall = Contract.encodeFunctionCall(
+    final mintCall = ContractUtils.encodeFunctionCall(
         "mint", erc20, mintAbi, [_wallet?.address, amount.getInWei]);
-    final transferCall = Contract.encodeERC20TransferCall(erc20, dump, amount);
+    final transferCall =
+        ContractUtils.encodeERC20TransferCall(erc20, dump, amount.getInWei);
 
     try {
-      UserOperationResponse? tx;
-      if (builder != null) {
-        tx = await builder
-            .sendBatchedTransaction([erc20, erc20], [mintCall, transferCall]);
-      } else {
-        tx = await _wallet
-            ?.sendBatchedTransaction([erc20, erc20], [mintCall, transferCall]);
-      }
+      final tx = await _wallet
+          ?.sendBatchedTransaction([erc20, erc20], [mintCall, transferCall]);
       final receipt = await tx?.wait();
       final txHash = receipt?.txReceipt.transactionHash;
       log("Transaction receipt Hash: $txHash");

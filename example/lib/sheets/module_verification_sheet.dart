@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:variance_dart/variance_dart.dart';
-import 'package:web3_signers/web3_signers.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import 'dart:typed_data';
+import 'package:wallet/wallet.dart';
 
 class ModuleVerificationSheet extends StatefulWidget {
   const ModuleVerificationSheet({

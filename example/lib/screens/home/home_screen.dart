@@ -67,8 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             _isLoadingTransfer = true;
                                           });
                                           final (success, res) =
-                                              await provider.simulateTransfer(
-                                                  validator?.wallet);
+                                              await provider.simulateTransfer();
                                           if (success) {
                                             setState(() {
                                               _mintTxHash = res;
@@ -149,8 +148,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           setState(() {
                                             _isLoadingMint = true;
                                           });
-                                          final (success, res) = await provider
-                                              .simulateMint(validator?.wallet);
+                                          final (success, res) =
+                                              await provider.simulateMint();
                                           if (success) {
                                             setState(() {
                                               _mintTxHash = res;

@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:variance_dart/variance_dart.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
-import 'package:web3dart/web3dart.dart';
 import '../../sheets/module_install_sheet.dart';
 import '../../sheets/module_uninstall_sheet.dart';
 import '../../sheets/module_verification_sheet.dart';
+import 'package:wallet/wallet.dart';
 
 /// Card widget for modular account management actions
 class ModularActionsCard extends StatelessWidget {

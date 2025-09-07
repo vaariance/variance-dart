@@ -8,7 +8,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
 import 'package:variancedemo/variance_colors.dart';
 import 'package:web3_signers/web3_signers.dart';
-import 'package:web3dart/web3dart.dart';
+
+import 'package:wallet/wallet.dart';
 
 import '../../utils/shorten_address.dart';
 
@@ -30,12 +31,13 @@ class _WalletBalanceState extends State<WalletBalance> {
       (WalletProvider provider) => provider.wallet,
     );
 
-    address = wallet?.address.hex ?? '';
+    address = wallet?.address.eip55With0x ?? '';
 
     Future<void> getBalance() async {
       final ether = await wallet?.balance;
       setState(() {
-        balance = Uint256.fromWei(ether ?? EtherAmount.zero());
+        balance = Uint256.fromWei(
+            EtherAmount.fromBigInt(EtherUnit.ether, ether ?? BigInt.zero));
       });
     }
 

@@ -31,6 +31,7 @@ part 'src/common/contract.dart';
 part 'src/common/extensions.dart';
 part 'src/common/utils.dart';
 part 'src/common/constants.dart';
+part 'src/common/rpc_config.dart';
 
 // actions
 part 'src/actions/7579_actions.dart';

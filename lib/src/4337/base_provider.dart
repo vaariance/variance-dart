@@ -1,7 +1,26 @@
 part of '../../variance_dart.dart';
 
 class RPCBase extends JsonRPC {
-  RPCBase(String url) : super(url, http.Client());
+  final Map<String, String>? headers;
+
+  RPCBase(String url, {this.headers})
+    : super(url, _createHttpClient(url, headers));
+
+  factory RPCBase.fromConfig(RPCEndpointConfig config) {
+    return RPCBase(config.url, headers: config.headers);
+  }
+
+  /// Create HTTP client with custom headers if provided
+  static http.Client _createHttpClient(
+    String? url,
+    Map<String, String>? headers,
+  ) {
+    final client = http.Client();
+    if (headers != null && headers.isNotEmpty) {
+      return HeaderInterceptorClient(client, headers);
+    }
+    return client;
+  }
 
   /// Asynchronously sends an RPC call to the Ethereum node for the specified function and parameters.
   ///
