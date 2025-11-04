@@ -15,7 +15,7 @@ class Chain {
   Address? accountFactory;
 
   /// The URL of the JSON-RPC endpoint for this chain.
-  String? jsonRpcUrl;
+  RpcConfig? jsonRpc;
 
   /// The URL of the bundler service for this chain.
   RpcConfig? bundler;
@@ -60,7 +60,7 @@ class Chain {
     required this.explorer,
     required this.entrypoint,
     this.accountFactory,
-    this.jsonRpcUrl,
+    this.jsonRpc,
     this.bundler,
     this.paymasters,
     this.testnet = false,

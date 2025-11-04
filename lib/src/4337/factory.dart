@@ -20,18 +20,24 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
         _chain.accountFactory != null,
         InvalidFactoryAddress(_chain.accountFactory),
       ),
-      assert(_chain.jsonRpcUrl != null, 'JSON RPC configuration is required'),
-      assert(_chain.jsonRpcUrl!.isURL(), InvalidJsonRpcUrl(_chain.jsonRpcUrl!)),
-      assert(_chain.bundler != null, 'Bundler configuration is required'),
+      assert(_chain.jsonRpc != null, 'JSON RPC configuration is required'),
       assert(
-        _chain.bundler!.url.isURL(),
+        _chain.jsonRpc?.url.isURL() ?? false,
+        InvalidJsonRpcUrl(_chain.jsonRpc?.url),
+      ),
+      assert(
+        _chain.bundler?.url.isURL() ?? false,
+        'Bundler configuration is required',
+      ),
+      assert(
+        _chain.bundler?.url.isURL() ?? false,
         InvalidBundlerUrl(_chain.bundler!.url),
       ),
       assert(
         _chain.paymasters == null || _chain.paymasters!.url.isURL(),
         InvalidPaymasterUrl(_chain.paymasters?.url),
       ),
-      _jsonRpcUrl = RPCBase(_chain.jsonRpcUrl!),
+      _jsonRpcUrl = RPCBase(_chain.jsonRpc!.url),
       _bundler = RPCBase.fromConfig(_chain.bundler!),
       _paymaster =
           _chain.paymasters != null

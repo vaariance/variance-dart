@@ -33,12 +33,15 @@ import 'package:web3dart/web3dart.dart';
 
 ### Chain Configuration
 
+Variance now supports using your favorite closed source bundlers.
+You can set api-keys to the headers like below:
+
 ```dart
 const bundler = "https://api.pimlico.io/v2/84532/rpc?apikey=API_KEY";
 
 final Chain chain = Chain(
-            bundlerUrl: bundler,
-            paymasterUrl: bundler,
+            bundlerUrl:  (url: bundler, headers: {'x-api-key': 'api-key'}),
+            paymasterUrl: (url: bundleUrl, headers: {'x-api-key': 'api-key'}),
             testnet: true,
             chainId: 84532,
             jsonRpcUrl: "https://sepolia.base.org",
@@ -136,9 +139,9 @@ print("p256 wallet address: ${wallet.address.with0x}");
 
 ### To create a [Modular Safe](https://docs.safe.global/advanced/erc-7579/7579-safe) Smart Account
 
- For more details about the technical specifications and implementation, visit [ERC7579](https://erc7579.com/) and [Rhinestone](https://rhinestone.dev).
+For more details about the technical specifications and implementation, visit [ERC7579](https://erc7579.com/) and [Rhinestone](https://rhinestone.dev).
 
- To access all available modules, install the `variance_modules` package by running: `flutter pub add variance_modules`
+To access all available modules, install the `variance_modules` package by running: `flutter pub add variance_modules`
 
 ```dart
 final salt = Uint256.zero;
@@ -175,7 +178,7 @@ final options = PassKeysOptions(
 final signer = PassKeySigner(options: options);
 final smartWalletFactory = SmartWalletFactory(chain, signer);
 
-final keypair = await signer.register(name, displayName); 
+final keypair = await signer.register(name, displayName);
 final launchpad =
         Address.fromHex("0x7579011aB74c46090561ea277Ba79D510c6C00ff");
     final attester =
@@ -294,7 +297,7 @@ final signer = PassKeySigner(options: PassKeysOptions(
           authenticatorAttachment: "cross-platform",
           sharedWebauthnSigner: Addresses.sharedSignerAddress,
         ));
-final keypair = await signer.register(name, displayName); 
+final keypair = await signer.register(name, displayName);
 final validator = WebauthnValidator(account, BigInt.one, {keyPair}, signer);
 
 // we need to install it first from the smartwallet.
