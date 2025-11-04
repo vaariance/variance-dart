@@ -1,7 +1,17 @@
 part of '../../variance_dart.dart';
 
+typedef RpcConfig = ({String url, Map<String, String>? headers});
+
 class RPCBase extends JsonRPC {
-  RPCBase(String url) : super(url, http.Client());
+  RPCBase(String url, {Map<String, String>? headers})
+    : super(
+        url,
+        headers != null ? HeaderClient(http.Client(), headers) : http.Client(),
+      );
+
+  factory RPCBase.fromConfig(RpcConfig config) {
+    return RPCBase(config.url, headers: config.headers ?? {});
+  }
 
   /// Asynchronously sends an RPC call to the Ethereum node for the specified function and parameters.
   ///

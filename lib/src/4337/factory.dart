@@ -4,7 +4,7 @@ part of '../../variance_dart.dart';
 class SmartWalletFactory implements SmartWalletFactoryBase {
   final Chain _chain;
   final MSI _signer;
-  final RPCBase _jsonRpc;
+  final RPCBase _jsonRpcUrl;
   final RPCBase _bundler;
   final RPCBase? _paymaster;
 
@@ -20,29 +20,36 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
         _chain.accountFactory != null,
         InvalidFactoryAddress(_chain.accountFactory),
       ),
-      assert(_chain.jsonRpcUrl.isURL(), InvalidJsonRpcUrl(_chain.jsonRpcUrl)),
-      assert(_chain.bundlerUrl.isURL(), InvalidBundlerUrl(_chain.bundlerUrl)),
+      assert(_chain.jsonRpcUrl != null, 'JSON RPC configuration is required'),
+      assert(_chain.jsonRpcUrl!.isURL(), InvalidJsonRpcUrl(_chain.jsonRpcUrl!)),
+      assert(_chain.bundler != null, 'Bundler configuration is required'),
       assert(
-        _chain.paymasterUrl != null && _chain.paymasterUrl.isURL(),
-        InvalidPaymasterUrl(_chain.paymasterUrl),
+        _chain.bundler!.url.isURL(),
+        InvalidBundlerUrl(_chain.bundler!.url),
       ),
-      _jsonRpc = RPCBase(_chain.jsonRpcUrl!),
-      _bundler = RPCBase(_chain.bundlerUrl!),
+      assert(
+        _chain.paymasters == null || _chain.paymasters!.url.isURL(),
+        InvalidPaymasterUrl(_chain.paymasters?.url),
+      ),
+      _jsonRpcUrl = RPCBase(_chain.jsonRpcUrl!),
+      _bundler = RPCBase.fromConfig(_chain.bundler!),
       _paymaster =
-          _chain.paymasterUrl != null ? RPCBase(_chain.paymasterUrl!) : null;
+          _chain.paymasters != null
+              ? RPCBase.fromConfig(_chain.paymasters!)
+              : null;
 
   /// A getter for the LightAccountFactory contract instance.
   _LightAccountFactory get _lightAccountfactory => _LightAccountFactory(
     address: _chain.accountFactory!,
     chainId: _chain.chainId,
-    rpc: _jsonRpc,
+    rpc: _jsonRpcUrl,
   );
 
   /// A getter for the SafeProxyFactory contract instance.
   _SafeProxyFactory get _safeProxyFactory => _SafeProxyFactory(
     address: _chain.accountFactory!,
     chainId: _chain.chainId,
-    rpc: _jsonRpc,
+    rpc: _jsonRpcUrl,
   );
 
   @override
@@ -278,7 +285,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       address: address,
       signer: _signer,
       initCode: initCode,
-      jsonRpc: _jsonRpc,
+      jsonRpc: _jsonRpcUrl,
       bundler: _bundler,
       paymaster: _paymaster,
       safe: safe,

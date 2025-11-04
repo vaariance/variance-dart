@@ -18,13 +18,13 @@ class Chain {
   String? jsonRpcUrl;
 
   /// The URL of the bundler service for this chain.
-  String? bundlerUrl;
+  RpcConfig? bundler;
 
   /// The URL of the paymaster service for this chain.
   ///
   /// This is an optional parameter and can be left null if the paymaster URL
   /// is not known or needed.
-  String? paymasterUrl;
+  RpcConfig? paymasters;
 
   /// Specify whether it is testnet
   bool testnet;
@@ -61,8 +61,8 @@ class Chain {
     required this.entrypoint,
     this.accountFactory,
     this.jsonRpcUrl,
-    this.bundlerUrl,
-    this.paymasterUrl,
+    this.bundler,
+    this.paymasters,
     this.testnet = false,
   });
 }

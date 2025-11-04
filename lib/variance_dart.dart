@@ -6,10 +6,9 @@ import 'package:flutter/foundation.dart';
 
 import 'package:eip1559/eip1559.dart';
 import 'package:http/http.dart' as http;
+import 'package:web3dart/json_rpc.dart' show JsonRPC;
 import 'package:web3dart/web3dart.dart';
 import 'package:web3_signers/web3_signers.dart';
-import 'package:web3dart/json_rpc.dart';
-
 import 'src/abis/abis.dart';
 import 'src/interfaces/interfaces.dart';
 
@@ -31,6 +30,7 @@ part 'src/common/contract.dart';
 part 'src/common/extensions.dart';
 part 'src/common/utils.dart';
 part 'src/common/constants.dart';
+part 'src/common/rpc_config.dart';
 
 // actions
 part 'src/actions/7579_actions.dart';
