@@ -20,16 +20,26 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
         _chain.accountFactory != null,
         InvalidFactoryAddress(_chain.accountFactory),
       ),
-      assert(_chain.jsonRpcUrl.isURL(), InvalidJsonRpcUrl(_chain.jsonRpcUrl)),
-      assert(_chain.bundlerUrl.isURL(), InvalidBundlerUrl(_chain.bundlerUrl)),
+      assert(_chain.jsonRpc != null, 'JSON RPC configuration is required'),
       assert(
-        _chain.paymasterUrl != null && _chain.paymasterUrl.isURL(),
-        InvalidPaymasterUrl(_chain.paymasterUrl),
+        _chain.jsonRpc?.url.isURL() ?? false,
+        InvalidJsonRpcUrl(_chain.jsonRpc?.url),
       ),
-      _jsonRpc = RPCBase(_chain.jsonRpcUrl!),
-      _bundler = RPCBase(_chain.bundlerUrl!),
-      _paymaster =
-          _chain.paymasterUrl != null ? RPCBase(_chain.paymasterUrl!) : null;
+      assert(
+        _chain.bundler?.url.isURL() ?? false,
+        'Bundler configuration is required',
+      ),
+      assert(
+        _chain.bundler?.url.isURL() ?? false,
+        InvalidBundlerUrl(_chain.bundler?.url),
+      ),
+      assert(
+        _chain.paymaster == null || (_chain.paymaster?.url.isURL() ?? false),
+        InvalidPaymasterUrl(_chain.paymaster?.url),
+      ),
+      _jsonRpc = RPCBase(_chain.jsonRpc!),
+      _bundler = RPCBase(_chain.bundler!),
+      _paymaster = _chain.paymaster != null ? RPCBase(_chain.paymaster!) : null;
 
   /// A getter for the LightAccountFactory contract instance.
   _LightAccountFactory get _lightAccountfactory => _LightAccountFactory(
