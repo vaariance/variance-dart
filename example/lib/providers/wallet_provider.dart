@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:eip7579/modules.dart';
+import 'package:eip7579/eip7579.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:variance_dart/variance_dart.dart';
 

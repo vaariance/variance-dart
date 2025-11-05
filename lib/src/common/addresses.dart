@@ -52,6 +52,10 @@ class Addresses {
     "0x7579EE8307284F293B1927136486880611F20002",
   );
 
+  static final Address sentinelAddress = Address.fromHex(
+    "0x0000000000000000000000000000000000000001",
+  );
+
   Addresses._();
 }
 

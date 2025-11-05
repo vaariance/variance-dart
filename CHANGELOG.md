@@ -1,3 +1,8 @@
+## 0.2.2
+
+* Add sentinel address constant to Addresses class
+* Update eip7579 imports from modules.dart to eip7579.dart
+
 ## 0.2.1
 
 * Update example app with 7579 examples.

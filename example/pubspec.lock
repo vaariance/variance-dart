@@ -172,10 +172,11 @@ packages:
   eip7579:
     dependency: "direct main"
     description:
-      path: "../../variance-modules"
-      relative: true
-    source: path
-    version: "1.0.0"
+      name: eip7579
+      sha256: "2b2fc2791663fabd6a44498c4149f9fa6bae3613738025c247a4d75d12c3bb81"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   fake_async:
     dependency: transitive
     description:
@@ -767,9 +768,10 @@ packages:
   variance_dart:
     dependency: "direct main"
     description:
-      path: ".."
-      relative: true
-    source: path
+      name: variance_dart
+      sha256: b22e0567c232fe1712242292e15dc9a1ed50453ea1841287e0f810a7f7b488fe
+      url: "https://pub.dev"
+    source: hosted
     version: "0.2.1"
   vector_math:
     dependency: transitive

@@ -141,7 +141,7 @@ print("p256 wallet address: ${wallet.address.with0x}");
 
 For more details about the technical specifications and implementation, visit [ERC7579](https://erc7579.com/) and [Rhinestone](https://rhinestone.dev).
 
-To access all available modules, install the `variance_modules` package by running: `flutter pub add variance_modules`
+To access all available modules, install the `eip7579` package by running: `flutter pub add eip7579`
 
 ```dart
 final salt = Uint256.zero;
@@ -165,7 +165,7 @@ print("safe wallet address: ${wallet.address.with0x}");
 Note that you must initialize the `WebAuthnValidator` module when creating the safe account.
 
 ```dart
-import 'package:variance_modules/modules.dart';
+import 'package:eip7579/eip7579.dart';
 
 final salt = Uint256.zero;
 final options = PassKeysOptions(
@@ -249,7 +249,7 @@ await wallet.send(
 > Additionally, you must already have an instance of the smart wallet.
 
 ```dart
-import 'package:eip7579/modules.dart';
+import 'package:eip7579/eip7579.dart';
 
 // required constructor parameters
 final threshold = BigInt.two;

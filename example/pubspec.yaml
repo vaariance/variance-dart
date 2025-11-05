@@ -21,8 +21,7 @@ dependencies:
   shared_preferences: ^2.2.2
   path_provider: ^2.1.1
   fluttertoast: ^8.2.4
-  variance_dart:
-    path: ../
+  variance_dart: ^0.2.1
   eip7579: ^1.0.0
   web3_signers: ^0.2.1
   http: ^1.3.0

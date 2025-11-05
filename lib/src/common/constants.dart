@@ -5,10 +5,6 @@ typedef Percent = double;
 typedef GasTransformFn = BigInt Function(BigInt?)?;
 typedef BlockInfo = ({DateTime timestamp, BigInt? baseFeePerGas});
 
-final Address SENTINEL_ADDRESS = Address.fromHex(
-  "0x0000000000000000000000000000000000000001",
-);
-
 const int MODULE_TYPE_VALIDATOR = 1;
 const int MODULE_TYPE_EXECUTOR = 2;
 const int MODULE_TYPE_FALLBACK = 3;

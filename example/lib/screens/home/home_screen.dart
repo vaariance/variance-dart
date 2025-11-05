@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:eip7579/modules.dart';
+import 'package:eip7579/eip7579.dart';
 import 'package:variancedemo/providers/module_provider.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
 import 'package:variancedemo/screens/home/home_widgets.dart';

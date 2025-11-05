@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:variance_dart/variance_dart.dart';
-import 'package:eip7579/modules.dart';
+import 'package:eip7579/eip7579.dart';
 import 'package:variancedemo/utils/exceptions.dart';
 import 'package:web3_signers/web3_signers.dart';
 

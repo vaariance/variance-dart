@@ -113,7 +113,7 @@ abstract class BundlerProviderBase {
   /// ```dart
   /// validateBundlerMethod('eth_sendUserOperation');
   /// ```
-  static validateBundlerMethod(String method) {
+  static void validateBundlerMethod(String method) {
     assert(methods.contains(method), InvalidBundlerMethod(method));
   }
 }
