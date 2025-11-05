@@ -1,17 +1,31 @@
 part of '../../variance_dart.dart';
 
-typedef RpcConfig = ({String url, Map<String, String>? headers});
+typedef HeaderMap = Map<String, String>;
+typedef RpcConfig = ({String url, HeaderMap? headers});
+
+class HeaderClient extends http.BaseClient {
+  final http.Client _inner;
+  final HeaderMap _headers;
+
+  HeaderClient(this._inner, this._headers);
+
+  @override
+  void close() {
+    _inner.close();
+    super.close();
+  }
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    _headers.forEach((k, v) {
+      request.headers.putIfAbsent(k, () => v);
+    });
+    return _inner.send(request);
+  }
+}
 
 class RPCBase extends JsonRPC {
-  RPCBase(String url, {Map<String, String>? headers})
-    : super(
-        url,
-        headers != null ? HeaderClient(http.Client(), headers) : http.Client(),
-      );
-
-  factory RPCBase.fromConfig(RpcConfig config) {
-    return RPCBase(config.url, headers: config.headers ?? {});
-  }
+  RPCBase(RpcConfig config) : super(config.url, _getClient(config.headers));
 
   /// Asynchronously sends an RPC call to the Ethereum node for the specified function and parameters.
   ///
@@ -33,24 +47,12 @@ class RPCBase extends JsonRPC {
   Future<T> _makeRPCCall<T>(String function, [List<dynamic>? params]) {
     return super.call(function, params).then((data) => data.result as T);
   }
-}
 
-class HeaderClient extends http.BaseClient {
-  HeaderClient(this._inner, this._headers);
-  final http.Client _inner;
-  final Map<String, String> _headers;
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) {
-    _headers.forEach((key, value) {
-      request.headers[key] = value;
-    });
-    return _inner.send(request);
-  }
-
-  @override
-  void close() {
-    _inner.close();
-    super.close();
+  static http.Client _getClient(HeaderMap? headers) {
+    final client = http.Client();
+    if (headers != null) {
+      return HeaderClient(client, headers);
+    }
+    return client;
   }
 }

@@ -14,17 +14,17 @@ class Chain {
   /// The address of the AccountFactory contract on this chain.
   Address? accountFactory;
 
-  /// The URL of the JSON-RPC endpoint for this chain.
+  /// The Config of the JSON-RPC endpoint for this chain.
   RpcConfig? jsonRpc;
 
-  /// The URL of the bundler service for this chain.
+  /// The Config of the bundler service for this chain.
   RpcConfig? bundler;
 
-  /// The URL of the paymaster service for this chain.
+  /// The Config of the paymaster service for this chain.
   ///
-  /// This is an optional parameter and can be left null if the paymaster URL
+  /// This is an optional parameter and can be left null if the paymaster
   /// is not known or needed.
-  RpcConfig? paymasters;
+  RpcConfig? paymaster;
 
   /// Specify whether it is testnet
   bool testnet;
@@ -36,10 +36,9 @@ class Chain {
   /// [entrypoint] is the address of the EntryPoint contract on this chain.
   /// [accountFactory] is the address of the AccountFactory contract on this
   ///   chain.
-  /// [jsonRpcUrl] is the URL of the JSON-RPC endpoint for this chain.
-  /// [bundlerUrl] is the URL of the bundler service for this chain.
-  /// [paymasterUrl] is the optional URL of the paymaster service for this
-  ///   chain.
+  /// [jsonRpc] is the Config of the JSON-RPC endpoint for this chain.
+  /// [bundler] is the Config of the bundler service for this chain.
+  /// [paymaster] is the Config of the paymaster service for this chain.
   ///
   /// Example:
   ///
@@ -49,9 +48,9 @@ class Chain {
   ///   explorer: 'https://etherscan.io',
   ///   entrypoint: EntryPointAddress('0x...'),
   ///   accountFactory: Address('0x...'),
-  ///   jsonRpcUrl: 'https://mainnet.infura.io/v3/...',
-  ///   bundlerUrl: 'https://bundler.example.com',
-  ///   paymasterUrl: 'https://paymaster.example.com',
+  ///   jsonRpc: (url: 'https://mainnet.infura.io/v3/...', headers: null),
+  ///   bundler: (url: 'https://bundler.example.com', headers: null),
+  ///   paymaster: (url: 'https://paymaster.example.com', headers: null),
   /// );
   /// ```
 
@@ -62,7 +61,7 @@ class Chain {
     this.accountFactory,
     this.jsonRpc,
     this.bundler,
-    this.paymasters,
+    this.paymaster,
     this.testnet = false,
   });
 }

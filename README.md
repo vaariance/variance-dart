@@ -34,7 +34,7 @@ import 'package:web3dart/web3dart.dart';
 ### Chain Configuration
 
 Variance now supports using your favorite closed source bundlers.
-You can set api-keys to the headers like below:
+You can set api-keys to the headers like below or leave empty:
 
 ```dart
 const bundler = "https://api.pimlico.io/v2/84532/rpc?apikey=API_KEY";

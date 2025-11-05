@@ -4,7 +4,7 @@ part of '../../variance_dart.dart';
 class SmartWalletFactory implements SmartWalletFactoryBase {
   final Chain _chain;
   final MSI _signer;
-  final RPCBase _jsonRpcUrl;
+  final RPCBase _jsonRpc;
   final RPCBase _bundler;
   final RPCBase? _paymaster;
 
@@ -31,31 +31,28 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       ),
       assert(
         _chain.bundler?.url.isURL() ?? false,
-        InvalidBundlerUrl(_chain.bundler!.url),
+        InvalidBundlerUrl(_chain.bundler?.url),
       ),
       assert(
-        _chain.paymasters == null || _chain.paymasters!.url.isURL(),
-        InvalidPaymasterUrl(_chain.paymasters?.url),
+        _chain.paymaster == null || (_chain.paymaster?.url.isURL() ?? false),
+        InvalidPaymasterUrl(_chain.paymaster?.url),
       ),
-      _jsonRpcUrl = RPCBase(_chain.jsonRpc!.url),
-      _bundler = RPCBase.fromConfig(_chain.bundler!),
-      _paymaster =
-          _chain.paymasters != null
-              ? RPCBase.fromConfig(_chain.paymasters!)
-              : null;
+      _jsonRpc = RPCBase(_chain.jsonRpc!),
+      _bundler = RPCBase(_chain.bundler!),
+      _paymaster = _chain.paymaster != null ? RPCBase(_chain.paymaster!) : null;
 
   /// A getter for the LightAccountFactory contract instance.
   _LightAccountFactory get _lightAccountfactory => _LightAccountFactory(
     address: _chain.accountFactory!,
     chainId: _chain.chainId,
-    rpc: _jsonRpcUrl,
+    rpc: _jsonRpc,
   );
 
   /// A getter for the SafeProxyFactory contract instance.
   _SafeProxyFactory get _safeProxyFactory => _SafeProxyFactory(
     address: _chain.accountFactory!,
     chainId: _chain.chainId,
-    rpc: _jsonRpcUrl,
+    rpc: _jsonRpc,
   );
 
   @override
@@ -291,7 +288,7 @@ class SmartWalletFactory implements SmartWalletFactoryBase {
       address: address,
       signer: _signer,
       initCode: initCode,
-      jsonRpc: _jsonRpcUrl,
+      jsonRpc: _jsonRpc,
       bundler: _bundler,
       paymaster: _paymaster,
       safe: safe,
