@@ -8,7 +8,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
 import 'package:variancedemo/variance_colors.dart';
 import 'package:web3_signers/web3_signers.dart';
-import 'package:web3dart/web3dart.dart';
 
 import '../../utils/shorten_address.dart';
 

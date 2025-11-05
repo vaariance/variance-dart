@@ -35,7 +35,7 @@ String parseUserOperationError(dynamic error) {
       case 'AA22':
         return 'UserOp expired';
       case 'AA23':
-        return 'UserOp reverted';
+        return 'UserOp reverted or (OOG)';
       case 'AA24':
         return 'UserOp signature check failed';
       case 'AA25':

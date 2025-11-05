@@ -116,7 +116,6 @@ abstract class SmartWalletBase extends SmartContract {
   Chain get chain;
 
   /// Retrieves the dummy signature required for gas estimation from the Smart Wallet.
-  @protected
   String get dummySignature;
 
   /// Returns the initialization code for deploying the Smart Wallet contract.
@@ -133,7 +132,6 @@ abstract class SmartWalletBase extends SmartContract {
   Future<bool> get isDeployed;
 
   /// Returns the internal state of the wallet
-  @protected
   SmartWalletState get state;
 
   /// Builds a [UserOperation] instance with the specified parameters.

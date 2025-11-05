@@ -245,11 +245,11 @@ await wallet.send(
 
 ### Module Operations
 
-> all modules can be installed from `variance_modules` package. simply run `flutter pub add variance_modules` to add the package to your project.
+> all modules can be installed from `eip7579` package. simply run `flutter pub add eip7579` to add the package to your project.
 > Additionally, you must already have an instance of the smart wallet.
 
 ```dart
-import 'package:variance_modules/modules.dart';
+import 'package:eip7579/modules.dart';
 
 // required constructor parameters
 final threshold = BigInt.two;

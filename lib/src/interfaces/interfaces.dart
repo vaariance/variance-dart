@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
+
 import 'package:eip1559/eip1559.dart';
 import 'package:web3_signers/web3_signers.dart'
     show MSI, PassKeyPair, Uint256, Address;

@@ -127,6 +127,9 @@ class ModuleProvider extends ChangeNotifier {
     } catch (e) {
       String errorMessage = parseUserOperationError(e);
 
+      Logger.warning(
+          "Note: if using a webauthn validator, you should send a normal transaction first before attempting to install a module. This is because, the validator can only be used for validating user-op at this time. Module installation, as implemented in this example do not use the validator to validated the accompanying transaction.\n");
+
       log('Failed to install module: ${e.toString()}');
       return (false, null, ModuleInstallationException(errorMessage, e));
     } finally {

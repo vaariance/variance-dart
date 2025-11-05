@@ -23,8 +23,7 @@ dependencies:
   fluttertoast: ^8.2.4
   variance_dart:
     path: ../
-  eip7579:
-    path: ../../variance-modules
+  eip7579: ^1.0.0
   web3_signers: ^0.2.1
   http: ^1.3.0
   flutter_dotenv: ^5.2.1
