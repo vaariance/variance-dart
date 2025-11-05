@@ -1,3 +1,9 @@
+## 0.2.1
+
+* Update example app with 7579 examples.
+* Allow the provision of custom header in Rpc Configurations
+* Update doc comments to reflect new rpc definition style
+
 ## 0.2.0
 
 * add support for safe7579 Accounts and safe7579Passkeys Acccounts.

@@ -30,12 +30,12 @@ class _WalletBalanceState extends State<WalletBalance> {
       (WalletProvider provider) => provider.wallet,
     );
 
-    address = wallet?.address.hex ?? '';
+    address = wallet?.address.with0x ?? '';
 
     Future<void> getBalance() async {
       final ether = await wallet?.balance;
       setState(() {
-        balance = Uint256.fromWei(ether ?? EtherAmount.zero());
+        balance = Uint256(ether ?? BigInt.zero);
       });
     }
 

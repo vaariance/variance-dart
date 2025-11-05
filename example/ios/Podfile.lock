@@ -1,8 +1,12 @@
 PODS:
+  - device_info_plus (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - flutter_native_splash (2.4.3):
     - Flutter
   - fluttertoast (0.0.2):
+    - Flutter
+  - package_info_plus (0.4.5):
     - Flutter
   - passkeys_ios (0.0.1):
     - Flutter
@@ -16,21 +20,27 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
   - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
   - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
+  - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - passkeys_ios (from `.symlinks/plugins/passkeys_ios/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - ua_client_hints (from `.symlinks/plugins/ua_client_hints/ios`)
 
 EXTERNAL SOURCES:
+  device_info_plus:
+    :path: ".symlinks/plugins/device_info_plus/ios"
   Flutter:
     :path: Flutter
   flutter_native_splash:
     :path: ".symlinks/plugins/flutter_native_splash/ios"
   fluttertoast:
     :path: ".symlinks/plugins/fluttertoast/ios"
+  package_info_plus:
+    :path: ".symlinks/plugins/package_info_plus/ios"
   passkeys_ios:
     :path: ".symlinks/plugins/passkeys_ios/ios"
   path_provider_foundation:
@@ -41,14 +51,16 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/ua_client_hints/ios"
 
 SPEC CHECKSUMS:
+  device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_native_splash: 6cad9122ea0fad137d23137dd14b937f3e90b145
+  flutter_native_splash: c32d145d68aeda5502d5f543ee38c192065986cf
   fluttertoast: 2c67e14dce98bbdb200df9e1acf610d7a6264ea1
+  package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   passkeys_ios: 939d7d44f825048c8dffd4644f52444164c80ecd
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   ua_client_hints: 92fe0d139619b73ec9fcb46cc7e079a26178f586
 
-PODFILE CHECKSUM: 4c438addb11b6da45ed7ae408823d68256222460
+PODFILE CHECKSUM: 1857a7cdb7dfafe45f2b0e9a9af44644190f7506
 
 COCOAPODS: 1.16.2

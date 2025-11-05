@@ -26,7 +26,6 @@ mixin _GasOverridesActions on SmartWalletBase {
   /// [op] is the user operation to which the gas settings should be applied.
   ///
   /// Returns a new [UserOperation] object with the updated gas settings.
-  @protected
   UserOperation overrideGas(UserOperation op) {
     if (state.gasOverrides == null) return op;
 

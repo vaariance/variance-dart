@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:variance_dart/variance_dart.dart';
-import 'package:variance_modules/modules.dart';
+import 'package:eip7579/modules.dart';
 import 'package:variancedemo/utils/exceptions.dart';
 import 'package:web3_signers/web3_signers.dart';
 
@@ -39,7 +39,8 @@ class ModuleProvider extends ChangeNotifier {
     socialRecovery = SocialRecovery(_wallet, threshold, owners);
     ownableExecutor = OwnableExecutor(_wallet, _guardian1.address);
     if (keyPair != null) {
-      webauthnValidator = WebauthnValidator(_wallet, BigInt.one, {keyPair});
+      webauthnValidator =
+          WebauthnValidator(_wallet, BigInt.one, true, [keyPair]);
     }
   }
 

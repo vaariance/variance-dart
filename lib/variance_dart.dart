@@ -2,7 +2,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 
 import 'package:eip1559/eip1559.dart';
 import 'package:http/http.dart' as http;
@@ -32,7 +32,7 @@ part 'src/common/utils.dart';
 part 'src/common/constants.dart';
 
 // actions
-part 'src/actions/7579_actions.dart';
+part 'src/actions/erc7579_actions.dart';
 part 'src/actions/bundler_actions.dart';
 part 'src/actions/gas_overrides_actions.dart';
 part 'src/actions/jsonRpc_actions.dart';

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:variance_dart/variance_dart.dart';
 import 'package:web3_signers/web3_signers.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import 'dart:typed_data';
 
@@ -43,11 +42,8 @@ class ModuleVerificationSheetState extends State<ModuleVerificationSheet> {
       contextData = hexToBytes(contextController.text);
     }
 
-    final result = (
-      selectedType,
-      EthereumAddress.fromHex(addressController.text),
-      contextData
-    );
+    final result =
+        (selectedType, Address.fromHex(addressController.text), contextData);
 
     Navigator.pop(context, result);
   }

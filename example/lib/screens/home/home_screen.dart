@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:eip7579/modules.dart';
 import 'package:variancedemo/providers/module_provider.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
 import 'package:variancedemo/screens/home/home_widgets.dart';
@@ -31,7 +32,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     final module = context.select((ModuleProvider provider) => provider);
 
-    final validator = provider.isModular ? module.webauthnValidator : null;
+    final validator = provider.isModular
+        ? module.webauthnValidator as ValidatorModuleInterface?
+        : null;
 
     return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.onSurface,
@@ -68,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           });
                                           final (success, res) =
                                               await provider.simulateTransfer(
-                                                  validator?.wallet);
+                                                  validator?.proxyTransaction);
                                           if (success) {
                                             setState(() {
                                               _mintTxHash = res;
@@ -149,8 +152,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           setState(() {
                                             _isLoadingMint = true;
                                           });
-                                          final (success, res) = await provider
-                                              .simulateMint(validator?.wallet);
+                                          final (success, res) =
+                                              await provider.simulateMint(
+                                                  validator?.proxyTransaction);
                                           if (success) {
                                             setState(() {
                                               _mintTxHash = res;

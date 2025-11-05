@@ -1,12 +1,17 @@
 import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:variance_modules/modules.dart';
+import 'package:eip7579/modules.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:variance_dart/variance_dart.dart';
-import 'package:web3dart/web3dart.dart';
 
 import '../models/wallet_creation_result.dart';
+
+typedef ProxyTransaction = Future<UserOperationResponse> Function(
+  List<Address> recipients,
+  List<Uint8List> calls, {
+  List<BigInt>? amountsInWei,
+});
 
 enum WalletCreationState {
   idle,
@@ -38,16 +43,16 @@ class WalletProvider extends ChangeNotifier {
   String get errorMessage => _errorMessage;
 
   // Contract addresses
-  final EthereumAddress nft =
-      EthereumAddress.fromHex("0xEBE46f55b40C0875354Ac749893fe45Ce28e1333");
-  // fuse = EthereumAddress.fromHex("0xBF20E2bB8bb6859A424C898d5a2995c3659b90f2");
-  final EthereumAddress erc20 =
-      EthereumAddress.fromHex("0x7BF7957315AFbC9bA717b004BB9E3f43321a9A48");
-  // fuse = EthereumAddress.fromHex("0xAc94c8dD3094AB2D68B092AA34A6e29A293E592a");
-  final EthereumAddress dump =
-      EthereumAddress.fromHex("0xf5bb7f874d8e3f41821175c0aa9910d30d10e193");
-  // final EthereumAddress p256Verifier =
-  //     EthereumAddress.fromHex("0xc2b78104907F722DABAc4C69f826a522B2754De4");
+  final Address nft =
+      Address.fromHex("0xEBE46f55b40C0875354Ac749893fe45Ce28e1333");
+  // fuse = Address.fromHex("0xBF20E2bB8bb6859A424C898d5a2995c3659b90f2");
+  final Address erc20 =
+      Address.fromHex("0x7BF7957315AFbC9bA717b004BB9E3f43321a9A48");
+  // fuse = Address.fromHex("0xAc94c8dD3094AB2D68B092AA34A6e29A293E592a");
+  final Address dump =
+      Address.fromHex("0xf5bb7f874d8e3f41821175c0aa9910d30d10e193");
+  // final Address p256Verifier =
+  //     Address.fromHex("0xc2b78104907F722DABAc4C69f826a522B2754De4");
 
   // Common parameters
   final salt = Uint256.zero;
@@ -56,11 +61,11 @@ class WalletProvider extends ChangeNotifier {
   // Constructor
   WalletProvider()
       : _chain = Chain(
-            bundlerUrl: rpc,
-            paymasterUrl: rpc,
+            bundler: (url: rpc, headers: null),
+            paymaster: (url: rpc, headers: null),
             testnet: true,
             chainId: 84532,
-            jsonRpcUrl: "https://sepolia.base.org",
+            jsonRpc: (url: "https://sepolia.base.org", headers: null),
             accountFactory: Addresses.safeProxyFactoryAddress,
             explorer: "https://base-sepolia.blockscout.com/",
             entrypoint: EntryPointAddress.v07);
@@ -139,12 +144,12 @@ class WalletProvider extends ChangeNotifier {
           break;
       }
       overrideGas();
-      log("Wallet created: ${_wallet?.address.hex}");
+      log("Wallet created: ${_wallet?.address.with0x}");
       _setSuccess();
       return WalletCreationResult(
         success: true,
         wallet: _wallet,
-        address: _wallet?.address.hex ?? '',
+        address: _wallet?.address.with0x ?? '',
       );
     } catch (e) {
       _setError(e.toString());
@@ -165,12 +170,12 @@ class WalletProvider extends ChangeNotifier {
 
     try {
       _wallet = await factory.createAlchemyLightAccount(salt);
-      log("Wallet created: ${_wallet?.address.hex}");
+      log("Wallet created: ${_wallet?.address.with0x}");
       _setSuccess();
       return WalletCreationResult(
         success: true,
         wallet: _wallet,
-        address: _wallet?.address.hex ?? '',
+        address: _wallet?.address.with0x ?? '',
       );
     } catch (e) {
       _setError(e.toString());
@@ -187,9 +192,9 @@ class WalletProvider extends ChangeNotifier {
     final signer = getSigner(signerType);
     final factory = SmartWalletFactory(_chain, signer);
     final launchpad =
-        EthereumAddress.fromHex("0x7579011aB74c46090561ea277Ba79D510c6C00ff");
+        Address.fromHex("0x7579011aB74c46090561ea277Ba79D510c6C00ff");
     final attester =
-        EthereumAddress.fromHex("0x000000333034E9f539ce08819E12c1b8Cb29084d");
+        Address.fromHex("0x000000333034E9f539ce08819E12c1b8Cb29084d");
 
     try {
       switch (signerType) {
@@ -204,7 +209,7 @@ class WalletProvider extends ChangeNotifier {
               attestersThreshold: 1,
               validators: List.from([
                 ModuleInit(WebauthnValidator.getAddress(),
-                    WebauthnValidator.parseInitData(BigInt.one, {keypair}))
+                    WebauthnValidator.parseInitData(BigInt.one, [keypair]))
               ]));
           _keyPair = keypair;
           break;
@@ -215,12 +220,12 @@ class WalletProvider extends ChangeNotifier {
       }
       _isModular = true;
       overrideGas();
-      log("Wallet created: ${_wallet?.address.hex}");
+      log("Wallet created: ${_wallet?.address.with0x}");
       _setSuccess();
       return WalletCreationResult(
         success: true,
         wallet: _wallet,
-        address: _wallet?.address.hex ?? '',
+        address: _wallet?.address.with0x ?? '',
       );
     } catch (e) {
       _setError(e.toString());
@@ -232,15 +237,15 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  Future<(bool, String)> simulateMint([TransactionBuilder? builder]) async {
+  Future<(bool, String)> simulateMint([ProxyTransaction? proxy]) async {
     final mintAbi = ContractAbis.get("ERC721_SafeMint");
-    final mintCall = Contract.encodeFunctionCall(
+    final mintCall = ContractUtils.encodeFunctionCall(
         "safeMint", nft, mintAbi, [_wallet?.address]);
 
     try {
       UserOperationResponse? tx;
-      if (builder != null) {
-        tx = await builder.sendTransaction(nft, mintCall);
+      if (proxy != null) {
+        tx = await proxy([nft], [mintCall]);
       } else {
         tx = await _wallet?.sendTransaction(nft, mintCall);
       }
@@ -259,19 +264,19 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  Future<(bool, String)> simulateTransfer([TransactionBuilder? builder]) async {
+  Future<(bool, String)> simulateTransfer([ProxyTransaction? proxy]) async {
     final mintAbi = ContractAbis.get("ERC20_Mint");
-    final amount = EtherAmount.fromInt(EtherUnit.ether, 20);
+    final amount = BigInt.from(20e18);
 
-    final mintCall = Contract.encodeFunctionCall(
-        "mint", erc20, mintAbi, [_wallet?.address, amount.getInWei]);
-    final transferCall = Contract.encodeERC20TransferCall(erc20, dump, amount);
+    final mintCall = ContractUtils.encodeFunctionCall(
+        "mint", erc20, mintAbi, [_wallet?.address, amount]);
+    final transferCall =
+        ContractUtils.encodeERC20TransferCall(erc20, dump, amount);
 
     try {
       UserOperationResponse? tx;
-      if (builder != null) {
-        tx = await builder
-            .sendBatchedTransaction([erc20, erc20], [mintCall, transferCall]);
+      if (proxy != null) {
+        tx = await proxy([erc20, erc20], [mintCall, transferCall]);
       } else {
         tx = await _wallet
             ?.sendBatchedTransaction([erc20, erc20], [mintCall, transferCall]);

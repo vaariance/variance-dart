@@ -46,7 +46,6 @@ class SmartWallet extends SmartWalletBase
   Chain get chain => _state.chain;
 
   @override
-  @protected
   String get dummySignature => _state.signer.getDummySignature();
 
   @override
@@ -59,7 +58,6 @@ class SmartWallet extends SmartWalletBase
   @override
   Future<bool> get isDeployed => deployed(_state.address);
 
-  @protected
   @override
   SmartWalletState get state => _state;
 
@@ -208,7 +206,6 @@ class SmartWallet extends SmartWalletBase
   }
 
   @override
-  @protected
   Future<String> generateSignature(
     UserOperation op,
     BlockInfo blockInfo,

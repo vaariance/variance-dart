@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:variance_modules/modules.dart';
+import 'package:eip7579/modules.dart';
 import 'package:variancedemo/providers/module_provider.dart';
 
 import '../utils/hex.dart';

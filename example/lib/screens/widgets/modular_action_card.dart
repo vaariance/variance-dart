@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:variance_dart/variance_dart.dart';
 import 'package:variancedemo/providers/wallet_provider.dart';
-import 'package:web3dart/web3dart.dart';
+import 'package:web3_signers/web3_signers.dart';
 import '../../sheets/module_install_sheet.dart';
 import '../../sheets/module_uninstall_sheet.dart';
 import '../../sheets/module_verification_sheet.dart';
@@ -209,7 +209,7 @@ class ModularActionsCard extends StatelessWidget {
   }
 
   void _verifyInstalledModule(BuildContext context) async {
-    final (ModuleType?, EthereumAddress, Uint8List?)? result =
+    final (ModuleType?, Address, Uint8List?)? result =
         await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
